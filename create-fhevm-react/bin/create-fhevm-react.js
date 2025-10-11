@@ -61,9 +61,7 @@ const sdkPackageSrc = path.join(bundledSdkDir, 'package.json');
 const sdkPackageDest = path.join(sdkDestDir, 'package.json');
 fs.copyFileSync(sdkPackageSrc, sdkPackageDest);
 
-// Copy Hardhat directory from bundled template
-const hardhatDestDir = path.join(projectDir, 'hardhat');
-copyRecursive(hardhatDir, hardhatDestDir);
+// Hardhat directory is already copied with template files above
 
 // Update package.json for local SDK dependency
 const packageJsonPath = path.join(projectDir, 'package.json');
