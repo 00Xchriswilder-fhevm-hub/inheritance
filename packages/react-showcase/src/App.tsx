@@ -9,6 +9,19 @@ const CONTRACT_ADDRESSES = {
   11155111: '0xead137D42d2E6A6a30166EaEf97deBA1C3D1954e', // Sepolia
 }
 
+// Sepolia network configuration
+const SEPOLIA_CONFIG = {
+  chainId: '0xaa36a7', // 11155111 in hex
+  chainName: 'Sepolia',
+  nativeCurrency: {
+    name: 'Sepolia Ether',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+  rpcUrls: ['https://sepolia.infura.io/v3/'],
+  blockExplorerUrls: ['https://sepolia.etherscan.io/'],
+}
+
 const CONTRACT_ABI = [
   {
     inputs: [],
@@ -64,6 +77,10 @@ function App() {
   const [fhevmStatus, setFhevmStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [fhevmError, setFhevmError] = useState<string>('');
 
+  // Network switching state
+  const [isSwitchingNetwork, setIsSwitchingNetwork] = useState(false);
+  const [networkError, setNetworkError] = useState<string>('');
+
   // Public decryption state
   const [publicDecryptedCount, setPublicDecryptedCount] = useState<number | null>(null);
   const [publicDecryptedSum, setPublicDecryptedSum] = useState<number | null>(null);
@@ -90,6 +107,64 @@ function App() {
       setFhevmStatus('error');
       setFhevmError(error instanceof Error ? error.message : 'Unknown error');
       console.error('FHEVM initialization failed:', error);
+    }
+  };
+
+  // Switch network to Sepolia
+  const switchNetworkToSepolia = async () => {
+    if (!window.ethereum) {
+      setNetworkError('No Ethereum provider found');
+      return;
+    }
+
+    try {
+      setIsSwitchingNetwork(true);
+      setNetworkError('');
+      setMessage('Switching to Sepolia network...');
+
+      // Try to switch to Sepolia network
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: SEPOLIA_CONFIG.chainId }],
+      });
+
+      // Update chain ID after successful switch
+      const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
+      setChainId(parseInt(chainIdHex, 16));
+      setMessage('Successfully switched to Sepolia!');
+      
+      console.log('✅ Network switched to Sepolia');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error: any) {
+      console.error('Network switch failed:', error);
+      
+      // If the chain doesn't exist, try to add it
+      if (error.code === 4902) {
+        try {
+          setMessage('Adding Sepolia network...');
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [SEPOLIA_CONFIG],
+          });
+          
+          // Update chain ID after adding
+          const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
+          setChainId(parseInt(chainIdHex, 16));
+          setMessage('Sepolia network added and switched!');
+          
+          console.log('✅ Sepolia network added and switched');
+          setTimeout(() => setMessage(''), 3000);
+        } catch (addError) {
+          console.error('Failed to add Sepolia network:', addError);
+          setNetworkError('Failed to add Sepolia network. Please add it manually in your wallet.');
+          setMessage('Failed to add Sepolia network');
+        }
+      } else {
+        setNetworkError(`Failed to switch network: ${error.message || 'Unknown error'}`);
+        setMessage('Failed to switch network');
+      }
+    } finally {
+      setIsSwitchingNetwork(false);
     }
   };
 
@@ -302,9 +377,6 @@ function App() {
                     </svg>
                   </div>
                   <span className="status-badge bg-red-600 text-white">ERROR</span>
-                  {fhevmError && (
-                    <span className="text-red-600 text-sm ml-2">{fhevmError}</span>
-                  )}
                 </div>
               ) : fhevmStatus === 'loading' ? (
                 <div className="flex items-center gap-2">
@@ -368,6 +440,8 @@ function App() {
                   setFhevmStatus('idle');
                   setFhevmError('');
                   setMessage('');
+                  setNetworkError('');
+                  setIsSwitchingNetwork(false);
                 }} className="btn-danger">
                   Disconnect
                 </button>
@@ -379,7 +453,21 @@ function App() {
                 <svg className="w-16 h-16 text-[#3A3A3A] mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
-                <p className="text-gray-400">Connect your wallet to use FHEVM features</p>
+                <p className="text-gray-400 mb-4">Connect your wallet to use FHEVM features</p>
+                
+                {/* Network switching notice */}
+                <div className="mt-6 p-4 bg-[#0A0A0A] border border-[#FFEB3B]/30 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg className="w-5 h-5 text-[#FFEB3B]" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+                    </svg>
+                    <span className="text-[#FFEB3B] font-semibold text-sm">Network Notice</span>
+                  </div>
+                  <p className="text-gray-400 text-xs leading-relaxed">
+                    <strong className="text-[#FFEB3B]">Important:</strong> This app requires the Sepolia testnet. 
+                    After connecting your wallet, you'll be prompted to switch to Sepolia if you're on a different network.
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -409,9 +497,44 @@ function App() {
                 <div className="info-card">
                   <div className="flex flex-col gap-2">
                     <span className="text-gray-400 text-sm font-medium">Contract</span>
-                    <span className="code-text text-[#FFEB3B]">{contractAddress}</span>
+                    {contractAddress === 'Not supported chain' ? (
+                      <div className="flex items-center justify-between">
+                        <span className="text-red-400 text-sm">Not supported chain</span>
+                        <button
+                          onClick={switchNetworkToSepolia}
+                          disabled={isSwitchingNetwork}
+                          className="btn-primary text-xs px-3 py-1"
+                        >
+                          {isSwitchingNetwork ? (
+                            <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                            </svg>
+                          ) : (
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                          )}
+                          {isSwitchingNetwork ? 'Switching...' : 'Switch to Sepolia'}
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="code-text text-[#FFEB3B]">{contractAddress}</span>
+                    )}
                   </div>
                 </div>
+                
+                {/* Network error display */}
+                {networkError && (
+                  <div className="info-card border-red-500/30 bg-red-500/5">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                      </svg>
+                      <span className="text-red-400 text-sm">{networkError}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

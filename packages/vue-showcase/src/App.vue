@@ -84,6 +84,20 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
                 <p>Connect your wallet to use FHEVM features</p>
+                
+                <!-- Network switching notice -->
+                <div class="network-notice">
+                  <div class="notice-header">
+                    <svg class="notice-icon" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="notice-title">Network Notice</span>
+                  </div>
+                  <p class="notice-text">
+                    <strong>Important:</strong> This app requires the Sepolia testnet. 
+                    After connecting your wallet, you'll be prompted to switch to Sepolia if you're on a different network.
+                  </p>
+                </div>
               </div>
               <div v-else class="connection-info">
                 <div class="info-card">
@@ -112,7 +126,34 @@
                 <div class="info-card">
                   <div class="info-column">
                     <span class="info-label">Contract</span>
-                    <span class="info-value code-text">{{ contractAddress }}</span>
+                    <div v-if="contractAddress === 'Not supported chain'" class="contract-error">
+                      <span class="error-text">Not supported chain</span>
+                      <button 
+                        @click="switchNetworkToSepolia"
+                        :disabled="isSwitchingNetwork"
+                        class="btn-primary btn-small"
+                      >
+                        <svg v-if="isSwitchingNetwork" class="icon animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                        </svg>
+                        <svg v-else class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        {{ isSwitchingNetwork ? 'Switching...' : 'Switch to Sepolia' }}
+                      </button>
+                    </div>
+                    <span v-else class="info-value code-text">{{ contractAddress }}</span>
+                  </div>
+                </div>
+                
+                <!-- Network error display -->
+                <div v-if="networkError" class="info-card network-error">
+                  <div class="error-content">
+                    <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="error-message">{{ networkError }}</span>
                   </div>
                 </div>
               </div>
@@ -369,6 +410,19 @@ const CONTRACT_ADDRESSES = {
   11155111: '0xead137D42d2E6A6a30166EaEf97deBA1C3D1954e', // Sepolia
 }
 
+// Sepolia network configuration
+const SEPOLIA_CONFIG = {
+  chainId: '0xaa36a7', // 11155111 in hex
+  chainName: 'Sepolia',
+  nativeCurrency: {
+    name: 'Sepolia Ether',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+  rpcUrls: ['https://sepolia.infura.io/v3/'],
+  blockExplorerUrls: ['https://sepolia.etherscan.io/'],
+}
+
 const CONTRACT_ABI = [
   {
     inputs: [],
@@ -412,6 +466,10 @@ const isDecrypting = ref(false)
 const message = ref<string>('')
 const fhevmStatus = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
 const fhevmError = ref<string>('')
+
+// Network switching state
+const isSwitchingNetwork = ref(false)
+const networkError = ref<string>('')
 
 // Public decryption state
 const publicDecryptedCount = ref<number | null>(null)
@@ -481,6 +539,64 @@ const connectWallet = async () => {
   }
 }
 
+// Switch network to Sepolia
+const switchNetworkToSepolia = async () => {
+  if (!window.ethereum) {
+    networkError.value = 'No Ethereum provider found'
+    return
+  }
+
+  try {
+    isSwitchingNetwork.value = true
+    networkError.value = ''
+    message.value = 'Switching to Sepolia network...'
+
+    // Try to switch to Sepolia network
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: SEPOLIA_CONFIG.chainId }],
+    })
+
+    // Update chain ID after successful switch
+    const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' })
+    chainId.value = parseInt(chainIdHex, 16)
+    message.value = 'Successfully switched to Sepolia!'
+    
+    console.log('✅ Network switched to Sepolia')
+    setTimeout(() => message.value = '', 3000)
+  } catch (error: any) {
+    console.error('Network switch failed:', error)
+    
+    // If the chain doesn't exist, try to add it
+    if (error.code === 4902) {
+      try {
+        message.value = 'Adding Sepolia network...'
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [SEPOLIA_CONFIG],
+        })
+        
+        // Update chain ID after adding
+        const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' })
+        chainId.value = parseInt(chainIdHex, 16)
+        message.value = 'Sepolia network added and switched!'
+        
+        console.log('✅ Sepolia network added and switched')
+        setTimeout(() => message.value = '', 3000)
+      } catch (addError) {
+        console.error('Failed to add Sepolia network:', addError)
+        networkError.value = 'Failed to add Sepolia network. Please add it manually in your wallet.'
+        message.value = 'Failed to add Sepolia network'
+      }
+    } else {
+      networkError.value = `Failed to switch network: ${error.message || 'Unknown error'}`
+      message.value = 'Failed to switch network'
+    }
+  } finally {
+    isSwitchingNetwork.value = false
+  }
+}
+
 // Disconnect wallet
 const disconnectWallet = () => {
   account.value = ''
@@ -495,6 +611,8 @@ const disconnectWallet = () => {
   fhevmStatus.value = 'idle'
   fhevmError.value = ''
   message.value = ''
+  networkError.value = ''
+  isSwitchingNetwork.value = false
   console.log('Wallet disconnected')
 }
 
@@ -646,5 +764,82 @@ const decrementCounter = async () => {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* Network switching styles */
+.network-notice {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #0A0A0A;
+  border: 1px solid rgba(255, 235, 59, 0.3);
+  border-radius: 0.5rem;
+}
+
+.notice-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.notice-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #FFEB3B;
+}
+
+.notice-title {
+  color: #FFEB3B;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.notice-text {
+  color: #9CA3AF;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.contract-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.error-text {
+  color: #F87171;
+  font-size: 0.875rem;
+}
+
+.btn-small {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.network-error {
+  border-color: rgba(248, 113, 113, 0.3);
+  background: rgba(248, 113, 113, 0.05);
+}
+
+.error-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.error-icon {
+  width: 1rem;
+  height: 1rem;
+  color: #F87171;
+  flex-shrink: 0;
+}
+
+.error-message {
+  color: #F87171;
+  font-size: 0.875rem;
 }
 </style>
