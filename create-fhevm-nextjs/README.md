@@ -1,124 +1,79 @@
-# create-fhevm-nextjs
+# create-fhevm-react
 
-Create a NextJS app with FHEVM SDK integration in seconds!
+A CLI to create a React app with FHEVM SDK integration.
 
-## 🚀 Quick Start
+## Usage
 
 ```bash
-npx create-fhevm-nextjs my-fhevm-app
-cd my-fhevm-app
-npm install
-npm run dev
-```
-
-## ✨ What You Get
-
-- ✅ **Complete NextJS project** with FHEVM SDK integration
-- ✅ **Bundled FHEVM SDK** - No workspace dependencies needed
-- ✅ **CDN relayer setup** - Automatic script injection
-- ✅ **TypeScript support** - Full type safety
-- ✅ **Example components** - Ready-to-use FHEVM operations
-- ✅ **Tailwind CSS** - Beautiful, responsive design
-- ✅ **Production ready** - Optimized for deployment
-- ✅ **Deployed FHE Counter Contract** - Live on Sepolia testnet
-- ✅ **Universal FHEVM SDK** - Complete utilities for FHE operations
-- ✅ **Complete Hardhat environment** - Smart contract development included
-
-## 🎯 Features
-
-### **FHEVM SDK Integration**
-- Complete FHEVM SDK with all adapters
-- React hooks for NextJS
-- TypeScript support
-- CDN relayer integration
-
-### **Example Components**
-- Wallet connection
-- FHEVM operations (encrypt/decrypt)
-- Smart contract interaction
-- Public decryption testing
-- Error handling
-
-### **Developer Experience**
-- Hot reloading
-- TypeScript IntelliSense
-- Tailwind CSS styling
-- Responsive design
-
-## 🏗️ Project Structure
-
-```
-my-fhevm-app/
-├── app/
-│   ├── layout.tsx          # CDN script + FhevmProvider
-│   ├── page.tsx            # Main showcase component
-│   └── providers/
-│       └── FhevmProvider.tsx
-├── fhevm-sdk/              # Bundled FHEVM SDK
-│   ├── dist/               # Built SDK files
-│   └── package.json        # SDK configuration
-├── types/
-│   ├── cdn.d.ts           # CDN type declarations
-│   └── ethereum.d.ts      # Ethereum types
-├── package.json           # Dependencies
-├── next.config.js         # NextJS configuration
-└── tailwind.config.js     # Tailwind configuration
-```
-
-## 🔧 Usage
-
-### **1. Create Project**
-```bash
-npx create-fhevm-nextjs my-app
-```
-
-### **2. Install Dependencies**
-```bash
+npx create-fhevm-react my-app
 cd my-app
 npm install
-```
-
-### **3. Start Development**
-```bash
-npm run dev
-```
-
-### **4. Build for Production**
-```bash
-npm run build
 npm start
 ```
 
-## 📦 Dependencies
+## Environment Setup
 
-The generated project includes:
+Before deploying contracts, you need to set up your environment variables:
 
-- **NextJS 15** - React framework
-- **FHEVM SDK** - Bundled locally
-- **Ethers.js** - Ethereum interactions
-- **Tailwind CSS** - Styling
-- **TypeScript** - Type safety
+### 1. Create a `.env` file in the `hardhat` directory:
 
-## 🚀 Deployment
+```bash
+cd hardhat
+touch .env
+```
 
-The generated project is ready for deployment on:
+### 2. Add your environment variables to `.env`:
 
-- **Vercel** - Recommended for NextJS
-- **Railway** - Great for monorepos
-- **Netlify** - Static site hosting
-- **Any Node.js hosting** - Docker, AWS, etc.
+```env
+# Your wallet mnemonic (12 or 24 words)
+MNEMONIC=your wallet mnemonic phrase here
 
-## 🎯 FHEVM Operations
+# Your Infura API key (get one at https://infura.io)
+INFURA_API_KEY=your_infura_api_key_here
 
-The generated app includes examples for:
+# Optional: Etherscan API key for contract verification
+ETHERSCAN_API_KEY=your_etherscan_api_key_here
+```
 
-- **Wallet Connection** - MetaMask integration
-- **FHEVM Initialization** - SDK setup
-- **Encryption/Decryption** - Data operations
-- **Smart Contract Interaction** - Blockchain operations
-- **Public Decryption** - Testing utilities
+### 3. Get your Infura API key:
+- Visit [https://infura.io](https://infura.io)
+- Sign up for a free account
+- Create a new project
+- Copy your project API key
 
-## 🏗️ Deployed FHE Counter Contract
+### 4. Deploy your contracts:
+
+```bash
+# Deploy to Sepolia testnet
+npm run deploy:sepolia
+```
+
+## What you get
+
+- Complete React application with FHEVM SDK integration
+- Bundled FHEVM SDK (no external dependencies)
+- Beautiful Zama-branded UI
+- TypeScript support
+- Tailwind CSS styling
+- Working FHEVM operations (encryption, decryption, contract interactions)
+- **Three Complete FHE Contracts** for testing on Sepolia testnet:
+  - **FHECounter**: Encrypted counter with increment/decrement
+  - **ReviewCardsFHE**: Encrypted rating system with public decryption
+  - **SimpleVoting**: Encrypted voting system with tally reveal
+- Public decryption demo with hardcoded ciphertexts
+- Ready-to-use React hooks
+- **Complete Hardhat development environment** with:
+  - All three FHE smart contracts
+  - Deployment scripts for Sepolia testnet
+  - Contract testing utilities
+  - TypeScript support for contracts
+- **Universal FHEVM SDK** with utilities for:
+  - FHEVM initialization
+  - Encrypted inputs creation
+  - User decryption with EIP-712 signing
+  - Public decryption flows
+
+## Deployed FHE Counter Contract
 
 The generated app includes a **pre-deployed FHE Counter Contract** on Sepolia testnet for testing:
 
@@ -130,13 +85,18 @@ The generated app includes a **pre-deployed FHE Counter Contract** on Sepolia te
   - User decryption with EIP-712 signing
   - Public decryption demo
 
-### **Universal FHEVM SDK Utilities**
-- **FHEVM Initialization** - SDK setup and configuration
-- **Encrypted Inputs Creation** - Generate encrypted data for contracts
-- **User Decryption** - EIP-712 signed decryption flows
-- **Public Decryption** - No signature required decryption
+## Features
 
-## 🔨 Smart Contract Development
+- ✅ **Self-contained**: No need to install FHEVM SDK separately
+- ✅ **Cross-platform**: Works on Windows, Mac, Linux
+- ✅ **Zero configuration**: Works out of the box
+- ✅ **Production ready**: Includes all necessary files and configurations
+- ✅ **Beautiful UI**: Zama design system with Tailwind CSS
+- ✅ **Real FHEVM operations**: Actual encryption/decryption functionality
+- ✅ **Live contract**: Pre-deployed FHE counter for immediate testing
+- ✅ **Complete development environment**: Includes Hardhat for smart contract development
+
+## Smart Contract Development
 
 The generated app includes a complete Hardhat development environment with all necessary files for FHEVM smart contract development:
 
@@ -144,9 +104,11 @@ The generated app includes a complete Hardhat development environment with all n
 ```
 hardhat/
 ├── contracts/
-│   └── FHECounter.sol          # FHE Counter smart contract
+│   ├── FHECounter.sol          # FHE Counter smart contract
+│   ├── ReviewCardsFHE_uint32.sol # FHE Rating system contract
+│   └── SimpleVoting_uint32.sol  # FHE Voting system contract
 ├── deploy/
-│   └── deploy.ts              # Deployment script
+│   └── deploy.ts              # Deployment script for all contracts
 ├── hardhat.config.js          # Hardhat configuration (JavaScript)
 ├── package.json               # Hardhat dependencies
 └── tsconfig.json             # TypeScript configuration
@@ -182,16 +144,11 @@ npm run deploy:sepolia
 - ✅ **Simplified Scripts** - Clean, focused deployment commands
 - ✅ **JavaScript Config** - No TypeScript compilation issues
 
-## 📚 Learn More
+## Requirements
 
-- [FHEVM Documentation](https://docs.fhevm.io)
-- [NextJS Documentation](https://nextjs.org/docs)
-- [Ethers.js Documentation](https://docs.ethers.org)
+- Node.js 16 or higher
+- npm or yarn
 
-## 🤝 Contributing
+## License
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-MIT License - see LICENSE file for details.
+MIT

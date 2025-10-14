@@ -79,26 +79,71 @@
               </button>
             </div>
             <div class="card-content">
-              <div v-if="!isConnected" class="empty-state">
-                <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
-                </svg>
-                <p>Connect your wallet to use FHEVM features</p>
-                
-                <!-- Network switching notice -->
-                <div class="network-notice">
-                  <div class="notice-header">
-                    <svg class="notice-icon" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                    </svg>
-                    <span class="notice-title">Network Notice</span>
-                  </div>
-                  <p class="notice-text">
-                    <strong>Important:</strong> This app requires the Sepolia testnet. 
-                    After connecting your wallet, you'll be prompted to switch to Sepolia if you're on a different network.
-                  </p>
-                </div>
-              </div>
+                          <div v-if="!isConnected" class="empty-state">
+                            <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                            <p>Connect your wallet to use FHEVM features</p>
+                            
+                            <!-- Network switching notice -->
+                            <div class="network-notice">
+                              <div class="notice-header">
+                                <svg class="notice-icon" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                </svg>
+                                <span class="notice-title">Network Notice</span>
+                              </div>
+                              <p class="notice-text">
+                                <strong>Important:</strong> This app requires the Sepolia testnet. 
+                                After connecting your wallet, you'll be prompted to switch to Sepolia if you're on a different network.
+                              </p>
+                            </div>
+
+                            <!-- SDK Features -->
+                            <div class="sdk-features">
+                              <div class="feature-item">
+                                <svg class="checkmark" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                <span>Vue compatible FHEVM</span>
+                              </div>
+                              <div class="feature-item">
+                                <svg class="checkmark" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                <span>No webpack bundling issues</span>
+                              </div>
+                              <div class="feature-item">
+                                <svg class="checkmark" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                <span>Real contract interactions</span>
+                              </div>
+                              <div class="feature-item">
+                                <svg class="checkmark" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                <span>Framework-agnostic core</span>
+                              </div>
+                              <div class="feature-item">
+                                <svg class="checkmark" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                <span>Works in React, Next.js, Vue</span>
+                              </div>
+                              <div class="feature-item">
+                                <svg class="checkmark" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                <span>Clean, simple API</span>
+                              </div>
+                            </div>
+
+                            <div class="sdk-note">
+                              <strong>Note:</strong> This is a demonstration using REAL FHEVM SDK from Zama's CDN. 
+                              The SDK provides actual encryption/decryption functionality on Sepolia testnet.
+                            </div>
+                          </div>
               <div v-else class="connection-info">
                 <div class="info-card">
                   <div class="info-row">
@@ -160,240 +205,37 @@
             </div>
           </div>
 
-          <!-- SDK Info -->
-          <div class="glass-card">
-            <div class="card-header">
-              <div class="card-title">
-                <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                </svg>
-                <div>
-                  <h2>Universal FHEVM SDK</h2>
-                  <p class="card-subtitle">Vue compatible implementation</p>
-                </div>
-              </div>
-            </div>
-            <div class="card-content">
-              <div class="features-list">
-                <div class="feature-item">
-                  <svg class="checkmark" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                  </svg>
-                  <span>Vue compatible FHEVM</span>
-                </div>
-                <div class="feature-item">
-                  <svg class="checkmark" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                  </svg>
-                  <span>No webpack bundling issues</span>
-                </div>
-                <div class="feature-item">
-                  <svg class="checkmark" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                  </svg>
-                  <span>Real contract interactions</span>
-                </div>
-                <div class="feature-item">
-                  <svg class="checkmark" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                  </svg>
-                  <span>Framework-agnostic core</span>
-                </div>
-                <div class="feature-item">
-                  <svg class="checkmark" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                  </svg>
-                  <span>Works in React, Next.js, Vue</span>
-                </div>
-                <div class="feature-item">
-                  <svg class="checkmark" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                  </svg>
-                  <span>Clean, simple API</span>
-                </div>
-              </div>
-              <div class="note">
-                <strong>Note:</strong> This is a demonstration using REAL FHEVM SDK from Zama's CDN. 
-                The SDK provides actual encryption/decryption functionality on Sepolia testnet.
-              </div>
-            </div>
-          </div>
+                      <!-- FHE Voting -->
+                      <FheVoting 
+                        v-if="isConnected && fhevmStatus === 'ready'"
+                        :account="account"
+                        :chainId="chainId"
+                        :isConnected="isConnected"
+                        :fhevmStatus="fhevmStatus"
+                        :onMessage="(msg) => message = msg"
+                      />
         </div>
 
-        <!-- Main Content Grid -->
-        <div class="main-grid">
-          <!-- FHEVM Counter Demo -->
-          <div v-if="isConnected && fhevmStatus === 'ready'" class="glass-card">
-            <div class="card-header">
-              <div class="card-title">
-                <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                </svg>
-                <div>
-                  <h2>FHEVM Counter Demo</h2>
-                  <p class="card-subtitle">Using REAL FHEVM SDK on Sepolia testnet</p>
-                </div>
-              </div>
-            </div>
-            <div class="card-content">
-              <div class="demo-controls">
-                <div class="control-group">
-                  <button @click="getCount" class="btn-primary w-full">
-                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                    </svg>
-                    Get Count
-                  </button>
-                  <div v-if="countHandle" class="info-card border-[#FFEB3B]/30">
-                    <span class="info-label">Encrypted Handle</span>
-                    <span class="info-value code-text">{{ countHandle }}</span>
-                  </div>
-                </div>
+                    <!-- Main Content Grid -->
+                    <div class="main-grid">
+                      <!-- FHEVM Counter Demo -->
+                      <FheCounter 
+                        :account="account"
+                        :chainId="chainId"
+                        :isConnected="isConnected"
+                        :fhevmStatus="fhevmStatus"
+                        :onMessage="(msg) => message = msg"
+                      />
 
-                <div class="divider"></div>
-
-                <div class="control-group">
-                  <button 
-                    @click="handleDecrypt" 
-                    :disabled="!countHandle || isDecrypting"
-                    class="btn-secondary w-full"
-                  >
-                    <svg v-if="isDecrypting" class="icon animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                    </svg>
-                    <svg v-else class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                    </svg>
-                    {{ isDecrypting ? 'Decrypting...' : 'Decrypt Count' }}
-                  </button>
-                  <div v-if="decryptedCount !== null" class="info-card">
-                    <div class="info-row">
-                      <span class="info-label">Decrypted Count</span>
-                      <span class="info-value result">{{ decryptedCount }}</span>
+                      <!-- FHE Ratings Demo -->
+                      <FheRatings 
+                        :account="account"
+                        :chainId="chainId"
+                        :isConnected="isConnected"
+                        :fhevmStatus="fhevmStatus"
+                        :onMessage="(msg) => message = msg"
+                      />
                     </div>
-                  </div>
-                </div>
-
-                <div class="divider"></div>
-
-                <div class="control-group">
-                  <div class="button-row">
-                    <button 
-                      @click="incrementCounter" 
-                      :disabled="isIncrementing || isDecrementing"
-                      class="btn-primary"
-                    >
-                      <svg v-if="isIncrementing" class="icon animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                      </svg>
-                      <svg v-else class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5v14"/>
-                      </svg>
-                      {{ isIncrementing ? 'Incrementing...' : '+ Increment' }}
-                    </button>
-                    <button 
-                      @click="decrementCounter" 
-                      :disabled="isIncrementing || isDecrementing"
-                      class="btn-danger"
-                    >
-                      <svg v-if="isDecrementing" class="icon animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                      </svg>
-                      <svg v-else class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"/>
-                      </svg>
-                      {{ isDecrementing ? 'Decrementing...' : '- Decrement' }}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Public Decryption Demo -->
-          <div v-if="fhevmStatus === 'ready'" class="glass-card">
-            <div class="card-header">
-              <div class="card-title">
-                <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                </svg>
-                <div>
-                  <h2>Public Decryption Demo</h2>
-                  <p class="card-subtitle">Testing with hardcoded ciphertexts</p>
-                </div>
-              </div>
-            </div>
-            <div class="card-content">
-              <div class="demo-controls">
-                <!-- Show ciphertexts initially -->
-                <div class="control-group">
-                  <div class="info-card">
-                    <span class="info-label">Encrypted Count Ciphertext</span>
-                    <span class="info-value code-text">{{ HARDCODED_CIPHERTEXTS.encryptedCount }}</span>
-                  </div>
-                  <div class="info-card">
-                    <span class="info-label">Encrypted Sum Ciphertext</span>
-                    <span class="info-value code-text">{{ HARDCODED_CIPHERTEXTS.encryptedSum }}</span>
-                  </div>
-                </div>
-
-                <div class="divider"></div>
-
-                <div class="control-group">
-                  <button 
-                    @click="handlePublicDecrypt"
-                    :disabled="isPublicDecrypting"
-                    class="btn-primary w-full"
-                  >
-                    <svg v-if="isPublicDecrypting" class="icon animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                    </svg>
-                    <svg v-else class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                    </svg>
-                    {{ isPublicDecrypting ? 'Decrypting...' : 'Test Public Decrypt' }}
-                  </button>
-                </div>
-
-                <!-- Show decrypted results only after clicking -->
-                <div v-if="publicDecryptedCount !== null || publicDecryptedSum !== null" class="result-section">
-                  <h3 class="result-title">Public Decryption Results:</h3>
-                  <div v-if="publicDecryptedCount !== null" class="info-card">
-                    <div class="info-row">
-                      <span class="info-label">Decrypted Count</span>
-                      <span class="info-value result">{{ publicDecryptedCount }}</span>
-                    </div>
-                  </div>
-                  <div v-if="publicDecryptedSum !== null" class="info-card">
-                    <div class="info-row">
-                      <span class="info-label">Decrypted Sum</span>
-                      <span class="info-value result">{{ publicDecryptedSum }}</span>
-                    </div>
-                  </div>
-                  <div class="note">
-                    These values were decrypted using public decryption (no user signature required)
-                  </div>
-                  <div class="note">
-                    <strong>Source:</strong> The encrypted count and sum ciphertexts are from the
-                    <a 
-                      href="https://sepolia.etherscan.io/address/0xb218c0a83fb718683ddbf97b56e01df3de3bfcf3#code" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      class="link"
-                    >
-                      ReviewCardsFHE.sol contract
-                    </a>
-                    on Sepolia. These ciphertexts are publicly decryptable, demonstrating the public decryption functionality.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </main>
   </div>
@@ -402,7 +244,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ethers } from 'ethers'
-import { initializeFheInstance, decryptValue, createEncryptedInput, publicDecrypt } from '@fhevm-sdk'
+import { initializeFheInstance, publicDecrypt } from '@fhevm-sdk'
+import FheCounter from './components/FheCounter.vue'
+import FheRatings from './components/FheRatings.vue'
+import FheVoting from './components/FheVoting.vue'
 
 // Contract configuration
 const CONTRACT_ADDRESSES = {
@@ -423,68 +268,24 @@ const SEPOLIA_CONFIG = {
   blockExplorerUrls: ['https://sepolia.etherscan.io/'],
 }
 
-const CONTRACT_ABI = [
-  {
-    inputs: [],
-    name: "getCount",
-    outputs: [{ internalType: "euint32", name: "", type: "bytes32" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      { internalType: "externalEuint32", name: "inputEuint32", type: "bytes32" },
-      { internalType: "bytes", name: "inputProof", type: "bytes" },
-    ],
-    name: "increment",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      { internalType: "externalEuint32", name: "inputEuint32", type: "bytes32" },
-      { internalType: "bytes", name: "inputProof", type: "bytes" },
-    ],
-    name: "decrement",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-]
-
 // Reactive state
 const account = ref<string>('')
 const chainId = ref<number>(0)
 const isConnected = ref(false)
 const fheInstance = ref<any>(null)
-const countHandle = ref<string>('')
-const decryptedCount = ref<number | null>(null)
-const isIncrementing = ref(false)
-const isDecrementing = ref(false)
-const isDecrypting = ref(false)
 const message = ref<string>('')
 const fhevmStatus = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
 const fhevmError = ref<string>('')
+
+const contractAddress = computed(() => 
+  CONTRACT_ADDRESSES[chainId.value as keyof typeof CONTRACT_ADDRESSES] || 'Not supported chain'
+)
 
 // Network switching state
 const isSwitchingNetwork = ref(false)
 const networkError = ref<string>('')
 
-// Public decryption state
-const publicDecryptedCount = ref<number | null>(null)
-const publicDecryptedSum = ref<number | null>(null)
-const isPublicDecrypting = ref(false)
 
-// Hardcoded ciphertexts for public decryption demo
-const HARDCODED_CIPHERTEXTS = {
-  encryptedCount: "0x42bbe4377f93c8e01c6ea6a9bfe98cab65b67b97e1ff0000000000aa36a70500",
-  encryptedSum: "0x1495e50acd5cef684c3a9cae49e18a13d631768f70ff0000000000aa36a70500"
-}
-
-const contractAddress = computed(() => 
-  CONTRACT_ADDRESSES[chainId.value as keyof typeof CONTRACT_ADDRESSES] || 'Not supported chain'
-)
 
 // Initialize FHEVM
 const initializeFhevm = async () => {
@@ -616,142 +417,6 @@ const disconnectWallet = () => {
   console.log('Wallet disconnected')
 }
 
-// Get encrypted count from contract
-const getCount = async () => {
-  if (!isConnected.value || !contractAddress.value || !window.ethereum) return
-  
-  try {
-    message.value = 'Reading contract...'
-    const provider = new ethers.BrowserProvider(window.ethereum)
-    const contract = new ethers.Contract(contractAddress.value, CONTRACT_ABI, provider)
-    const result = await contract.getCount()
-    countHandle.value = result
-    message.value = 'Contract read successfully!'
-    setTimeout(() => message.value = '', 3000)
-  } catch (error) {
-    console.error('Get count failed:', error)
-    message.value = 'Failed to get count'
-  }
-}
-
-// Decrypt count using EIP-712
-const handleDecrypt = async () => {
-  if (!countHandle.value || !window.ethereum) return
-  
-  try {
-    isDecrypting.value = true
-    message.value = 'Decrypting with EIP-712 user decryption...'
-    
-    // Get signer for EIP-712 signature
-    const provider = new ethers.BrowserProvider(window.ethereum)
-    const signer = await provider.getSigner()
-    
-    const result = await decryptValue(countHandle.value, contractAddress.value, signer)
-    decryptedCount.value = result
-    message.value = 'EIP-712 decryption completed!'
-    setTimeout(() => message.value = '', 3000)
-  } catch (error) {
-    console.error('Decryption failed:', error)
-    message.value = 'Decryption failed'
-  } finally {
-    isDecrypting.value = false
-  }
-}
-
-// Public decryption function
-const handlePublicDecrypt = async () => {
-  if (fhevmStatus.value !== 'ready') return
-  
-  try {
-    isPublicDecrypting.value = true
-    message.value = 'Testing public decryption...'
-    
-    // Test public decryption with hardcoded ciphertexts
-    const countResult = await publicDecrypt(HARDCODED_CIPHERTEXTS.encryptedCount)
-    const sumResult = await publicDecrypt(HARDCODED_CIPHERTEXTS.encryptedSum)
-    
-    publicDecryptedCount.value = countResult
-    publicDecryptedSum.value = sumResult
-    message.value = 'Public decryption completed!'
-    
-    console.log('✅ Public decryption results:')
-    console.log('Count:', countResult)
-    console.log('Sum:', sumResult)
-    
-    setTimeout(() => message.value = '', 3000)
-  } catch (error) {
-    console.error('Public decryption failed:', error)
-    message.value = 'Public decryption failed'
-  } finally {
-    isPublicDecrypting.value = false
-  }
-}
-
-// Increment counter
-const incrementCounter = async () => {
-  if (!isConnected.value || !contractAddress.value || !window.ethereum || !fheInstance.value) return
-  
-  try {
-    isIncrementing.value = true
-    message.value = 'Starting increment transaction...'
-    
-    const provider = new ethers.BrowserProvider(window.ethereum)
-    const signer = await provider.getSigner()
-    const contract = new ethers.Contract(contractAddress.value, CONTRACT_ABI, signer)
-    
-    message.value = 'Encrypting input...'
-    const encryptedInput = await createEncryptedInput(contractAddress.value, account.value, 1)
-    
-    message.value = 'Sending transaction...'
-    const tx = await contract.increment(encryptedInput.encryptedData, encryptedInput.proof)
-    
-    message.value = 'Waiting for confirmation...'
-    const receipt = await tx.wait()
-    
-    message.value = 'Increment completed!'
-    console.log('✅ Increment transaction completed:', receipt)
-    
-    setTimeout(() => message.value = '', 3000)
-  } catch (error) {
-    console.error('Increment failed:', error)
-    message.value = 'Increment failed'
-  } finally {
-    isIncrementing.value = false
-  }
-}
-
-// Decrement counter
-const decrementCounter = async () => {
-  if (!isConnected.value || !contractAddress.value || !window.ethereum || !fheInstance.value) return
-  
-  try {
-    isDecrementing.value = true
-    message.value = 'Starting decrement transaction...'
-    
-    const provider = new ethers.BrowserProvider(window.ethereum)
-    const signer = await provider.getSigner()
-    const contract = new ethers.Contract(contractAddress.value, CONTRACT_ABI, signer)
-    
-    message.value = 'Encrypting input...'
-    const encryptedInput = await createEncryptedInput(contractAddress.value, account.value, 1)
-    
-    message.value = 'Sending transaction...'
-    const tx = await contract.decrement(encryptedInput.encryptedData, encryptedInput.proof)
-    
-    message.value = 'Waiting for confirmation...'
-    const receipt = await tx.wait()
-    
-    message.value = 'Decrement completed!'
-    console.log('✅ Decrement transaction completed:', receipt)
-    
-    setTimeout(() => message.value = '', 3000)
-  } catch (error) {
-    console.error('Decrement failed:', error)
-    message.value = 'Decrement failed'
-  } finally {
-    isDecrementing.value = false
-  }
-}
 </script>
 
 <style>
@@ -841,5 +506,43 @@ const decrementCounter = async () => {
 .error-message {
   color: #F87171;
   font-size: 0.875rem;
+}
+
+/* SDK Features in Wallet Connection */
+.sdk-features {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sdk-features .feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #D1D5DB;
+}
+
+.sdk-features .checkmark {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: #10B981;
+  flex-shrink: 0;
+}
+
+.sdk-note {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #0A0A0A;
+  border: 1px solid rgba(255, 235, 59, 0.3);
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: #9CA3AF;
+}
+
+.sdk-note strong {
+  color: #FFEB3B;
 }
 </style>

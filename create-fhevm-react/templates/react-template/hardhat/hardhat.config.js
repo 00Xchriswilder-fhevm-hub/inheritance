@@ -7,7 +7,7 @@ require("hardhat-deploy");
 require("hardhat-gas-reporter");
 require("solidity-coverage");
 
-const MNEMONIC = process.env.MNEMONIC || "play cement much paper mandate rubber marble ketchup over wonder critic survey";
+const MNEMONIC = process.env.MNEMONIC || "YOUR_WALLET_MNEMONIC_HERE";
 const INFURA_API_KEY = process.env.INFURA_API_KEY || "";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
 

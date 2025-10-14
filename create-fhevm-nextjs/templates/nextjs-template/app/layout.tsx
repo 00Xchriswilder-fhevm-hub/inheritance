@@ -4,8 +4,8 @@ import { FhevmProvider } from './providers/FhevmProvider'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'FHEVM NextJS App',
-  description: 'NextJS app with FHEVM SDK integration',
+  title: 'Universal FHEVM SDK - Next.js Showcase',
+  description: 'Clean, simple FHEVM implementation that actually works',
 }
 
 export default function RootLayout({

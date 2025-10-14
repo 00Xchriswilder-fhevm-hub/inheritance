@@ -11,6 +11,43 @@ npm install
 npm start
 ```
 
+## Environment Setup
+
+Before deploying contracts, you need to set up your environment variables:
+
+### 1. Create a `.env` file in the `hardhat` directory:
+
+```bash
+cd hardhat
+touch .env
+```
+
+### 2. Add your environment variables to `.env`:
+
+```env
+# Your wallet mnemonic (12 or 24 words)
+MNEMONIC=your wallet mnemonic phrase here
+
+# Your Infura API key (get one at https://infura.io)
+INFURA_API_KEY=your_infura_api_key_here
+
+# Optional: Etherscan API key for contract verification
+ETHERSCAN_API_KEY=your_etherscan_api_key_here
+```
+
+### 3. Get your Infura API key:
+- Visit [https://infura.io](https://infura.io)
+- Sign up for a free account
+- Create a new project
+- Copy your project API key
+
+### 4. Deploy your contracts:
+
+```bash
+# Deploy to Sepolia testnet
+npm run deploy:sepolia
+```
+
 ## What you get
 
 - Complete React application with FHEVM SDK integration
@@ -19,11 +56,14 @@ npm start
 - TypeScript support
 - Tailwind CSS styling
 - Working FHEVM operations (encryption, decryption, contract interactions)
-- **Deployed FHE Counter Contract** for testing on Sepolia testnet
+- **Three Complete FHE Contracts** for testing on Sepolia testnet:
+  - **FHECounter**: Encrypted counter with increment/decrement
+  - **ReviewCardsFHE**: Encrypted rating system with public decryption
+  - **SimpleVoting**: Encrypted voting system with tally reveal
 - Public decryption demo with hardcoded ciphertexts
 - Ready-to-use React hooks
 - **Complete Hardhat development environment** with:
-  - FHE Counter smart contract
+  - All three FHE smart contracts
   - Deployment scripts for Sepolia testnet
   - Contract testing utilities
   - TypeScript support for contracts
@@ -64,9 +104,11 @@ The generated app includes a complete Hardhat development environment with all n
 ```
 hardhat/
 ├── contracts/
-│   └── FHECounter.sol          # FHE Counter smart contract
+│   ├── FHECounter.sol          # FHE Counter smart contract
+│   ├── ReviewCardsFHE_uint32.sol # FHE Rating system contract
+│   └── SimpleVoting_uint32.sol  # FHE Voting system contract
 ├── deploy/
-│   └── deploy.ts              # Deployment script
+│   └── deploy.ts              # Deployment script for all contracts
 ├── hardhat.config.js          # Hardhat configuration (JavaScript)
 ├── package.json               # Hardhat dependencies
 └── tsconfig.json             # TypeScript configuration
