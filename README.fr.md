@@ -245,7 +245,9 @@ Tous les exemples fonctionnent avec **des interactions FHEVM réelles** sur le t
 - **![Vue.js](https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vue.js&logoColor=4FC08D) Vue Showcase :** [https://vue-showcase-2780.up.railway.app/](https://vue-showcase-2780.up.railway.app/)
 
 **Détails du Contrat :**
-- **Contrat :** `0xead137D42d2E6A6a30166EaEf97deBA1C3D1954e`
+- **Contrat FHE Counter :** `0xead137D42d2E6A6a30166EaEf97deBA1C3D1954e`
+- **Contrat Ratings :** `0xcA2430F1B112EC25cF6b6631bb40039aCa0C86e0`
+- **Contrat Voting :** `0x7294A541222ce449faa2B8A7214C571b0fCAb52E`
 - **Réseau :** Testnet Sepolia (Chain ID: 11155111)
 - **Fonctionnalités :** Chiffrement réel, déchiffrement, interactions de contrat
 

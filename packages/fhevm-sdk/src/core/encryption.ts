@@ -1,6 +1,18 @@
 /**
  * FHEVM Encryption - Universal SDK
  * Simple encryption using your working implementation
+ * 
+ * 📝 BIT SIZE SUPPORT:
+ * FHEVM supports different bit sizes for encrypted values. If your contract uses a different bit size
+ * than the default 32-bit, you can use the appropriate method:
+ * - add8(value)   - for 8-bit values (0-255)
+ * - add16(value) - for 16-bit values (0-65535) 
+ * - add32(value) - for 32-bit values (0-4294967295) - DEFAULT
+ * - add64(value) - for 64-bit values (0-18446744073709551615)
+ * - add128(value) - for 128-bit values
+ * - add256(value) - for 256-bit values
+ * 
+ * Example: If your contract expects 8-bit values, replace add32() with add8()
  */
 
 import { getFheInstance } from './fhevm.js';

@@ -1,72 +1,282 @@
 /**
  * Vue Adapter - Universal FHEVM SDK
- * Placeholder Vue composables - actual implementation in Vue showcase
+ * Vue composables for FHEVM operations
  */
 
-// These are placeholder functions for the SDK
-// The actual Vue implementation with ref(), computed(), etc. 
-// would be in the Vue showcase itself
+// Vue types will be available when used in Vue projects
+// @ts-ignore
+import { ref, computed } from 'vue';
+import { initializeFheInstance, createEncryptedInput, requestUserDecryption, fetchPublicDecryption } from '../core/index.js';
+import { Signer } from 'ethers';
 
-export function useWallet() {
+// Wallet composable
+export function useWalletVue() {
+  const address = ref<string>('');
+  const isConnected = ref<boolean>(false);
+  const chainId = ref<number>(0);
+  const isConnecting = ref<boolean>(false);
+  const error = ref<string>('');
+
+  const connect = async () => {
+    if (!window.ethereum) {
+      error.value = 'MetaMask not detected';
+      return;
+    }
+
+    try {
+      isConnecting.value = true;
+      error.value = '';
+      
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      if (accounts.length > 0) {
+        address.value = accounts[0];
+        isConnected.value = true;
+        
+        // Get chain ID
+        const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
+        chainId.value = parseInt(chainIdHex, 16);
+      }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Connection failed';
+    } finally {
+      isConnecting.value = false;
+    }
+  };
+
+  const disconnect = () => {
+    address.value = '';
+    isConnected.value = false;
+    chainId.value = 0;
+    error.value = '';
+  };
+
   return {
-    address: '',
-    isConnected: false,
-    chainId: 0,
-    isConnecting: false,
-    error: '',
-    connect: async () => {},
-    disconnect: () => {},
+    address: computed(() => address.value),
+    isConnected: computed(() => isConnected.value),
+    chainId: computed(() => chainId.value),
+    isConnecting: computed(() => isConnecting.value),
+    error: computed(() => error.value),
+    connect,
+    disconnect,
   };
 }
 
-export function useFhevm() {
+// FHEVM composable
+export function useFhevmVue() {
+  const instance = ref<any>(null);
+  const status = ref<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const error = ref<string>('');
+
+  const initialize = async () => {
+    try {
+      status.value = 'loading';
+      error.value = '';
+      instance.value = await initializeFheInstance();
+      status.value = 'ready';
+    } catch (err) {
+      status.value = 'error';
+      error.value = err instanceof Error ? err.message : 'FHEVM initialization failed';
+    }
+  };
+
+  const isInitialized = computed(() => status.value === 'ready');
+
   return {
-    instance: null,
-    status: 'idle' as const,
-    error: '',
-    initialize: async () => {},
-    isInitialized: false,
+    instance: computed(() => instance.value),
+    status: computed(() => status.value),
+    error: computed(() => error.value),
+    initialize,
+    isInitialized,
   };
 }
 
-export function useContract(address: string, abi: any[]) {
+// Contract composable
+export function useContractVue(address: string, abi: any[]) {
+  const contract = ref<any>(null);
+  const isReady = ref<boolean>(false);
+  const error = ref<string>('');
+
+  const initializeContract = async () => {
+    try {
+      if (!window.ethereum) {
+        throw new Error('MetaMask not detected');
+      }
+      
+      const provider = new (window as any).ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      contract.value = new (window as any).ethers.Contract(address, abi, signer);
+      isReady.value = true;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Contract initialization failed';
+    }
+  };
+
   return {
-    contract: null,
-    isReady: false,
-    error: '',
+    contract: computed(() => contract.value),
+    isReady: computed(() => isReady.value),
+    error: computed(() => error.value),
+    initializeContract,
   };
 }
 
-export function useDecrypt() {
+// Decryption composable
+export function useDecryptVue() {
+  const isDecrypting = ref<boolean>(false);
+  const error = ref<string>('');
+
+  const decrypt = async (contractAddress: string, signer: Signer, ciphertextHandle: string) => {
+    try {
+      isDecrypting.value = true;
+      error.value = '';
+      const result = await requestUserDecryption(contractAddress, signer, ciphertextHandle);
+      return result;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Decryption failed';
+      return null;
+    } finally {
+      isDecrypting.value = false;
+    }
+  };
+
+  const publicDecrypt = async (encryptedData: any) => {
+    try {
+      isDecrypting.value = true;
+      error.value = '';
+      const result = await fetchPublicDecryption(encryptedData);
+      return result;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Public decryption failed';
+      return null;
+    } finally {
+      isDecrypting.value = false;
+    }
+  };
+
   return {
-    decrypt: async () => 0,
-    publicDecrypt: async () => 0,
-    isDecrypting: false,
-    error: '',
+    decrypt,
+    publicDecrypt,
+    isDecrypting: computed(() => isDecrypting.value),
+    error: computed(() => error.value),
   };
 }
 
-export function useEncrypt() {
+// Encryption composable
+export function useEncryptVue() {
+  const isEncrypting = ref<boolean>(false);
+  const error = ref<string>('');
+
+  const encrypt = async (contractAddress: string, userAddress: string, value: number) => {
+    try {
+      isEncrypting.value = true;
+      error.value = '';
+      const result = await createEncryptedInput(contractAddress, userAddress, value);
+      return result;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Encryption failed';
+      return null;
+    } finally {
+      isEncrypting.value = false;
+    }
+  };
+
   return {
-    encrypt: async () => ({ encryptedData: '', proof: '' }),
-    isEncrypting: false,
-    error: '',
+    encrypt,
+    isEncrypting: computed(() => isEncrypting.value),
+    error: computed(() => error.value),
   };
 }
 
-export function useFhevmOperations() {
+// Combined FHEVM operations composable
+export function useFhevmOperationsVue() {
+  const isEncrypting = ref<boolean>(false);
+  const isDecrypting = ref<boolean>(false);
+  const isProcessing = ref<boolean>(false);
+  const encryptError = ref<string>('');
+  const decryptError = ref<string>('');
+  const message = ref<string>('');
+
+  const encrypt = async (contractAddress: string, userAddress: string, value: number) => {
+    try {
+      isEncrypting.value = true;
+      encryptError.value = '';
+      message.value = 'Encrypting value...';
+      const result = await createEncryptedInput(contractAddress, userAddress, value);
+      message.value = 'Encryption successful';
+      return result;
+    } catch (err) {
+      encryptError.value = err instanceof Error ? err.message : 'Encryption failed';
+      message.value = 'Encryption failed';
+      return null;
+    } finally {
+      isEncrypting.value = false;
+    }
+  };
+
+  const decrypt = async (contractAddress: string, signer: Signer, ciphertextHandle: string) => {
+    try {
+      isDecrypting.value = true;
+      decryptError.value = '';
+      message.value = 'Decrypting value...';
+      const result = await requestUserDecryption(contractAddress, signer, ciphertextHandle);
+      message.value = 'Decryption successful';
+      return result;
+    } catch (err) {
+      decryptError.value = err instanceof Error ? err.message : 'Decryption failed';
+      message.value = 'Decryption failed';
+      return null;
+    } finally {
+      isDecrypting.value = false;
+    }
+  };
+
+  const publicDecrypt = async (encryptedData: any) => {
+    try {
+      isDecrypting.value = true;
+      decryptError.value = '';
+      message.value = 'Public decrypting value...';
+      const result = await fetchPublicDecryption(encryptedData);
+      message.value = 'Public decryption successful';
+      return result;
+    } catch (err) {
+      decryptError.value = err instanceof Error ? err.message : 'Public decryption failed';
+      message.value = 'Public decryption failed';
+      return null;
+    } finally {
+      isDecrypting.value = false;
+    }
+  };
+
+  const executeTransaction = async (contract: any, method: string, ...args: any[]) => {
+    try {
+      isProcessing.value = true;
+      message.value = 'Executing transaction...';
+      const tx = await contract[method](...args);
+      const receipt = await tx.wait();
+      message.value = 'Transaction successful';
+      return { tx, receipt };
+    } catch (err) {
+      message.value = 'Transaction failed';
+      return { tx: null, receipt: null };
+    } finally {
+      isProcessing.value = false;
+    }
+  };
+
+  const isBusy = computed(() => isEncrypting.value || isDecrypting.value || isProcessing.value);
+  const hasError = computed(() => !!encryptError.value || !!decryptError.value);
+
   return {
-    encrypt: async () => ({ encryptedData: '', proof: '' }),
-    isEncrypting: false,
-    encryptError: '',
-    decrypt: async () => 0,
-    publicDecrypt: async () => 0,
-    isDecrypting: false,
-    decryptError: '',
-    executeTransaction: async () => ({ tx: null, receipt: null }),
-    isProcessing: false,
-    message: '',
-    isBusy: false,
-    hasError: false,
+    encrypt,
+    decrypt,
+    publicDecrypt,
+    executeTransaction,
+    isEncrypting: computed(() => isEncrypting.value),
+    isDecrypting: computed(() => isDecrypting.value),
+    isProcessing: computed(() => isProcessing.value),
+    encryptError: computed(() => encryptError.value),
+    decryptError: computed(() => decryptError.value),
+    message: computed(() => message.value),
+    isBusy,
+    hasError,
   };
 }

@@ -465,7 +465,9 @@ All examples are running with **real FHEVM interactions** on Sepolia testnet:
 - **![Vue.js](https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vue.js&logoColor=4FC08D) Vue Showcase:** [https://vue-showcase-2780.up.railway.app/](https://vue-showcase-2780.up.railway.app/)
 
 **Contract Details:**
-- **Contract:** `0xead137D42d2E6A6a30166EaEf97deBA1C3D1954e`
+- **FHE Counter Contract:** `0xead137D42d2E6A6a30166EaEf97deBA1C3D1954e`
+- **Ratings Contract:** `0xcA2430F1B112EC25cF6b6631bb40039aCa0C86e0`
+- **Voting Contract:** `0x7294A541222ce449faa2B8A7214C571b0fCAb52E`
 - **Network:** Sepolia testnet (Chain ID: 11155111)
 - **Features:** Real encryption, decryption, contract interactions
 

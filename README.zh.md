@@ -272,7 +272,9 @@ npm run dev
 
 **合约详情：**
 
-- **合约：** `0xead137D42d2E6A6a30166EaEf97deBA1C3D1954e`
+- **FHE计数器合约：** `0xead137D42d2E6A6a30166EaEf97deBA1C3D1954e`
+- **评分合约：** `0xcA2430F1B112EC25cF6b6631bb40039aCa0C86e0`
+- **投票合约：** `0x7294A541222ce449faa2B8A7214C571b0fCAb52E`
 - **网络：** Sepolia测试网 (链ID: 11155111)
 - **功能：** 真实加密、解密、合约交互
 
