@@ -1,15 +1,19 @@
-# create-fhevm-react
+# create-fhevm-vue
 
-A CLI to create a React app with FHEVM SDK integration.
+A CLI to create a Vue app with FHEVM SDK integration.
 
 ## Usage
 
 ```bash
-npx create-fhevm-react my-app
+npx create-fhevm-vue my-app
 cd my-app
 npm install
-npm start
+# Copy FHEVM SDK for production deployment
+cp fhevm-sdk/dist/fhevmInstance.js src/lib/
+npm run dev
 ```
+
+**📝 Note:** Copy the consolidated `fhevmInstance.js` file to `src/lib/` for production deployment compatibility. Update imports from `@fhevm-sdk` to `./lib/fhevmInstance` in your components.
 
 ## Environment Setup
 

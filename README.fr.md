@@ -79,7 +79,7 @@ npx create-fhevm-react my-app
 cd my-app
 npm install
 # Copier le SDK FHEVM pour le déploiement en production
-cp node_modules/@fhevm-sdk/dist/* src/lib/
+cp fhevm-sdk/dist/fhevmInstance.js src/lib/
 npm start
 
 # Next.js
@@ -87,7 +87,7 @@ npx create-fhevm-nextjs my-app
 cd my-app
 npm install
 # Copier le SDK FHEVM pour le déploiement en production
-cp node_modules/@fhevm-sdk/dist/* src/lib/
+cp fhevm-sdk/dist/fhevmInstance.js src/lib/
 npm run dev
 
 # Vue 
@@ -95,11 +95,11 @@ npx create-fhevm-vue my-app
 cd my-app
 npm install
 # Copier le SDK FHEVM pour le déploiement en production
-cp node_modules/@fhevm-sdk/dist/* src/lib/
+cp fhevm-sdk/dist/fhevmInstance.js src/lib/
 npm run dev
 ```
 
-**📝 Note :** Copiez les fichiers SDK FHEVM vers `src/lib/` pour la compatibilité du déploiement en production. Mettez à jour les imports de `@fhevm-sdk` vers `./lib/fhevm` dans vos composants.
+**📝 Note :** Copiez le fichier consolidé `fhevmInstance.js` vers `src/lib/` pour la compatibilité du déploiement en production. Mettez à jour les imports de `@fhevm-sdk` vers `./lib/fhevmInstance` dans vos composants.
 
 ### **Option 2 : Environnement de Développement**
 Clonez et exécutez l'environnement de développement complet :
