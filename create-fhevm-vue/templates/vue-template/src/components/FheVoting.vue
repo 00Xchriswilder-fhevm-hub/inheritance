@@ -284,7 +284,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { ethers } from 'ethers'
-import { initializeFheInstance, createEncryptedInput } from 'fhevm-sdk'
+import { initializeFheInstance, createEncryptedInput } from '../lib/fhevm'
 
 // Contract ABI for SimpleVoting_uint32
 const VOTING_CONTRACT_ABI = [

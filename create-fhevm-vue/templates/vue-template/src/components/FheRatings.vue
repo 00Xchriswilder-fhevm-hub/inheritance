@@ -165,7 +165,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { ethers } from 'ethers'
-import { createEncryptedInput, publicDecrypt } from 'fhevm-sdk'
+import { createEncryptedInput, publicDecrypt } from '../lib/fhevm'
 
 // Contract configuration
 const RATINGS_CONTRACT_ADDRESS = '0xcA2430F1B112EC25cF6b6631bb40039aCa0C86e0'

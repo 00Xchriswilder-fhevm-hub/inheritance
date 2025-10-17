@@ -1,6 +1,6 @@
 [build]
-  command = "pnpm install && pnpm sdk:build && cd packages/vue-showcase && rm -rf node_modules/@fhevm-sdk && mkdir -p node_modules/@fhevm-sdk && cp -r ../../fhevm-sdk/dist node_modules/@fhevm-sdk/ && cp ../../fhevm-sdk/package.json node_modules/@fhevm-sdk/ && pnpm run build"
-  publish = "packages/vue-showcase/dist"
+  command = "npm install && npm run build"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"

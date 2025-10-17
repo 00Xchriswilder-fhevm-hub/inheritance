@@ -93,7 +93,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ethers } from 'ethers'
-import { decryptValue, createEncryptedInput } from 'fhevm-sdk'
+import { decryptValue, createEncryptedInput } from '../lib/fhevm'
 
 // Contract configuration
 const CONTRACT_ADDRESSES = {

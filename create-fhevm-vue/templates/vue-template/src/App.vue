@@ -244,7 +244,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ethers } from 'ethers'
-import { initializeFheInstance, publicDecrypt } from 'fhevm-sdk'
+import { initializeFheInstance, publicDecrypt } from './lib/fhevm'
 import FheCounter from './components/FheCounter.vue'
 import FheRatings from './components/FheRatings.vue'
 import FheVoting from './components/FheVoting.vue'
