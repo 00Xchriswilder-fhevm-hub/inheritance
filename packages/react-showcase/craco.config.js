@@ -58,11 +58,11 @@ module.exports = {
         "clearInterval": false
       };
 
-      // Ignore Node.js modules in externals
+      // Only externalize Node.js specific modules, not browser-compatible ones
       webpackConfig.externals = webpackConfig.externals || [];
       webpackConfig.externals.push({
-        '@zama-fhe/relayer-sdk/node': 'commonjs @zama-fhe/relayer-sdk/node',
-        'ethers': 'commonjs ethers'
+        '@zama-fhe/relayer-sdk/node': 'commonjs @zama-fhe/relayer-sdk/node'
+        // Note: ethers is browser-compatible, so we bundle it instead of externalizing
       });
 
       return webpackConfig;
