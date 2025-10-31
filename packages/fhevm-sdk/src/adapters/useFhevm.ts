@@ -34,20 +34,3 @@ export function useFhevm() {
     isInitialized: status === 'ready',
   };
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
