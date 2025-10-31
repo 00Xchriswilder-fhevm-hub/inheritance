@@ -9,3 +9,8 @@ packages/*/.turbo
 packages/*/coverage
 tmp*
 .vscode
+
+# NPX package folders (these are published separately as npm packages)
+create-fhevm-nextjs/
+create-fhevm-react/
+create-fhevm-vue/
