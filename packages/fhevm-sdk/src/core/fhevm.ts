@@ -23,7 +23,22 @@ async function initializeBrowserFheInstance() {
 
   const { initSDK, createInstance, SepoliaConfig } = sdk;
 
-  await initSDK(); // Loads WASM
+  // Try to initialize SDK with CDN first (default behavior)
+  // If it fails (e.g., CORS error), fallback to local WASM files
+  try {
+    await initSDK(); // Try CDN first
+    console.log('✅ FHEVM SDK initialized with CDN');
+  } catch (cdnError) {
+    // If CDN fails (usually CORS), fallback to local WASM files
+    console.warn('⚠️ CDN initialization failed, falling back to local WASM files:', cdnError);
+    console.log('🔄 Trying local WASM files from public folder...');
+    await initSDK({
+      tfheParams: '/tfhe_bg.wasm',
+      kmsParams: '/kms_lib_bg.wasm'
+    });
+    console.log('✅ FHEVM SDK initialized with local WASM files');
+  }
+  
   const config = { ...SepoliaConfig, network: window.ethereum };
   
   try {
