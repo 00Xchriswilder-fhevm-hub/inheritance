@@ -372,26 +372,59 @@ const UnlockHeirPage = () => {
                         )}
                     </div>
                 ) : (
-                    <div className="bg-surface border-2 border-border rounded-xl p-6 mb-8">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-sm font-bold uppercase text-muted">Decrypted Mnemonic</h3>
-                            <div className="flex gap-2">
-                                <Button onClick={downloadFile} variant="outline" size="sm" icon={<Download size={16} />}>
-                                    Download Text
-                                </Button>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                            {decryptedData && decryptedData.trim().split(/\s+/).map((word, index) => (
-                                <div key={index} className="bg-background border border-border rounded px-3 py-2 flex items-center gap-3">
-                                    <span className="text-xs font-mono text-muted select-none">{(index + 1).toString().padStart(2, '0')}</span>
-                                    <span className={`font-mono font-medium ${hideMnemonic ? 'blur-sm select-none' : ''}`}>
-                                        {hideMnemonic ? '•••••' : word}
-                                    </span>
+                    (() => {
+                        // Check if this is a txt file or plain text (not mnemonic)
+                        const isTxtFile = currentVault.vaultType === 'file' && (
+                            currentVault.fileName?.toLowerCase().endsWith('.txt') || 
+                            currentVault.mimeType === 'text/plain'
+                        );
+                        
+                        // Check if text content looks like a mnemonic (12 or 24 words, typically 3-8 chars each)
+                        const words = decryptedData ? decryptedData.trim().split(/\s+/) : [];
+                        const isMnemonic = words.length === 12 || words.length === 24 || words.length === 18;
+                        const hasMnemonicPattern = isMnemonic && words.every(w => w.length >= 3 && w.length <= 8 && /^[a-z]+$/.test(w.toLowerCase()));
+                        
+                        const shouldShowAsPlainText = isTxtFile || !hasMnemonicPattern;
+                        
+                        return shouldShowAsPlainText ? (
+                            <div className="bg-surface border-2 border-border rounded-xl p-6 mb-8">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-sm font-bold uppercase text-muted">Decrypted Text</h3>
+                                    <div className="flex gap-2">
+                                        <Button onClick={downloadFile} variant="outline" size="sm" icon={<Download size={16} />}>
+                                            Download Text
+                                        </Button>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
+                                <div className="bg-background border border-border rounded-lg p-4">
+                                    <pre className="whitespace-pre-wrap break-words font-mono text-sm text-foreground max-h-96 overflow-y-auto">
+                                        {hideMnemonic ? '••••••••••••••••••••••••••••••••••••••••' : decryptedData}
+                                    </pre>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="bg-surface border-2 border-border rounded-xl p-6 mb-8">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-sm font-bold uppercase text-muted">Decrypted Mnemonic</h3>
+                                    <div className="flex gap-2">
+                                        <Button onClick={downloadFile} variant="outline" size="sm" icon={<Download size={16} />}>
+                                            Download Text
+                                        </Button>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                    {words.map((word, index) => (
+                                        <div key={index} className="bg-background border border-border rounded px-3 py-2 flex items-center gap-3">
+                                            <span className="text-xs font-mono text-muted select-none">{(index + 1).toString().padStart(2, '0')}</span>
+                                            <span className={`font-mono font-medium ${hideMnemonic ? 'blur-sm select-none' : ''}`}>
+                                                {hideMnemonic ? '•••••' : word}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })()
                 )}
 
                 {/* Warning Banner */}

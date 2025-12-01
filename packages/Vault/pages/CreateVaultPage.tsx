@@ -558,11 +558,20 @@ const CreateVaultPage = () => {
                         <div className="grid grid-cols-2 gap-4 mb-6">
                             <div>
                                 <label className="block text-sm font-bold text-muted mb-2 uppercase tracking-wider">Release Date</label>
-                                <input type="date" {...register('releaseDate', { required: true })} min={new Date().toISOString().split('T')[0]} className="w-full bg-background text-foreground border-2 border-border rounded-lg px-4 py-3 focus:outline-none focus:ring-0 focus:border-primary focus:shadow-neo transition-all cursor-pointer" />
+                                <input 
+                                    type="date" 
+                                    {...register('releaseDate', { required: true })} 
+                                    min={new Date().toISOString().split('T')[0]} 
+                                    className="w-full bg-background text-foreground border-2 border-border rounded-lg px-4 py-3 focus:outline-none focus:ring-0 focus:border-primary focus:shadow-neo transition-all cursor-pointer [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:brightness-0 [&::-webkit-calendar-picker-indicator]:contrast-200" 
+                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-bold text-muted mb-2 uppercase tracking-wider">Release Time</label>
-                                <input type="time" {...register('releaseTime', { required: true })} className="w-full bg-background text-foreground border-2 border-border rounded-lg px-4 py-3 focus:outline-none focus:ring-0 focus:border-primary focus:shadow-neo transition-all cursor-pointer" />
+                                <input 
+                                    type="time" 
+                                    {...register('releaseTime', { required: true })} 
+                                    className="w-full bg-background text-foreground border-2 border-border rounded-lg px-4 py-3 focus:outline-none focus:ring-0 focus:border-primary focus:shadow-neo transition-all cursor-pointer [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:brightness-0 [&::-webkit-calendar-picker-indicator]:contrast-200" 
+                                />
                             </div>
                         </div>
                         <div className="bg-surface-hover rounded-lg p-4 border-2 border-border">
