@@ -19,12 +19,13 @@
     "hardhat"
   ],
   "dependencies": {
-    "encrypted-types": "^0.0.4",
     "@fhevm/solidity": "^0.9.1",
-    "@zama-fhe/oracle-solidity": "^0.1.0"
+    "@zama-fhe/oracle-solidity": "^0.1.0",
+    "encrypted-types": "^0.0.4"
   },
   "devDependencies": {
     "@fhevm/hardhat-plugin": "^0.3.0-1",
+    "@fhevm/mock-utils": "0.3.0-1",
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
     "@nomicfoundation/hardhat-ethers": "^3.1.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.1.0",
@@ -36,7 +37,7 @@
     "@types/node": "^20.19.8",
     "@typescript-eslint/eslint-plugin": "^8.37.0",
     "@typescript-eslint/parser": "^8.37.0",
-    "@zama-fhe/relayer-sdk": "^0.3.0-5",
+    "@zama-fhe/relayer-sdk": "^0.3.0-6",
     "chai": "^4.5.0",
     "chai-as-promised": "^8.0.1",
     "cross-env": "^7.0.3",
@@ -60,7 +61,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "chain": "hardhat node",
-    "deploy:hardhat": "hardhat deploy --network hardhat",
-    "deploy:sepolia": "hardhat deploy --network sepolia"
+    "deploy:hardhat": "hardhat run deploy/deploy.ts --network hardhat",
+    "deploy:sepolia": "hardhat run deploy/deploy.ts --network sepolia"
   }
 }

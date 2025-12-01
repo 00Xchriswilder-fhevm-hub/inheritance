@@ -2,15 +2,17 @@
  * Universal FHEVM SDK - Consolidated Instance
  * Complete FHEVM functionality in a single file for NPX packages
  * Includes: FHEVM instance, encryption, and decryption
- * Updated for FHEVM 0.9 with RelayerSDK 0.3.0-5
+ * Updated for FHEVM 0.9 with RelayerSDK 0.3.0-6
  */
+
+import { ethers } from 'ethers';
 
 let fheInstance: any = null;
 
 /**
  * Initialize FHEVM instance
  * Uses CDN for browser environments to avoid bundling issues
- * Updated for RelayerSDK 0.3.0-5 (FHEVM 0.9)
+ * Updated for RelayerSDK 0.3.0-6 (FHEVM 0.9)
  */
 export async function initializeFheInstance(options?: { rpcUrl?: string }) {
   // Detect environment
@@ -35,7 +37,7 @@ async function initializeBrowserFheInstance() {
   let sdk = (window as any).RelayerSDK || (window as any).relayerSDK;
   
   if (!sdk) {
-    throw new Error('RelayerSDK not loaded. Please include the script tag in your HTML:\n<script src="https://cdn.zama.org/relayer-sdk-js/0.3.0-5/relayer-sdk-js.umd.cjs"></script>');
+    throw new Error('RelayerSDK not loaded. Please include the script tag in your HTML:\n<script src="https://cdn.zama.org/relayer-sdk-js/0.3.0-6/relayer-sdk-js.umd.cjs"></script>');
   }
 
   const { initSDK, createInstance, SepoliaConfig } = sdk;
@@ -116,7 +118,7 @@ export function getFheInstance() {
 /**
  * Decrypt a single encrypted value using EIP-712 user decryption (matches showcase API)
  */
-export async function decryptValue(encryptedBytes: string, contractAddress: string, signer: any): Promise<number> {
+export async function decryptValue(encryptedBytes: string, contractAddress: string, signer: any): Promise<number | bigint> {
   const fhe = getFheInstance();
   if (!fhe) throw new Error('FHE instance not initialized. Call initializeFheInstance() first.');
 
@@ -162,7 +164,20 @@ export async function decryptValue(encryptedBytes: string, contractAddress: stri
       durationDays
     );
 
-    return Number(result[encryptedBytes]);
+    const decryptedValue = result[encryptedBytes];
+    
+    // For 256-bit values, preserve as BigInt to avoid precision loss
+    // For smaller values, return as number for compatibility
+    if (typeof decryptedValue === 'bigint') {
+      // Check if it's a 256-bit value (larger than Number.MAX_SAFE_INTEGER)
+      if (decryptedValue > BigInt(Number.MAX_SAFE_INTEGER)) {
+        console.log('🔓 Returning BigInt for 256-bit value to preserve precision');
+        return decryptedValue as any; // Return as BigInt
+      }
+      return Number(decryptedValue);
+    }
+    
+    return Number(decryptedValue);
   } catch (error: any) {
     // Check for relayer/network error
     if (error?.message?.includes('Failed to fetch') || error?.message?.includes('NetworkError')) {
@@ -271,51 +286,182 @@ export async function encryptValue(
 
 /**
  * Create encrypted input for contract interaction (matches showcase API)
+ * @param contractAddress The contract address
+ * @param userAddress The user's wallet address
+ * @param value The numeric value to encrypt
+ * @param bitSize Optional bit size (8, 16, 32, 64, 128, 256). Defaults to 128 for euint128 contracts
  */
-export async function createEncryptedInput(contractAddress: string, userAddress: string, value: number) {
+export async function createEncryptedInput(
+  contractAddress: string, 
+  userAddress: string, 
+  value: number | bigint,
+  bitSize: 8 | 16 | 32 | 64 | 128 | 256 = 128
+) {
   const fhe = getFheInstance();
   if (!fhe) throw new Error('FHE instance not initialized. Call initializeFheInstance() first.');
 
-  console.log(`🔐 Creating encrypted input for contract ${contractAddress}, user ${userAddress}, value ${value}`);
+  console.log(`🔐 Creating encrypted input for contract ${contractAddress}, user ${userAddress}, value ${value}, bitSize ${bitSize}`);
   
   const inputHandle = fhe.createEncryptedInput(contractAddress, userAddress);
-  inputHandle.add32(value);
+  
+  // Use the appropriate bit size method based on contract type
+  // Convert value to BigInt to handle large 128-bit values
+  const bigIntValue = typeof value === 'bigint' ? value : BigInt(value);
+  
+  switch (bitSize) {
+    case 8:
+      inputHandle.add8(bigIntValue);
+      break;
+    case 16:
+      inputHandle.add16(bigIntValue);
+      break;
+    case 32:
+      inputHandle.add32(bigIntValue);
+      break;
+    case 64:
+      inputHandle.add64(bigIntValue);
+      break;
+    case 128:
+      inputHandle.add128(bigIntValue);
+      break;
+    case 256:
+      inputHandle.add256(bigIntValue);
+      break;
+    default:
+      inputHandle.add128(bigIntValue); // Default to 128-bit for euint128
+  }
+  
   const result = await inputHandle.encrypt();
   
   console.log('✅ Encrypted input created successfully');
   console.log('🔍 Encrypted result structure:', result);
   
   // The FHEVM SDK returns an object with handles and inputProof
-  // We need to extract the correct values for the contract
+  // Following the voting contract pattern: pass handles[0] and inputProof directly
+  // externalEuint128 is encoded as bytes32 in the ABI, so handles[0] should work directly
+  
   if (result && typeof result === 'object') {
-    // If result has handles array, use the first handle
-    if (result.handles && Array.isArray(result.handles) && result.handles.length > 0) {
+    // Extract handle and proof - pass them directly like the voting contract does
+    // The voting contract test uses encrypted.handles[0] and encrypted.inputProof directly
+    if (result.handles && Array.isArray(result.handles) && result.handles.length > 0 && result.inputProof) {
+      let handle = result.handles[0];
+      let proof = result.inputProof;
+      
+      console.log('📦 [FHEVM] Raw handle type:', typeof handle, handle instanceof Uint8Array ? 'Uint8Array' : Array.isArray(handle) ? 'Array' : 'other');
+      console.log('📦 [FHEVM] Raw proof type:', typeof proof, proof instanceof Uint8Array ? 'Uint8Array' : Array.isArray(proof) ? 'Array' : 'other');
+      
+      // Convert to hex strings - ethers.js expects hex strings for bytes32 and bytes
+      // Match the voting contract pattern exactly
+      let handleHex: string;
+      let proofHex: string;
+      
+      // Convert handle to hex string, ensuring exactly 32 bytes
+      if (handle instanceof Uint8Array) {
+        if (handle.length !== 32) {
+          console.warn(`⚠️ Handle is ${handle.length} bytes, padding/truncating to 32 bytes`);
+          const padded = new Uint8Array(32);
+          padded.set(handle.slice(0, Math.min(32, handle.length)), 0);
+          handleHex = ethers.hexlify(padded);
+        } else {
+          handleHex = ethers.hexlify(handle);
+        }
+      } else if (Array.isArray(handle)) {
+        const arr = new Uint8Array(handle);
+        if (arr.length !== 32) {
+          const padded = new Uint8Array(32);
+          padded.set(arr.slice(0, Math.min(32, arr.length)), 0);
+          handleHex = ethers.hexlify(padded);
+        } else {
+          handleHex = ethers.hexlify(arr);
+        }
+      } else if (typeof handle === 'string') {
+        if (!handle.startsWith('0x')) {
+          handle = '0x' + handle;
+        }
+        const bytes = ethers.getBytes(handle);
+        if (bytes.length !== 32) {
+          const padded = new Uint8Array(32);
+          padded.set(bytes.slice(0, Math.min(32, bytes.length)), 0);
+          handleHex = ethers.hexlify(padded);
+        } else {
+          handleHex = handle;
+        }
+      } else {
+        // Handle object format
+        const keys = Object.keys(handle)
+          .map(k => parseInt(k))
+          .filter(k => !isNaN(k))
+          .sort((a, b) => a - b);
+        const values = keys.map(k => {
+          const val = (handle as any)[k];
+          return typeof val === 'number' ? val : parseInt(String(val), 10);
+        });
+        const arr = new Uint8Array(values);
+        if (arr.length !== 32) {
+          const padded = new Uint8Array(32);
+          padded.set(arr.slice(0, Math.min(32, arr.length)), 0);
+          handleHex = ethers.hexlify(padded);
+        } else {
+          handleHex = ethers.hexlify(arr);
+        }
+      }
+      
+      // Convert proof to hex string
+      if (proof instanceof Uint8Array) {
+        proofHex = ethers.hexlify(proof);
+      } else if (Array.isArray(proof)) {
+        proofHex = ethers.hexlify(new Uint8Array(proof));
+      } else if (typeof proof === 'string') {
+        if (!proof.startsWith('0x')) {
+          proofHex = '0x' + proof;
+        } else {
+          proofHex = proof;
+        }
+      } else {
+        // Handle object format
+        const keys = Object.keys(proof)
+          .map(k => parseInt(k))
+          .filter(k => !isNaN(k))
+          .sort((a, b) => a - b);
+        const values = keys.map(k => {
+          const val = (proof as any)[k];
+          return typeof val === 'number' ? val : parseInt(String(val), 10);
+        });
+        proofHex = ethers.hexlify(new Uint8Array(values));
+      }
+      
+      // Final verification
+      const handleBytes = ethers.getBytes(handleHex);
+      const proofBytes = ethers.getBytes(proofHex);
+      
+      console.log('📦 [FHEVM] Final handle (bytes32 hex):', handleHex);
+      console.log(`   Handle length: ${handleBytes.length} bytes (must be 32)`);
+      console.log('📦 [FHEVM] Final proof (bytes hex):', proofHex.substring(0, 50) + '...');
+      console.log(`   Proof length: ${proofBytes.length} bytes`);
+      
+      if (handleBytes.length !== 32) {
+        throw new Error(`Handle must be exactly 32 bytes, got ${handleBytes.length} bytes`);
+      }
+      
+      // Return as hex strings - this matches what ethers.js expects for bytes32 and bytes
       return {
-        encryptedData: result.handles[0],
-        proof: result.inputProof
+        encryptedData: handleHex, // bytes32 as hex string (exactly 32 bytes)
+        proof: proofHex // bytes as hex string (variable length)
       };
     }
-    // If result has encryptedData and proof properties
+    // Fallback for other formats
     else if (result.encryptedData && result.proof) {
+      console.log('📦 [FHEVM] Using encryptedData and proof (fallback format)');
       return {
         encryptedData: result.encryptedData,
         proof: result.proof
       };
-    }
-    // Fallback: use the result as-is
-    else {
-      return {
-        encryptedData: result,
-        proof: result
-      };
+    } else {
+      throw new Error('Invalid encrypted result: missing handles/inputProof or encryptedData/proof');
     }
   }
   
-  // If result is not an object, use it directly
-  return {
-    encryptedData: result,
-    proof: result
-  };
+  throw new Error('Invalid encrypted result format');
 }
 
 /**

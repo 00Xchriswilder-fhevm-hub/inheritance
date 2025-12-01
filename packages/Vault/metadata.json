@@ -1,0 +1,5 @@
+{
+  "name": "LegacyVault",
+  "description": "A Neobrutalist crypto vault application for securing digital assets for heirs using React, TypeScript, and Tailwind CSS.",
+  "requestFramePermissions": []
+}

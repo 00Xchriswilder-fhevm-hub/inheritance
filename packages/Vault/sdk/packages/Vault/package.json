@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "ethers": "^6.13.4",
+    "legacyvault": "file:../../.."
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3"
+  }
+}
