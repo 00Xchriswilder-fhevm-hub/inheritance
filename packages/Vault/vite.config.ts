@@ -33,8 +33,23 @@ export default defineConfig(({ mode }) => {
         },
         rollupOptions: {
           output: {
-            manualChunks: {
-              'react-vendor': ['react', 'react-dom', 'react/jsx-runtime'],
+            manualChunks(id) {
+              // Don't split React - keep it in the main bundle to ensure it's available
+              // This prevents "Cannot read properties of null (reading 'useState')" errors
+              if (id.includes('node_modules')) {
+                // Keep React in main bundle - don't split it
+                if (id.includes('react') || id.includes('react-dom') || id.includes('react/jsx-runtime')) {
+                  return undefined; // Include in main bundle, not a separate chunk
+                }
+                // Split other large dependencies
+                if (id.includes('wagmi') || id.includes('viem')) {
+                  return 'web3-vendor';
+                }
+                if (id.includes('ethers')) {
+                  return 'ethers-vendor';
+                }
+                return 'vendor';
+              }
             },
           },
         },
