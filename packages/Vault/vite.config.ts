@@ -24,6 +24,20 @@ export default defineConfig(({ mode }) => {
       },
       optimizeDeps: {
         exclude: ['vue'],
+        include: ['react', 'react-dom', 'react/jsx-runtime'],
+      },
+      build: {
+        commonjsOptions: {
+          include: [/node_modules/],
+          transformMixedEsModules: true,
+        },
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              'react-vendor': ['react', 'react-dom', 'react/jsx-runtime'],
+            },
+          },
+        },
       },
     };
 });
