@@ -1,7 +1,8 @@
 
 import React, { useState, useContext, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Eye, EyeOff, Calendar, AlertTriangle, CheckCircle, Lock, ArrowLeft, ArrowRight, Shield, Key, Clock, Check, FileText, Upload, X, UserPlus, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, Calendar, AlertTriangle, CheckCircle, Lock, ArrowLeft, ArrowRight, Shield, Key, Clock, Check, FileText, Upload, X, UserPlus, Trash2, Wallet } from 'lucide-react';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { WalletContext } from '../contexts/WalletContext';
 import { saveVault, mockHash, mockEncrypt } from '../services/vaultService';
 import Button from '../components/Button';
@@ -365,7 +366,13 @@ const CreateVaultPage = () => {
                     <AlertTriangle className="w-16 h-16 text-warning mx-auto mb-6" />
                     <h2 className="text-2xl font-bold mb-4">Wallet Not Connected</h2>
                     <p className="text-muted mb-8">You need to connect your wallet to verify ownership and create a vault.</p>
-                    <Button onClick={connectWallet}>Connect Wallet</Button>
+                    <ConnectButton.Custom>
+                        {({ openConnectModal }) => (
+                            <Button onClick={openConnectModal} icon={<Wallet size={18} />}>
+                                Connect Wallet
+                            </Button>
+                        )}
+                    </ConnectButton.Custom>
                 </Card>
             </div>
         );

@@ -90,12 +90,21 @@ export async function createVault(params: CreateVaultParams): Promise<CreateVaul
     console.log('   Starting IPFS upload...');
     let cid: string;
     try {
+        // Build keyvalues with file metadata if it's a file
+        const keyvalues: Record<string, string> = {
+            type: data instanceof File ? 'file' : 'text',
+            timestamp: Date.now().toString(),
+        };
+        
+        // Add file-specific metadata if it's a file
+        if (data instanceof File) {
+            keyvalues.fileName = data.name;
+            keyvalues.mimeType = data.type || 'application/octet-stream';
+        }
+        
         cid = await uploadToIPFS(encryptedData, {
             name: metadata?.name || 'vault-data',
-            keyvalues: {
-                type: data instanceof File ? 'file' : 'text',
-                timestamp: Date.now().toString(),
-            },
+            keyvalues: keyvalues,
         });
         console.log(`✅ [VAULT] IPFS CID obtained: ${cid}`);
         console.log(`   IPFS Gateway: https://gateway.pinata.cloud/ipfs/${cid}`);

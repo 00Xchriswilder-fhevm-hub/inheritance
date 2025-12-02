@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLocation } from 'react-router-dom';
-import { Lock, Clock, AlertTriangle, Download, FileText, Eye, EyeOff, Copy, Trash2, Save } from 'lucide-react';
+import { Lock, Clock, AlertTriangle, Download, FileText, Eye, EyeOff, Copy, Trash2, Save, Wallet } from 'lucide-react';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { getVaultById } from '../services/vaultService';
 import Button from '../components/Button';
 import Input from '../components/Input';
@@ -12,7 +13,9 @@ import { useToast } from '../contexts/ToastContext';
 import { WalletContext } from '../contexts/WalletContext';
 import { getVaultMetadata, isAuthorized } from '../services/vaultContractService';
 import { unlockVault } from '../services/fheVaultService';
+import { getIPFSMetadata } from '../services/ipfsService';
 import { useFheVault } from '../hooks/useFheVault';
+import { getTransactionErrorMessage } from '../utils/errorHandler';
 import { ethers } from 'ethers';
 import type { Vault } from '../types';
 
@@ -149,76 +152,162 @@ const UnlockHeirPage = () => {
         setIsLoading(true);
         try {
             const vaultId = data.vaultId.trim();
-            const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
             
-            if (!CONTRACT_ADDRESS) {
-                throw new Error("Contract address not configured");
-            }
-
-            if (!(window as any).ethereum) {
-                throw new Error("No ethereum provider found");
-            }
-
-            toast.info("Unlocking vault...");
+            // First try to get from local storage (same as Owner unlock)
+            let vault = getVaultById(vaultId);
             
-            // Get signer
-            const provider = new ethers.BrowserProvider((window as any).ethereum);
-            const signer = await provider.getSigner();
-
-            // Get vault metadata to determine vault type
-            const metadata = await getVaultMetadata(CONTRACT_ADDRESS, provider, vaultId);
-            
-            // Use FHE unlock service (as heir, not owner)
-            const decrypted = await unlockVault({
-                vaultId: vaultId,
-                contractAddress: CONTRACT_ADDRESS,
-                provider: provider,
-                signer: signer,
-                userAddress: address,
-                decryptFn: (handle, contractAddr) => decryptValue(handle, contractAddr),
-                isOwner: false, // Heir access
-            });
-
-            // Determine vault type (we'll assume text for now, could be enhanced)
-            const vaultType = 'text'; // Could be determined from metadata or stored separately
-            
-            // Create vault object from metadata
-            const vault: Vault = {
-                id: vaultId,
-                ownerAddress: metadata.owner,
-                encryptedData: metadata.cid,
-                cid: metadata.cid,
-                vaultType: 'text' as const, // Could be enhanced to detect file type
-                releaseTime: Number(metadata.releaseTimestamp) * 1000,
-                createdAt: Number(metadata.createdAt) * 1000,
-                isReleased: Date.now() >= Number(metadata.releaseTimestamp) * 1000,
-                description: `Vault ${vaultId}`,
-            };
-
-            // Handle decrypted data
-            if (decrypted instanceof ArrayBuffer) {
-                // Check if it's a file (could check file extension or metadata)
-                // For now, if it's large or has specific patterns, treat as file
-                if (decrypted.byteLength > 1000) {
-                    // Likely a file
-                    setDecryptedFileBuffer(decrypted);
-                    setDecryptedData(null);
-                    vault.vaultType = 'file';
-                    vault.fileName = `vault-${vaultId}-content`;
-                } else {
-                    // Text data
-                    const decryptedText = new TextDecoder().decode(decrypted);
-                    setDecryptedData(decryptedText);
-                    setDecryptedFileBuffer(null);
+            // If not found locally, try to fetch from blockchain
+            if (!vault) {
+                const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
+                if (CONTRACT_ADDRESS && (window as any).ethereum) {
+                    try {
+                        const provider = new ethers.BrowserProvider((window as any).ethereum);
+                        const metadata = await getVaultMetadata(CONTRACT_ADDRESS, provider, vaultId);
+                        
+                        // Try to get IPFS metadata to determine vault type, filename, and mime type
+                        let vaultType: 'text' | 'file' = 'text';
+                        let fileName: string | undefined;
+                        let mimeType: string | undefined;
+                        
+                        try {
+                            const ipfsMetadata = await getIPFSMetadata(metadata.cid);
+                            if (ipfsMetadata?.keyvalues) {
+                                if (ipfsMetadata.keyvalues.type === 'file') {
+                                    vaultType = 'file';
+                                }
+                                if (ipfsMetadata.keyvalues.fileName) {
+                                    fileName = ipfsMetadata.keyvalues.fileName;
+                                }
+                                if (ipfsMetadata.keyvalues.mimeType) {
+                                    mimeType = ipfsMetadata.keyvalues.mimeType;
+                                }
+                            }
+                        } catch (error) {
+                            console.warn('Could not fetch IPFS metadata, defaulting to text type:', error);
+                        }
+                        
+                        // Create vault object from blockchain data
+                        vault = {
+                            id: vaultId,
+                            ownerAddress: metadata.owner,
+                            encryptedData: metadata.cid, // IPFS CID
+                            cid: metadata.cid,
+                            vaultType: vaultType,
+                            fileName: fileName,
+                            mimeType: mimeType,
+                            heirKeyHash: '',
+                            releaseTime: Number(metadata.releaseTimestamp) * 1000,
+                            createdAt: Number(metadata.createdAt) * 1000,
+                            isReleased: Date.now() >= Number(metadata.releaseTimestamp) * 1000,
+                            description: `Vault ${vaultId}`,
+                        };
+                    } catch (error) {
+                        console.error('Error fetching vault from blockchain:', error);
+                        // Continue to show error below
+                    }
                 }
-            } else {
-                // String data
-                setDecryptedData(decrypted);
-                setDecryptedFileBuffer(null);
             }
-
-            setCurrentVault(vault);
-            toast.success("Vault unlocked successfully!");
+            
+            if (!vault) {
+                toast.error("Vault not found. Please check the Vault ID.");
+                setIsLoading(false);
+                return;
+            }
+            
+            // For blockchain vaults, we need to use FHE unlock service
+            // Check if it's a blockchain vault (has CID or encryptedData looks like an IPFS CID)
+            const looksLikeIPFSCID = (str: string) => {
+                return str.startsWith('Qm') || str.startsWith('baf') || 
+                       (str.length > 40 && !str.includes(':::')) ||
+                       /^[a-zA-Z0-9]{40,}$/.test(str);
+            };
+            
+            const isBlockchainVault = vault.cid || 
+                                      (vault.encryptedData && looksLikeIPFSCID(vault.encryptedData)) ||
+                                      (vault.encryptedData && vault.encryptedData === vault.cid);
+            
+            if (isBlockchainVault) {
+                // This is a blockchain vault - use FHE unlock
+                if (!isConnected || !address) {
+                    toast.error("Please connect your wallet to unlock FHE vaults");
+                    setIsLoading(false);
+                    return;
+                }
+                
+                const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
+                if (!CONTRACT_ADDRESS) {
+                    toast.error("Contract address not configured");
+                    setIsLoading(false);
+                    return;
+                }
+                
+                try {
+                    toast.info("Unlocking FHE vault...");
+                    const provider = new ethers.BrowserProvider((window as any).ethereum);
+                    const signer = await provider.getSigner();
+                    if (!signer) {
+                        throw new Error("Failed to get signer");
+                    }
+                    
+                    // Use FHE unlock service (as heir, not owner)
+                    const decrypted = await unlockVault({
+                        vaultId: vaultId,
+                        contractAddress: CONTRACT_ADDRESS,
+                        provider: provider,
+                        signer: signer,
+                        userAddress: address,
+                        decryptFn: (handle, contractAddr) => decryptValue(handle, contractAddr),
+                        isOwner: false, // Heir access
+                    });
+                    
+                    // Handle decrypted data based on vault type (same as Owner unlock)
+                    // unlockVault now returns ArrayBuffer
+                    if (vault.vaultType === 'file') {
+                        // For files, store the ArrayBuffer for download
+                        if (decrypted instanceof ArrayBuffer) {
+                            setDecryptedFileBuffer(decrypted);
+                            setDecryptedData(null); // Clear text data
+                        } else {
+                            // Fallback: if it's a string, try to convert (shouldn't happen)
+                            console.warn('File vault returned string, converting to ArrayBuffer');
+                            const buffer = new TextEncoder().encode(decrypted).buffer;
+                            setDecryptedFileBuffer(buffer);
+                            setDecryptedData(null);
+                        }
+                    } else {
+                        // For text vaults, convert ArrayBuffer to string
+                        if (decrypted instanceof ArrayBuffer) {
+                            const decryptedText = new TextDecoder().decode(decrypted);
+                            setDecryptedData(decryptedText);
+                        } else {
+                            setDecryptedData(decrypted);
+                        }
+                        setDecryptedFileBuffer(null); // Clear file buffer
+                    }
+                    
+                    setCurrentVault(vault);
+                    
+                    toast.success("FHE vault decrypted successfully");
+                    setIsLoading(false);
+                    return;
+                } catch (error: any) {
+                    console.error('Error unlocking FHE vault:', error);
+                    if (error?.message?.includes('not authorized') || error?.message?.includes('Access denied')) {
+                        toast.error("You are not authorized to access this vault. The owner must grant you access first.");
+                    } else if (error?.message?.includes('release time')) {
+                        toast.error("This vault is still locked. Please wait until the release time.");
+                    } else {
+                        toast.error(getTransactionErrorMessage(error));
+                    }
+                    setIsLoading(false);
+                    return;
+                }
+            }
+            
+            // Local vaults are deprecated - all vaults should be on blockchain
+            toast.error("This vault appears to be a local vault. Please use blockchain vaults with wallet authentication.");
+            setIsLoading(false);
+            return;
         } catch (error: any) {
             console.error('Error unlocking vault:', error);
             if (error?.message?.includes('not authorized') || error?.message?.includes('Access denied')) {
@@ -240,23 +329,33 @@ const UnlockHeirPage = () => {
         }
     };
 
-    const downloadFile = () => {
+    const downloadFile = async () => {
         if (!currentVault) return;
         
         try {
+            // For file vaults, use the ArrayBuffer
             if (currentVault.vaultType === 'file' && decryptedFileBuffer) {
+                // Get file type from vault metadata or default to application/octet-stream
                 const mimeType = currentVault.mimeType || 'application/octet-stream';
+                
+                // Create Blob from ArrayBuffer
                 const blob = new Blob([decryptedFileBuffer], { type: mimeType });
                 const url = URL.createObjectURL(blob);
+                
+                // Create download link
                 const link = document.createElement("a");
                 link.href = url;
                 link.download = currentVault.fileName || "vault-content";
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+                
+                // Clean up object URL
                 setTimeout(() => URL.revokeObjectURL(url), 100);
+                
                 toast.success("File downloaded successfully");
             } else if (decryptedData && currentVault.vaultType !== 'file') {
+                // For text vaults, create a text file
                 const blob = new Blob([decryptedData], { type: 'text/plain' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement("a");
@@ -458,7 +557,13 @@ const UnlockHeirPage = () => {
                 </div>
                 <Card className="mb-8 text-center py-10">
                     <p className="text-muted mb-6">You need to connect your wallet to unlock vaults.</p>
-                    <Button onClick={connectWallet}>Connect Wallet</Button>
+                    <ConnectButton.Custom>
+                        {({ openConnectModal }) => (
+                            <Button onClick={openConnectModal} icon={<Wallet size={18} />}>
+                                Connect Wallet
+                            </Button>
+                        )}
+                    </ConnectButton.Custom>
                 </Card>
             </div>
         );

@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Box, Clock, Calendar as CalendarIcon, FileText, AlignLeft, Loader2, RefreshCw } from 'lucide-react';
+import { Plus, Box, Clock, Calendar as CalendarIcon, FileText, AlignLeft, Loader2, RefreshCw, Wallet } from 'lucide-react';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { WalletContext } from '../contexts/WalletContext';
 import { getVaults } from '../services/vaultService';
 import type { Vault } from '../types';
@@ -217,7 +218,13 @@ const MyVaultsPage = () => {
                 <Box className="w-20 h-20 text-muted mb-6 opacity-20" />
                 <h2 className="text-2xl font-bold mb-4">Connect Wallet</h2>
                 <p className="text-muted mb-8 max-w-md">Connect your wallet to view your created vaults and manage your digital legacy.</p>
-                <Button onClick={connectWallet}>Connect Wallet</Button>
+                <ConnectButton.Custom>
+                    {({ openConnectModal }) => (
+                        <Button onClick={openConnectModal} icon={<Wallet size={18} />}>
+                            Connect Wallet
+                        </Button>
+                    )}
+                </ConnectButton.Custom>
             </div>
         );
     }

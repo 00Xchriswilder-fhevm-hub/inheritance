@@ -66,8 +66,31 @@ const UnlockOwnerPage = () => {
                 if (CONTRACT_ADDRESS && (window as any).ethereum) {
                     try {
                         const { getVaultMetadata } = await import('../services/vaultContractService');
+                        const { getIPFSMetadata } = await import('../services/ipfsService');
                         const provider = new (await import('ethers')).BrowserProvider((window as any).ethereum);
                         const metadata = await getVaultMetadata(CONTRACT_ADDRESS, provider, vaultId);
+                        
+                        // Try to get IPFS metadata to determine vault type, filename, and mime type
+                        let vaultType: 'text' | 'file' = 'text';
+                        let fileName: string | undefined;
+                        let mimeType: string | undefined;
+                        
+                        try {
+                            const ipfsMetadata = await getIPFSMetadata(metadata.cid);
+                            if (ipfsMetadata?.keyvalues) {
+                                if (ipfsMetadata.keyvalues.type === 'file') {
+                                    vaultType = 'file';
+                                }
+                                if (ipfsMetadata.keyvalues.fileName) {
+                                    fileName = ipfsMetadata.keyvalues.fileName;
+                                }
+                                if (ipfsMetadata.keyvalues.mimeType) {
+                                    mimeType = ipfsMetadata.keyvalues.mimeType;
+                                }
+                            }
+                        } catch (error) {
+                            console.warn('Could not fetch IPFS metadata, defaulting to text type:', error);
+                        }
                         
                         // Create vault object from blockchain data
                         vault = {
@@ -75,7 +98,9 @@ const UnlockOwnerPage = () => {
                             ownerAddress: metadata.owner,
                             encryptedData: metadata.cid, // IPFS CID
                             cid: metadata.cid,
-                            vaultType: 'text' as const,
+                            vaultType: vaultType,
+                            fileName: fileName,
+                            mimeType: mimeType,
                             heirKeyHash: '',
                             releaseTime: Number(metadata.releaseTimestamp) * 1000,
                             createdAt: Number(metadata.createdAt) * 1000,
@@ -1009,7 +1034,7 @@ LegacyVault App - FHE-Encrypted Vault System
             </div>
             <Card>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    <Input label="Vault ID" type="text" placeholder="e.g. mxon2g6 or 123456" {...register('vaultId', { required: 'Vault ID is required', validate: (value) => value.trim().length > 0 || 'Vault ID cannot be empty' })} error={errors.vaultId?.message as string} />
+                    <Input label="Vault ID" type="text" placeholder="e.g. mxon2g6" {...register('vaultId', { required: 'Vault ID is required', validate: (value) => value.trim().length > 0 || 'Vault ID cannot be empty' })} error={errors.vaultId?.message as string} />
                     <p className="text-xs text-muted mt-2">Connect your wallet to unlock vaults. Wallet authentication is used for access control.</p>
                     <Button type="submit" fullWidth isLoading={isLoading} className="mt-4" icon={<Unlock size={18} />}>Decrypt Vault</Button>
                 </form>

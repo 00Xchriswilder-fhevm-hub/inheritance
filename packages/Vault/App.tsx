@@ -4,7 +4,7 @@ import { Wallet, Menu, X, Shield, Key, Lock } from 'lucide-react';
 import '@rainbow-me/rainbowkit/styles.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider } from 'wagmi';
-import { RainbowKitProvider, ConnectButton } from '@rainbow-me/rainbowkit';
+import { RainbowKitProvider, ConnectButton, darkTheme } from '@rainbow-me/rainbowkit';
 import { config } from './config/wagmi';
 import LandingPage from './pages/LandingPage';
 import CreateVaultPage from './pages/CreateVaultPage';
@@ -257,7 +257,7 @@ const Footer = () => (
                 <Key className="text-muted hover:text-primary cursor-pointer transition-colors" />
                 <Lock className="text-muted hover:text-primary cursor-pointer transition-colors" />
             </div>
-            <p className="text-muted text-sm">© 2024 LegacyVault. Secure Your Digital Legacy.</p>
+            <p className="text-muted text-sm">© 2025 LegacyVault. Secure Your Digital Legacy.</p>
         </div>
     </footer>
 );
@@ -266,7 +266,15 @@ const App = () => {
     return (
         <WagmiProvider config={config}>
             <QueryClientProvider client={queryClient}>
-                <RainbowKitProvider>
+                <RainbowKitProvider
+                    theme={darkTheme({
+                        accentColor: '#ffd208',
+                        accentColorForeground: '#000000',
+                        borderRadius: 'medium',
+                        fontStack: 'system',
+                    })}
+                    modalSize="compact"
+                >
                     <ToastProvider>
                         <WalletProvider>
                             <HashRouter>

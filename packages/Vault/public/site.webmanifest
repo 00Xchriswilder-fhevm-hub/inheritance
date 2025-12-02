@@ -1,0 +1,28 @@
+{
+  "name": "LegacyVault - Secure Your Digital Legacy",
+  "short_name": "LegacyVault",
+  "description": "A confidential security layer for wills, legal agreements, contracts, and sensitive documents. Preserve your digital legacy with military-grade encryption and time-locked access control.",
+  "icons": [
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#ffd208",
+  "background_color": "#000000",
+  "display": "standalone",
+  "start_url": "/",
+  "orientation": "portrait-primary"
+}
+
