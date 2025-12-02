@@ -402,6 +402,10 @@ const CreateVaultPage = () => {
                 {/* Step 1: Content (Text or File) */}
                 {step === 1 && (
                     <Card title="1. Select Content Type" className="animate-fade-in">
+                        <p className="text-sm text-muted mb-6">
+                            Create a vault to preserve your digital legacy, or use it for secure file sharing with authorized users. 
+                            Files are encrypted and stored on IPFS, with access controlled via blockchain addresses.
+                        </p>
                         <div className="flex gap-4 mb-6">
                             <button 
                                 onClick={() => setContentType('text')}
@@ -413,7 +417,7 @@ const CreateVaultPage = () => {
                                 onClick={() => setContentType('file')}
                                 className={`flex-1 py-4 rounded-lg border-2 font-bold uppercase transition-all ${contentType === 'file' ? 'border-primary bg-primary/10 text-primary shadow-neo-sm' : 'border-border bg-surface hover:border-muted'}`}
                             >
-                                <span className="flex items-center justify-center gap-2"><Upload size={18}/> File Upload</span>
+                                <span className="flex items-center justify-center gap-2"><Upload size={18}/> File Upload / Sharing</span>
                             </button>
                         </div>
 
@@ -478,7 +482,7 @@ const CreateVaultPage = () => {
                                 )}
                                 <div className="mt-4 p-3 bg-info/10 border border-info/30 rounded text-xs text-info flex gap-2">
                                     <Shield size={16} />
-                                    <span>Files will be encrypted before simulating IPFS upload.</span>
+                                    <span>Files will be encrypted before uploading to IPFS. Use this for secure file sharing - add authorized users in the next step.</span>
                                 </div>
                             </div>
                         )}
@@ -487,8 +491,11 @@ const CreateVaultPage = () => {
 
                 {/* Step 2: Heir Addresses */}
                 {step === 2 && (
-                    <Card title="2. Add Heir Addresses" className="animate-fade-in">
-                        <p className="text-sm text-muted mb-6">Add wallet addresses of heirs who should have access to this vault after the release date.</p>
+                    <Card title="2. Add Authorized Users" className="animate-fade-in">
+                        <p className="text-sm text-muted mb-6">
+                            Add wallet addresses of users who should have access to this vault. 
+                            {contentType === 'file' ? ' Perfect for secure file sharing - only authorized addresses can decrypt and access your files.' : ' These addresses will be able to access the vault after the release date.'}
+                        </p>
                         
                         <div className="space-y-3 mb-4">
                             {heirAddresses.map((addr, index) => (
@@ -530,6 +537,7 @@ const CreateVaultPage = () => {
                         <p className="text-sm text-muted mb-6">
                             <strong>Note:</strong> Access is controlled by wallet addresses on the blockchain. 
                             Only the addresses you add here will be able to unlock this vault after the release time.
+                            {contentType === 'file' && ' This makes it perfect for secure file sharing with controlled access.'}
                         </p>
                         
                         <Button
@@ -539,7 +547,7 @@ const CreateVaultPage = () => {
                             icon={<UserPlus size={18} />}
                             className="mb-6"
                         >
-                            Add Another Heir
+                            Add Another User
                         </Button>
                         
                         <div className="bg-info/10 border border-info/30 rounded-lg p-4 text-sm text-info">
@@ -548,9 +556,10 @@ const CreateVaultPage = () => {
                                 <div>
                                     <span className="font-bold block mb-1">How it works:</span>
                                     <ul className="list-disc list-inside space-y-1 text-xs">
-                                        <li>Heirs can use their wallet to decrypt and access the vault after the release date</li>
-                                        <li>You can add multiple heirs to the same vault</li>
-                                        <li>Heirs will need to use the FHEVM userDecrypt feature to access the encrypted key</li>
+                                        <li>Authorized users can use their wallet to decrypt and access the vault after the release date</li>
+                                        <li>You can add multiple authorized users to the same vault - perfect for secure file sharing</li>
+                                        <li>Access is controlled on-chain via FHEVM Access Control Lists (ACL)</li>
+                                        <li>Only the wallet addresses you add here will be able to decrypt the content</li>
                                     </ul>
                                 </div>
                             </div>

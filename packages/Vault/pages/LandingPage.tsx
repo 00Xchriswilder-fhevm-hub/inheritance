@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Lock, Key, ArrowRight, Clock, FileText, FileCheck, Layers, Zap } from 'lucide-react';
+import { Shield, Lock, Key, ArrowRight, Clock, FileText, FileCheck, Layers, Zap, Users, Share2 } from 'lucide-react';
 import Button from '../components/Button';
 import Card from '../components/Card';
 
@@ -19,7 +19,8 @@ const LandingPage = () => {
                 <p className="text-xl text-muted max-w-2xl mx-auto mb-10 leading-relaxed">
                     A confidential security layer for your most important documents and digital assets. 
                     Preserve wills, legal agreements, contracts, forms, and sensitive data with military-grade encryption 
-                    and time-locked access control. Your confidential information remains mathematically secure until the designated release time.
+                    and time-locked access control. Use blockchain-based access control lists to securely share files with authorized users. 
+                    Your confidential information remains mathematically secure until the designated release time.
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center gap-4">
                     <Button size="lg" onClick={() => navigate('/create')}>
@@ -61,8 +62,8 @@ const LandingPage = () => {
                     </div>
                         <h3 className="text-xl font-bold mb-3 uppercase">Blockchain Access Control</h3>
                     <p className="text-muted">
-                            Authorize specific wallet addresses as heirs. Access is controlled on-chain through FHEVM Access Control Lists (ACL), 
-                            ensuring only authorized parties can decrypt after the release time.
+                            Authorize specific wallet addresses as heirs or collaborators. Access is controlled on-chain through FHEVM Access Control Lists (ACL), 
+                            ensuring only authorized parties can decrypt. Perfect for secure file sharing with controlled access.
                         </p>
                     </Card>
                 </div>
@@ -71,7 +72,7 @@ const LandingPage = () => {
             {/* Use Cases */}
             <section className="max-w-7xl mx-auto px-4 w-full">
                 <h2 className="text-3xl font-black text-center mb-12 uppercase">Perfect For</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                     <Card className="h-full" hoverEffect>
                         <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center mb-3 text-primary">
                             <FileText className="w-5 h-5" />
@@ -106,8 +107,17 @@ const LandingPage = () => {
                         <h3 className="text-lg font-bold mb-2 uppercase">Digital Assets</h3>
                         <p className="text-sm text-muted">
                             Secure crypto wallet mnemonics, private keys, and digital wealth for future generations.
-                    </p>
-                </Card>
+                        </p>
+                    </Card>
+                    <Card className="h-full" hoverEffect>
+                        <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center mb-3 text-primary">
+                            <Share2 className="w-5 h-5" />
+                        </div>
+                        <h3 className="text-lg font-bold mb-2 uppercase">Secure File Sharing</h3>
+                        <p className="text-sm text-muted">
+                            Share confidential files with authorized users using blockchain access control lists. Perfect for teams, collaborators, or controlled document distribution.
+                        </p>
+                    </Card>
                 </div>
             </section>
 
@@ -188,6 +198,7 @@ const LandingPage = () => {
                             <h2 className="text-3xl font-black mb-4 uppercase">Ready to secure your confidential documents?</h2>
                             <p className="text-muted mb-8">
                                 Create a new vault in minutes. Upload your wills, agreements, forms, or any sensitive documents. 
+                                Share files securely with authorized users using blockchain access control. 
                                 Your wallet connection provides secure access control, and your data is protected with double encryption.
                             </p>
                             <Button variant="secondary" onClick={() => navigate('/create')}>
