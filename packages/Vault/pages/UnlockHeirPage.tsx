@@ -174,7 +174,7 @@ const UnlockHeirPage = () => {
                             if (ipfsMetadata?.keyvalues) {
                                 if (ipfsMetadata.keyvalues.type === 'file') {
                                     vaultType = 'file';
-                                }
+            }
                                 if (ipfsMetadata.keyvalues.fileName) {
                                     fileName = ipfsMetadata.keyvalues.fileName;
                                 }
@@ -243,42 +243,42 @@ const UnlockHeirPage = () => {
                 
                 try {
                     toast.info("Unlocking FHE vault...");
-                    const provider = new ethers.BrowserProvider((window as any).ethereum);
-                    const signer = await provider.getSigner();
+            const provider = new ethers.BrowserProvider((window as any).ethereum);
+            const signer = await provider.getSigner();
                     if (!signer) {
                         throw new Error("Failed to get signer");
                     }
-                    
-                    // Use FHE unlock service (as heir, not owner)
-                    const decrypted = await unlockVault({
-                        vaultId: vaultId,
-                        contractAddress: CONTRACT_ADDRESS,
-                        provider: provider,
-                        signer: signer,
-                        userAddress: address,
-                        decryptFn: (handle, contractAddr) => decryptValue(handle, contractAddr),
-                        isOwner: false, // Heir access
-                    });
-                    
+            
+            // Use FHE unlock service (as heir, not owner)
+            const decrypted = await unlockVault({
+                vaultId: vaultId,
+                contractAddress: CONTRACT_ADDRESS,
+                provider: provider,
+                signer: signer,
+                userAddress: address,
+                decryptFn: (handle, contractAddr) => decryptValue(handle, contractAddr),
+                isOwner: false, // Heir access
+            });
+
                     // Handle decrypted data based on vault type (same as Owner unlock)
                     // unlockVault now returns ArrayBuffer
                     if (vault.vaultType === 'file') {
                         // For files, store the ArrayBuffer for download
-                        if (decrypted instanceof ArrayBuffer) {
-                            setDecryptedFileBuffer(decrypted);
+            if (decrypted instanceof ArrayBuffer) {
+                    setDecryptedFileBuffer(decrypted);
                             setDecryptedData(null); // Clear text data
                         } else {
                             // Fallback: if it's a string, try to convert (shouldn't happen)
                             console.warn('File vault returned string, converting to ArrayBuffer');
                             const buffer = new TextEncoder().encode(decrypted).buffer;
                             setDecryptedFileBuffer(buffer);
-                            setDecryptedData(null);
+                    setDecryptedData(null);
                         }
-                    } else {
+                } else {
                         // For text vaults, convert ArrayBuffer to string
                         if (decrypted instanceof ArrayBuffer) {
-                            const decryptedText = new TextDecoder().decode(decrypted);
-                            setDecryptedData(decryptedText);
+                    const decryptedText = new TextDecoder().decode(decrypted);
+                    setDecryptedData(decryptedText);
                         } else {
                             setDecryptedData(decrypted);
                         }
@@ -500,28 +500,28 @@ const UnlockHeirPage = () => {
                                         {hideMnemonic ? '••••••••••••••••••••••••••••••••••••••••' : decryptedData}
                                     </pre>
                                 </div>
+                    </div>
+                ) : (
+                    <div className="bg-surface border-2 border-border rounded-xl p-6 mb-8">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-sm font-bold uppercase text-muted">Decrypted Mnemonic</h3>
+                            <div className="flex gap-2">
+                                <Button onClick={downloadFile} variant="outline" size="sm" icon={<Download size={16} />}>
+                                    Download Text
+                                </Button>
                             </div>
-                        ) : (
-                            <div className="bg-surface border-2 border-border rounded-xl p-6 mb-8">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-sm font-bold uppercase text-muted">Decrypted Mnemonic</h3>
-                                    <div className="flex gap-2">
-                                        <Button onClick={downloadFile} variant="outline" size="sm" icon={<Download size={16} />}>
-                                            Download Text
-                                        </Button>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                     {words.map((word, index) => (
-                                        <div key={index} className="bg-background border border-border rounded px-3 py-2 flex items-center gap-3">
-                                            <span className="text-xs font-mono text-muted select-none">{(index + 1).toString().padStart(2, '0')}</span>
-                                            <span className={`font-mono font-medium ${hideMnemonic ? 'blur-sm select-none' : ''}`}>
-                                                {hideMnemonic ? '•••••' : word}
-                                            </span>
-                                        </div>
-                                    ))}
+                                <div key={index} className="bg-background border border-border rounded px-3 py-2 flex items-center gap-3">
+                                    <span className="text-xs font-mono text-muted select-none">{(index + 1).toString().padStart(2, '0')}</span>
+                                    <span className={`font-mono font-medium ${hideMnemonic ? 'blur-sm select-none' : ''}`}>
+                                        {hideMnemonic ? '•••••' : word}
+                                    </span>
                                 </div>
-                            </div>
+                            ))}
+                        </div>
+                    </div>
                         );
                     })()
                 )}

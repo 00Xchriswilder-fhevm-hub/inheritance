@@ -35,32 +35,32 @@ const LandingPage = () => {
             <section className="max-w-7xl mx-auto px-4 w-full">
                 <h2 className="text-3xl font-black text-center mb-12 uppercase">Why Choose LegacyVault</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                    <Card className="h-full" hoverEffect>
-                        <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 text-primary">
-                            <Lock className="w-6 h-6" />
-                        </div>
+                <Card className="h-full" hoverEffect>
+                    <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 text-primary">
+                        <Lock className="w-6 h-6" />
+                    </div>
                         <h3 className="text-xl font-bold mb-3 uppercase">Double Encryption</h3>
-                        <p className="text-muted">
+                    <p className="text-muted">
                             Your data is encrypted with AES-256-GCM, then the decryption key is double-encrypted using Zama FHE (Fully Homomorphic Encryption) 
                             and stored on-chain. Even with blockchain access, the key remains encrypted until authorized decryption.
-                        </p>
-                    </Card>
-                    <Card className="h-full" hoverEffect>
-                        <div className="w-12 h-12 bg-info/20 rounded-lg flex items-center justify-center mb-4 text-info">
-                            <Clock className="w-6 h-6" />
-                        </div>
+                    </p>
+                </Card>
+                <Card className="h-full" hoverEffect>
+                    <div className="w-12 h-12 bg-info/20 rounded-lg flex items-center justify-center mb-4 text-info">
+                        <Clock className="w-6 h-6" />
+                    </div>
                         <h3 className="text-xl font-bold mb-3 uppercase">Time-Locked Access</h3>
-                        <p className="text-muted">
+                    <p className="text-muted">
                             Set a specific release date and time. Your confidential documents remain mathematically inaccessible to heirs 
                             until that exact moment, ensuring perfect timing for wills, agreements, and sensitive information.
-                        </p>
-                    </Card>
-                    <Card className="h-full" hoverEffect>
-                        <div className="w-12 h-12 bg-success/20 rounded-lg flex items-center justify-center mb-4 text-success">
-                            <Key className="w-6 h-6" />
-                        </div>
+                    </p>
+                </Card>
+                <Card className="h-full" hoverEffect>
+                    <div className="w-12 h-12 bg-success/20 rounded-lg flex items-center justify-center mb-4 text-success">
+                        <Key className="w-6 h-6" />
+                    </div>
                         <h3 className="text-xl font-bold mb-3 uppercase">Blockchain Access Control</h3>
-                        <p className="text-muted">
+                    <p className="text-muted">
                             Authorize specific wallet addresses as heirs. Access is controlled on-chain through FHEVM Access Control Lists (ACL), 
                             ensuring only authorized parties can decrypt after the release time.
                         </p>
@@ -106,8 +106,8 @@ const LandingPage = () => {
                         <h3 className="text-lg font-bold mb-2 uppercase">Digital Assets</h3>
                         <p className="text-sm text-muted">
                             Secure crypto wallet mnemonics, private keys, and digital wealth for future generations.
-                        </p>
-                    </Card>
+                    </p>
+                </Card>
                 </div>
             </section>
 
