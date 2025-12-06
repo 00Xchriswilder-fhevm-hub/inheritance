@@ -17,6 +17,7 @@ import { createVault as createFheVault } from '../services/fheVaultService';
 import { grantAccessToMultiple } from '../services/vaultContractService';
 import { ethers } from 'ethers';
 import { generateVaultId } from '../utils/vaultIdGenerator';
+import { getTransactionErrorMessage } from '../utils/errorHandler';
 
 const STEPS = [
     { id: 1, label: 'Content', icon: FileText },

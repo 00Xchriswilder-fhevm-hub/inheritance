@@ -2,7 +2,7 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "E:\\FHEVAULT\\sdk\\packages\\hardhat\\contracts\\FHELegacyVault.sol": {
-      "lastModificationDate": 1764591658315,
+      "lastModificationDate": 1764592685266,
       "contentHash": "ec1ccee5a6971ada4734c80ed62095be",
       "sourceName": "contracts/FHELegacyVault.sol",
       "solcConfig": {
@@ -49,8 +49,8 @@
       ]
     },
     "E:\\FHEVAULT\\sdk\\packages\\hardhat\\fhevmTemp\\@fhevm\\solidity\\config\\ZamaConfig.sol": {
-      "lastModificationDate": 1764591746043,
-      "contentHash": "c85e28972111397253ff2be2b8b9287e",
+      "lastModificationDate": 1764834948190,
+      "contentHash": "2ed697106fb9cc5510d56baf77bbda66",
       "sourceName": "@fhevm/solidity/config/ZamaConfig.sol",
       "solcConfig": {
         "version": "0.8.24",

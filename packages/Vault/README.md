@@ -1,7 +1,3 @@
-<div align="center">
-<img width="1200" height="475" alt="FHE Legacy Vault" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
 # 🔐 FHE Legacy Vault
 
 A secure digital vault application that uses cutting-edge cryptography to protect sensitive documents and digital assets. Built with **Fully Homomorphic Encryption (FHE)**, **AES-256-GCM**, **IPFS**, and **Ethereum blockchain** for time-locked access control.
