@@ -12,18 +12,11 @@ const LandingPage = () => {
                         {/* Header */}
                         <header className="sticky top-5 z-50 flex items-center justify-between whitespace-nowrap border border-solid border-white/10 bg-background-dark/50 backdrop-blur-md px-10 py-3 rounded-lg mx-4 sm:mx-0">
                             <div className="flex items-center gap-4 text-white">
-                                <div className="size-6 text-primary">
-                                    <svg fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                                        <g clipPath="url(#clip0_6_535)">
-                                            <path clipRule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fillRule="evenodd"></path>
-                                        </g>
-                                        <defs>
-                                            <clipPath id="clip0_6_535">
-                                                <rect fill="white" height="48" width="48"></rect>
-                                            </clipPath>
-                                        </defs>
-                                    </svg>
-                                </div>
+                                <img 
+                                    src="/logo.png" 
+                                    alt="LegacyVault Logo" 
+                                    className="h-10 w-auto"
+                                />
                                 <h2 className="text-white text-lg font-bold leading-tight tracking-[-0.015em]">LegacyVault</h2>
                             </div>
                             <div className="hidden sm:flex flex-1 justify-end gap-8">
