@@ -1,221 +1,215 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Lock, Key, ArrowRight, Clock, FileText, FileCheck, Layers, Zap, Users, Share2 } from 'lucide-react';
-import Button from '../components/Button';
-import Card from '../components/Card';
 
 const LandingPage = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="flex flex-col gap-16 pb-20">
-            {/* Hero Section */}
-            <section className="relative pt-20 pb-12 px-4 text-center">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px] -z-10"></div>
-                <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tighter">
-                    SECURE YOUR <br/>
-                    <span className="text-primary text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary-dark">DIGITAL LEGACY</span>
-                </h1>
-                <p className="text-xl text-muted max-w-2xl mx-auto mb-10 leading-relaxed">
-                    A confidential security layer for your most important documents and digital assets. 
-                    Preserve wills, legal agreements, contracts, forms, and sensitive data with military-grade encryption 
-                    and time-locked access control. Use blockchain-based access control lists to securely share files with authorized users. 
-                    Your confidential information remains mathematically secure until the designated release time.
-                </p>
-                <div className="flex flex-col sm:flex-row justify-center gap-4">
-                    <Button size="lg" onClick={() => navigate('/create')}>
-                        Create Vault <ArrowRight className="ml-2 w-5 h-5" />
-                    </Button>
-                    <Button variant="outline" size="lg" onClick={() => navigate('/unlock-owner')}>
-                        Access My Vault
-                    </Button>
-                </div>
-            </section>
-
-            {/* Features */}
-            <section className="max-w-7xl mx-auto px-4 w-full">
-                <h2 className="text-3xl font-black text-center mb-12 uppercase">Why Choose LegacyVault</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                <Card className="h-full" hoverEffect>
-                    <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 text-primary">
-                        <Lock className="w-6 h-6" />
-                    </div>
-                        <h3 className="text-xl font-bold mb-3 uppercase">Double Encryption</h3>
-                    <p className="text-muted">
-                            Your data is encrypted with AES-256-GCM, then the decryption key is double-encrypted using Zama FHE (Fully Homomorphic Encryption) 
-                            and stored on-chain. Even with blockchain access, the key remains encrypted until authorized decryption.
-                    </p>
-                </Card>
-                <Card className="h-full" hoverEffect>
-                    <div className="w-12 h-12 bg-info/20 rounded-lg flex items-center justify-center mb-4 text-info">
-                        <Clock className="w-6 h-6" />
-                    </div>
-                        <h3 className="text-xl font-bold mb-3 uppercase">Time-Locked Access</h3>
-                    <p className="text-muted">
-                            Set a specific release date and time. Your confidential documents remain mathematically inaccessible to heirs 
-                            until that exact moment, ensuring perfect timing for wills, agreements, and sensitive information.
-                    </p>
-                </Card>
-                <Card className="h-full" hoverEffect>
-                    <div className="w-12 h-12 bg-success/20 rounded-lg flex items-center justify-center mb-4 text-success">
-                        <Key className="w-6 h-6" />
-                    </div>
-                        <h3 className="text-xl font-bold mb-3 uppercase">Blockchain Access Control</h3>
-                    <p className="text-muted">
-                            Authorize specific wallet addresses as heirs or collaborators. Access is controlled on-chain through FHEVM Access Control Lists (ACL), 
-                            ensuring only authorized parties can decrypt. Perfect for secure file sharing with controlled access.
-                        </p>
-                    </Card>
-                </div>
-            </section>
-
-            {/* Use Cases */}
-            <section className="max-w-7xl mx-auto px-4 w-full">
-                <h2 className="text-3xl font-black text-center mb-12 uppercase">Perfect For</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                    <Card className="h-full" hoverEffect>
-                        <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center mb-3 text-primary">
-                            <FileText className="w-5 h-5" />
-                        </div>
-                        <h3 className="text-lg font-bold mb-2 uppercase">Wills & Testaments</h3>
-                        <p className="text-sm text-muted">
-                            Securely store your last will and testament with time-locked release to beneficiaries.
-                        </p>
-                    </Card>
-                    <Card className="h-full" hoverEffect>
-                        <div className="w-10 h-10 bg-info/20 rounded-lg flex items-center justify-center mb-3 text-info">
-                            <FileCheck className="w-5 h-5" />
-                        </div>
-                        <h3 className="text-lg font-bold mb-2 uppercase">Legal Agreements</h3>
-                        <p className="text-sm text-muted">
-                            Preserve contracts, partnership agreements, and legal documents with confidential access control.
-                        </p>
-                    </Card>
-                    <Card className="h-full" hoverEffect>
-                        <div className="w-10 h-10 bg-success/20 rounded-lg flex items-center justify-center mb-3 text-success">
-                            <Shield className="w-5 h-5" />
-                        </div>
-                        <h3 className="text-lg font-bold mb-2 uppercase">Sensitive Forms</h3>
-                        <p className="text-sm text-muted">
-                            Protect tax documents, medical records, and confidential forms with military-grade encryption.
-                        </p>
-                    </Card>
-                    <Card className="h-full" hoverEffect>
-                        <div className="w-10 h-10 bg-warning/20 rounded-lg flex items-center justify-center mb-3 text-warning">
-                            <Key className="w-5 h-5" />
-                        </div>
-                        <h3 className="text-lg font-bold mb-2 uppercase">Digital Assets</h3>
-                        <p className="text-sm text-muted">
-                            Secure crypto wallet mnemonics, private keys, and digital wealth for future generations.
-                        </p>
-                    </Card>
-                    <Card className="h-full" hoverEffect>
-                        <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center mb-3 text-primary">
-                            <Share2 className="w-5 h-5" />
-                        </div>
-                        <h3 className="text-lg font-bold mb-2 uppercase">Secure File Sharing</h3>
-                        <p className="text-sm text-muted">
-                            Share confidential files with authorized users using blockchain access control lists. Perfect for teams, collaborators, or controlled document distribution.
-                        </p>
-                    </Card>
-                </div>
-            </section>
-
-            {/* Technology Section */}
-            <section className="max-w-7xl mx-auto px-4 w-full mt-16">
-                <div className="bg-surface border-2 border-border rounded-2xl p-8 md:p-12 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2"></div>
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center text-primary">
-                                <Layers className="w-6 h-6" />
-                            </div>
-                            <h2 className="text-3xl font-black uppercase">Powered by Zama FHE</h2>
-                        </div>
-                        <div className="grid md:grid-cols-2 gap-8">
-                            <div>
-                                <h3 className="text-xl font-bold mb-4 uppercase">Double-Layer Security</h3>
-                                <p className="text-muted mb-4 leading-relaxed">
-                                    LegacyVault uses <strong className="text-foreground">Zama FHE (Fully Homomorphic Encryption)</strong> to provide 
-                                    an additional layer of security. Your data is first encrypted with AES-256-GCM, then the decryption key 
-                                    is encrypted again using FHE and stored on-chain.
-                                </p>
-                                <p className="text-muted mb-4 leading-relaxed">
-                                    This means even if someone gains access to the blockchain, they cannot decrypt your data without proper 
-                                    FHEVM Access Control List (ACL) authorization. The FHE-encrypted AES key remains secure until an authorized 
-                                    party uses FHEVM's homomorphic decryption capabilities.
-                                </p>
-                                <div className="flex items-center gap-2 text-sm text-muted mt-6">
-                                    <Zap className="w-4 h-4 text-primary" />
-                                    <span>FHE-encrypted keys stored on-chain via FHEVM</span>
+        <div className="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-x-hidden">
+            <div className="flex h-full grow flex-col">
+                <div className="flex flex-1 justify-center py-5">
+                    <div className="flex flex-col max-w-[960px] flex-1">
+                        {/* Header */}
+                        <header className="sticky top-5 z-50 flex items-center justify-between whitespace-nowrap border border-solid border-white/10 bg-background-dark/50 backdrop-blur-md px-10 py-3 rounded-lg mx-4 sm:mx-0">
+                            <div className="flex items-center gap-4 text-white">
+                                <div className="size-6 text-primary">
+                                    <svg fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                                        <g clipPath="url(#clip0_6_535)">
+                                            <path clipRule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fillRule="evenodd"></path>
+                                        </g>
+                                        <defs>
+                                            <clipPath id="clip0_6_535">
+                                                <rect fill="white" height="48" width="48"></rect>
+                                            </clipPath>
+                                        </defs>
+                                    </svg>
                                 </div>
+                                <h2 className="text-white text-lg font-bold leading-tight tracking-[-0.015em]">LegacyVault</h2>
                             </div>
-                            <div className="bg-background border-2 border-dashed border-border rounded-xl p-6">
-                                <h4 className="font-bold mb-4 uppercase text-sm text-muted">Encryption Flow</h4>
-                                <div className="space-y-3">
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</div>
-                                        <div>
-                                            <div className="font-bold text-sm">AES-256-GCM Encryption</div>
-                                            <div className="text-xs text-muted">Your data encrypted client-side</div>
+                            <div className="hidden sm:flex flex-1 justify-end gap-8">
+                                <div className="flex items-center gap-9"></div>
+                                <button 
+                                    onClick={() => navigate('/create')}
+                                    className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-black text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors"
+                                >
+                                    <span className="truncate">Secure Legacy</span>
+                                </button>
+                            </div>
+                        </header>
+
+                        <main className="flex flex-col gap-16 md:gap-24 mt-16">
+                            {/* Hero Section */}
+                            <section className="px-4">
+                                <div className="md:p-4">
+                                    <div 
+                                        className="flex min-h-[480px] flex-col gap-6 bg-cover bg-center bg-no-repeat md:gap-8 md:rounded-lg items-start justify-end px-4 pb-10 md:px-10" 
+                                        style={{
+                                            backgroundImage: 'linear-gradient(rgba(18, 18, 18, 0.1) 0%, rgba(18, 18, 18, 0.8) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuCvkHy9S8lV1UMwWS1nAgKXYds7Etv6n4lGsMIxOoJzOsdyzWsuBk5LBpJPXAwmz1JVh-f-rYk4_jfPsii7hSnmIMGj249aRTFBOGqGnjpQ_VBY0-ZqCL1lCuyWC_XtENx11n3bBuO1EoAzcYArdDWC10TXFRYkFaeLCvgNRRqPK7N4G084mALtL3Jm9QAm8UcIDdPOQwgBrePSqzwDfqNC7SV7cUROif_DPsarL33Zn3M2mWBGo0k2EAJKCxO0z_LKaXcVGzsD5g")'
+                                        }}
+                                    >
+                                        <div className="flex flex-col gap-4 text-left max-w-3xl">
+                                            <h1 className="text-white text-4xl font-black leading-tight tracking-[-0.033em] md:text-5xl">
+                                                The Future of Digital Inheritance. Secured by Confidential Computing on EVM.
+                                            </h1>
+                                            <p className="text-white/90 text-sm font-normal leading-normal md:text-base">
+                                                LegacyVault combines time-locked access and Fully Homomorphic Encryption to protect your digital assets for the next generation.
+                                            </p>
+                                        </div>
+                                        <button 
+                                            onClick={() => navigate('/create')}
+                                            className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 md:h-12 md:px-5 bg-primary text-black text-sm font-bold leading-normal tracking-[0.015em] md:text-base hover:bg-primary/90 transition-colors"
+                                        >
+                                            <span className="truncate">Secure Your Assets</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Features Section */}
+                            <section className="flex flex-col gap-10 px-4 py-10" id="features">
+                                <div className="flex flex-col gap-4">
+                                    <h2 className="text-white tracking-light text-[32px] font-bold leading-tight md:text-4xl md:font-black md:leading-tight md:tracking-[-0.033em] max-w-[720px]">
+                                        Secure, Time-Locked, and Decentralized
+                                    </h2>
+                                    <p className="text-white/80 text-base font-normal leading-normal max-w-[720px]">
+                                        LegacyVault provides a robust security layer for your digital assets, ensuring they are protected and accessible only by your designated beneficiaries at the right time.
+                                    </p>
+                                </div>
+                                <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 p-0">
+                                    <div className="flex flex-1 gap-4 rounded-lg border border-white/10 bg-white/5 p-6 flex-col hover:bg-white/10 transition-colors">
+                                        <div className="text-primary">
+                                            <span className="material-symbols-outlined text-3xl">lock</span>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <h3 className="text-white text-lg font-bold leading-tight">Confidential Vaults</h3>
+                                            <p className="text-white/70 text-sm font-normal leading-normal">Securely store your digital assets in vaults protected by Fully Homomorphic Encryption.</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</div>
-                                        <div>
-                                            <div className="font-bold text-sm">IPFS Storage</div>
-                                            <div className="text-xs text-muted">Encrypted data uploaded to IPFS</div>
+                                    <div className="flex flex-1 gap-4 rounded-lg border border-white/10 bg-white/5 p-6 flex-col hover:bg-white/10 transition-colors">
+                                        <div className="text-primary">
+                                            <span className="material-symbols-outlined text-3xl">schedule</span>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <h3 className="text-white text-lg font-bold leading-tight">Time-Locked Release</h3>
+                                            <p className="text-white/70 text-sm font-normal leading-normal">Set predetermined access triggers and time-based release schedules for your beneficiaries.</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</div>
-                                        <div>
-                                            <div className="font-bold text-sm">FHE Encryption</div>
-                                            <div className="text-xs text-muted">AES key encrypted with Zama FHE</div>
+                                    <div className="flex flex-1 gap-4 rounded-lg border border-white/10 bg-white/5 p-6 flex-col hover:bg-white/10 transition-colors">
+                                        <div className="text-primary">
+                                            <span className="material-symbols-outlined text-3xl">hub</span>
                                         </div>
-                                    </div>
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">4</div>
-                                        <div>
-                                            <div className="font-bold text-sm">On-Chain Storage</div>
-                                            <div className="text-xs text-muted">FHE-encrypted key stored on blockchain</div>
+                                        <div className="flex flex-col gap-1">
+                                            <h3 className="text-white text-lg font-bold leading-tight">Blockchain Access Control</h3>
+                                            <p className="text-white/70 text-sm font-normal leading-normal">Leverage decentralized and tamper-proof permissions for ultimate control and security.</p>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                            </section>
 
-            {/* Action Cards */}
-            <section className="max-w-5xl mx-auto px-4 w-full">
-                <div className="bg-surface border-2 border-border rounded-2xl p-8 md:p-12 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-                    
-                    <div className="grid md:grid-cols-2 gap-12 items-center relative z-10">
-                        <div>
-                            <h2 className="text-3xl font-black mb-4 uppercase">Ready to secure your confidential documents?</h2>
-                            <p className="text-muted mb-8">
-                                Create a new vault in minutes. Upload your wills, agreements, forms, or any sensitive documents. 
-                                Share files securely with authorized users using blockchain access control. 
-                                Your wallet connection provides secure access control, and your data is protected with double encryption.
-                            </p>
-                            <Button variant="secondary" onClick={() => navigate('/create')}>
-                                Start Vault Creation
-                            </Button>
-                        </div>
-                        <div className="bg-background border-2 border-dashed border-border rounded-xl p-6 flex flex-col gap-4 opacity-80">
-                            <div className="h-4 bg-surface-hover rounded w-3/4"></div>
-                            <div className="h-4 bg-surface-hover rounded w-1/2"></div>
-                            <div className="h-4 bg-surface-hover rounded w-full"></div>
-                            <div className="mt-4 flex justify-end">
-                                <div className="h-8 bg-primary/20 rounded w-24"></div>
-                            </div>
-                        </div>
+                            {/* Use Cases Section */}
+                            <section className="flex flex-col gap-6 px-4" id="use-cases">
+                                <div className="flex flex-col gap-4 text-center items-center">
+                                    <h2 className="text-white tracking-light text-[32px] font-bold leading-tight md:text-4xl md:font-black md:leading-tight md:tracking-[-0.033em] max-w-[720px]">
+                                        Flexible Solutions for Every Need
+                                    </h2>
+                                    <p className="text-white/80 text-base font-normal leading-normal max-w-[720px]">
+                                    
+                                    </p>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div className="flex flex-1 gap-4 rounded-lg border border-white/10 bg-white/5 p-6 flex-col hover:bg-white/10 transition-colors">
+                                        <div className="text-primary">
+                                            <span className="material-symbols-outlined text-3xl">account_balance_wallet</span>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <h3 className="text-white text-lg font-bold leading-tight">Wills & Testaments</h3>
+                                            <p className="text-white/70 text-sm font-normal leading-normal">Securely draft and store your last will, ensuring your digital and physical assets are distributed according to your wishes with absolute confidentiality.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-1 gap-4 rounded-lg border border-white/10 bg-white/5 p-6 flex-col hover:bg-white/10 transition-colors">
+                                        <div className="text-primary">
+                                            <span className="material-symbols-outlined text-3xl">gavel</span>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <h3 className="text-white text-lg font-bold leading-tight">Legal Agreements</h3>
+                                            <p className="text-white/70 text-sm font-normal leading-normal">Protect sensitive contracts and legal documents with time-locked access, ensuring they are only revealed to authorized parties at the designated time.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-1 gap-4 rounded-lg border border-white/10 bg-white/5 p-6 flex-col hover:bg-white/10 transition-colors">
+                                        <div className="text-primary">
+                                            <span className="material-symbols-outlined text-3xl">description</span>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <h3 className="text-white text-lg font-bold leading-tight">Sensitive Forms</h3>
+                                            <p className="text-white/70 text-sm font-normal leading-normal">Safeguard confidential information in forms such as medical records or financial statements, controlling exactly who can access them and when.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-1 gap-4 rounded-lg border border-white/10 bg-white/5 p-6 flex-col hover:bg-white/10 transition-colors">
+                                        <div className="text-primary">
+                                            <span className="material-symbols-outlined text-3xl">token</span>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <h3 className="text-white text-lg font-bold leading-tight">Digital Assets</h3>
+                                            <p className="text-white/70 text-sm font-normal leading-normal">Manage and transfer cryptocurrencies, NFTs, and other digital assets with unparalleled security, ensuring they reach your intended beneficiaries.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-1 gap-4 rounded-lg border border-white/10 bg-white/5 p-6 flex-col hover:bg-white/10 transition-colors">
+                                        <div className="text-primary">
+                                            <span className="material-symbols-outlined text-3xl">share</span>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <h3 className="text-white text-lg font-bold leading-tight">Secure File Sharing</h3>
+                                            <p className="text-white/70 text-sm font-normal leading-normal">Share critical files with colleagues or family, with the peace of mind that they are encrypted and only accessible under the conditions you set.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Technology Section */}
+                            <section className="px-4" id="technology">
+                                <div className="bg-white/5 border border-white/10 rounded-lg p-8 md:p-12 flex flex-col items-center text-center gap-6">
+                                    <h2 className="text-white tracking-light text-2xl font-bold leading-tight md:text-3xl md:font-black md:leading-tight md:tracking-[-0.033em] max-w-[720px]">
+                                        Powered by Cutting-Edge Confidentiality
+                                    </h2>
+                                    <p className="text-white/80 text-base font-normal leading-normal max-w-[600px]">
+                                        We utilize Zama's Fully Homomorphic Encryption (FHE) technology—a confidential computing layer that works across all EVM-compatible blockchains. Your data remains encrypted at all times, even during processing, ensuring unparalleled security and privacy for your most sensitive assets on any chain.
+                                    </p>
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-white/60 text-sm font-medium">POWERED BY</span>
+                                        <span className="text-primary text-xl font-bold">ZAMA</span>
+                                    </div>
+                                    <a 
+                                        href="https://zama.ai" 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="text-primary hover:text-primary/90 text-sm font-bold leading-normal tracking-[0.015em] transition-colors"
+                                    >
+                                        Learn More About FHE Technology
+                                    </a>
+                                </div>
+                            </section>
+
+                            {/* CTA Section */}
+                            <section className="px-4 py-10" id="faq">
+                                <div className="bg-primary rounded-lg p-8 md:p-12 flex flex-col items-center text-center gap-6">
+                                    <h2 className="text-black tracking-light text-3xl font-black leading-tight md:text-4xl md:font-black md:leading-tight md:tracking-[-0.033em] max-w-[720px]">
+                                        Ready to Secure Your Legacy?
+                                    </h2>
+                                    <p className="text-black/80 text-base font-normal leading-normal max-w-[600px]">
+                                        Get started with LegacyVault today and take the first step towards protecting your digital assets for the future.
+                                    </p>
+                                    <button 
+                                        onClick={() => navigate('/create')}
+                                        className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-black text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-black/80 transition-colors"
+                                    >
+                                        <span className="truncate">Create Your Vault</span>
+                                    </button>
+                                </div>
+                            </section>
+                        </main>
                     </div>
                 </div>
-            </section>
+            </div>
         </div>
     );
 };

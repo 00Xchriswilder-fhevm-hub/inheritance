@@ -31,6 +31,9 @@ const CreateVaultPage = () => {
     const [step, setStep] = useState(1);
     const [contentType, setContentType] = useState<'text' | 'file'>('text');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [selectedAMPM, setSelectedAMPM] = useState<'AM' | 'PM'>('AM');
+    const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
+    const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
     const [filePreview, setFilePreview] = useState<string | null>(null);
     
     const [showMnemonic, setShowMnemonic] = useState(false);
@@ -64,7 +67,16 @@ const CreateVaultPage = () => {
 
     const watchMnemonic = watch('mnemonic');
     const wordCount = watchMnemonic ? watchMnemonic.trim().split(/\s+/).length : 0;
-
+    const watchReleaseDate = watch('releaseDate');
+    
+    // Sync calendar view with selected date
+    useEffect(() => {
+        if (watchReleaseDate) {
+            const date = new Date(watchReleaseDate);
+            setCalendarMonth(date.getMonth());
+            setCalendarYear(date.getFullYear());
+        }
+    }, [watchReleaseDate]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -380,54 +392,72 @@ const CreateVaultPage = () => {
     }
 
     return (
-        <div className="max-w-4xl mx-auto py-12 px-4">
+        <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark">
+            <div className="flex h-full grow flex-col justify-start">
+                <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
             {/* Stepper */}
-            <div className="flex justify-between items-center mb-12 relative px-4">
-                <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-border -z-10 mx-8 hidden sm:block"></div>
+                    <div className="flex justify-between items-center mb-8 relative px-4">
+                        <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-zinc-800 -z-10 mx-8 hidden sm:block"></div>
                 {STEPS.map((s, i) => {
                     const isActive = i + 1 === step;
                     const isCompleted = i + 1 < step;
                     const Icon = s.icon;
                     return (
-                        <div key={s.id} className="flex flex-col items-center bg-background px-2 sm:px-4">
-                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${isActive ? 'border-primary text-primary bg-background shadow-[0_0_15px_#ffd20850]' : isCompleted ? 'border-primary bg-primary text-background' : 'border-border text-muted bg-surface'}`}>
+                                <div key={s.id} className="flex flex-col items-center bg-background-dark px-2 sm:px-4">
+                                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${isActive ? 'border-primary text-primary bg-background-dark' : isCompleted ? 'border-primary bg-primary text-black' : 'border-zinc-800 text-zinc-500 bg-zinc-900'}`}>
                                 <Icon size={20} className={isCompleted ? "text-black" : ""} />
                             </div>
-                            <span className={`mt-2 text-xs font-bold uppercase tracking-wider ${isActive ? 'text-primary' : isCompleted ? 'text-foreground' : 'text-muted'}`}>{s.label}</span>
+                                    <span className={`mt-2 text-xs font-bold uppercase tracking-wider ${isActive ? 'text-primary underline' : isCompleted ? 'text-white' : 'text-zinc-500'}`}>{s.label}</span>
                         </div>
                     );
                 })}
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="max-w-2xl mx-auto">
+                    <form onSubmit={handleSubmit(onSubmit)} className="w-full">
                 {/* Step 1: Content (Text or File) */}
                 {step === 1 && (
-                    <Card title="1. Select Content Type" className="animate-fade-in">
-                        <p className="text-sm text-muted mb-6">
-                            Create a vault to preserve your digital legacy, or use it for secure file sharing with authorized users. 
-                            Files are encrypted and stored on IPFS, with access controlled via blockchain addresses.
-                        </p>
-                        <div className="flex gap-4 mb-6">
-                            <button 
-                                onClick={() => setContentType('text')}
-                                className={`flex-1 py-4 rounded-lg border-2 font-bold uppercase transition-all ${contentType === 'text' ? 'border-primary bg-primary/10 text-primary shadow-neo-sm' : 'border-border bg-surface hover:border-muted'}`}
-                            >
-                                <span className="flex items-center justify-center gap-2"><FileText size={18}/> Secret Text</span>
-                            </button>
-                            <button 
-                                onClick={() => setContentType('file')}
-                                className={`flex-1 py-4 rounded-lg border-2 font-bold uppercase transition-all ${contentType === 'file' ? 'border-primary bg-primary/10 text-primary shadow-neo-sm' : 'border-border bg-surface hover:border-muted'}`}
-                            >
-                                <span className="flex items-center justify-center gap-2"><Upload size={18}/> File Upload / Sharing</span>
-                            </button>
+                    <div className="flex flex-col gap-8">
+                        <div className="flex flex-col gap-4">
+                            <div className="flex flex-wrap items-start justify-between gap-4">
+                                <div className="flex min-w-72 flex-col gap-2">
+                                    <p className="text-3xl font-bold leading-tight tracking-tighter text-zinc-900 dark:text-white sm:text-4xl">Add Your Content</p>
+                                    <p className="text-base font-normal leading-normal text-zinc-600 dark:text-zinc-400">Choose how you want to secure your legacy: as a secret message or a file.</p>
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-2 pt-2">
+                                <div className="flex justify-end">
+                                    <p className="text-sm font-normal leading-normal text-zinc-900 dark:text-white">Step 1 of 4</p>
+                                </div>
+                                <div className="h-2 rounded-full bg-zinc-200 dark:bg-zinc-800">
+                                    <div className="h-2 rounded-full bg-primary" style={{ width: '25%' }}></div>
+                                </div>
+                            </div>
                         </div>
 
+                        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-100 p-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+                            <button 
+                                        type="button"
+                                onClick={() => setContentType('text')}
+                                        className={`flex-1 rounded-lg px-4 py-3 text-center text-sm font-bold transition-all ${contentType === 'text' ? 'bg-zinc-900 text-primary dark:bg-zinc-800' : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white'}`}
+                            >
+                                        Secret Text
+                            </button>
+                            <button 
+                                        type="button"
+                                onClick={() => setContentType('file')}
+                                        className={`flex-1 rounded-lg px-4 py-3 text-center text-sm font-medium transition-all whitespace-nowrap ${contentType === 'file' ? 'bg-zinc-900 text-primary dark:bg-zinc-800' : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white'}`}
+                            >
+                                        File Upload / Sharing
+                            </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-4">
                         {contentType === 'text' ? (
-                            <div className="mb-6 animate-fade-in">
-                                <label className="block text-sm font-bold text-muted mb-2 uppercase tracking-wider">
-                                    Recovery Phrase / Private Note
-                                </label>
-                                <div className="relative">
+                                <div className="flex flex-col rounded-xl border border-zinc-200 bg-zinc-900 p-4 dark:border-zinc-800">
                                     <textarea
                                         {...register('mnemonic', {
                                             required: 'Content is required',
@@ -435,172 +465,511 @@ const CreateVaultPage = () => {
                                                 return value.length > 0 || "Content cannot be empty";
                                             }
                                         })}
-                                        className={`w-full bg-background border-2 ${errors.mnemonic ? 'border-error' : 'border-border'} rounded-lg p-4 min-h-[160px] font-mono text-sm focus:border-primary focus:outline-none focus:shadow-neo transition-all ${!showMnemonic ? 'text-security-disc' : ''}`}
-                                        placeholder="Enter your secret phrase, private key, or secure note here..."
+                                        className={`min-h-[200px] w-full resize-none border-0 bg-transparent font-mono text-sm leading-relaxed text-zinc-400 placeholder-zinc-600 focus:ring-0 ${!showMnemonic ? 'text-security-disc' : ''}`}
+                                        placeholder="Type your secret message here..."
                                         style={!showMnemonic ? { WebkitTextSecurity: 'disc' } as any : {}}
                                     />
-                                    <button type="button" onClick={() => setShowMnemonic(!showMnemonic)} className="absolute top-4 right-4 text-muted hover:text-foreground">
-                                        {showMnemonic ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    <div className="flex items-center justify-end gap-3 border-t border-zinc-800 pt-3">
+                                        <span className="text-xs font-medium text-zinc-400">Mask Content</span>
+                                        <button 
+                                            type="button"
+                                            onClick={() => setShowMnemonic(!showMnemonic)}
+                                            aria-checked={!showMnemonic}
+                                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-zinc-900 ${!showMnemonic ? 'bg-primary' : 'bg-zinc-600'}`}
+                                            role="switch"
+                                        >
+                                            <span className={`inline-block h-5 w-5 transform rounded-full bg-black shadow ring-0 transition duration-200 ease-in-out ${!showMnemonic ? 'translate-x-5' : 'translate-x-0'}`}></span>
                                     </button>
-                                </div>
-                                <div className="flex justify-between mt-2">
-                                    <span className="text-xs text-error font-bold">{errors.mnemonic?.message as string}</span>
-                                    <span className="text-xs text-muted font-mono">{watchMnemonic?.length || 0} chars</span>
                                 </div>
                             </div>
                         ) : (
-                            <div className="mb-6 animate-fade-in">
-                                <label className="block text-sm font-bold text-muted mb-2 uppercase tracking-wider">
-                                    Upload File (IPFS)
-                                </label>
+                                <>
                                 {!selectedFile ? (
-                                    <div className="border-2 border-dashed border-border rounded-lg p-10 text-center hover:border-primary hover:bg-surface-hover transition-all cursor-pointer relative">
+                                        <div className="flex h-full min-h-[200px] flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-100 p-6 text-center dark:border-zinc-700 dark:bg-zinc-900 relative cursor-pointer">
                                         <input 
                                             type="file" 
                                             onChange={handleFileChange} 
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                         />
-                                        <Upload className="mx-auto h-12 w-12 text-muted mb-4" />
-                                        <p className="text-lg font-bold">Drop your file here</p>
-                                        <p className="text-sm text-muted">or click to browse</p>
-                                        <p className="text-xs text-muted mt-4">Max size: 5MB (Demo)</p>
+                                            <div className="rounded-full bg-zinc-200 p-3 dark:bg-zinc-800">
+                                                <span className="material-symbols-outlined text-3xl text-zinc-500 dark:text-zinc-400">upload_file</span>
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <p className="text-base font-bold text-zinc-900 dark:text-white">Drag & drop files here</p>
+                                                <p className="text-sm text-zinc-500 dark:text-zinc-400">or click to browse</p>
+                                            </div>
+                                            <p className="text-xs text-zinc-500">Max file size: 5MB</p>
                                     </div>
                                 ) : (
-                                    <div className="bg-surface-hover rounded-lg p-4 border border-border flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 bg-primary/20 rounded flex items-center justify-center text-primary">
-                                                <FileText size={20} />
+                                        <>
+                                            <div className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary">
+                                                            <span className="material-symbols-outlined text-2xl text-black">description</span>
                                             </div>
-                                            <div>
-                                                <div className="font-bold truncate max-w-[200px]">{selectedFile.name}</div>
-                                                <div className="text-xs text-muted">{(selectedFile.size / 1024).toFixed(2)} KB</div>
+                                                        <div className="flex flex-col">
+                                                            <p className="text-sm font-bold text-zinc-900 dark:text-white">{selectedFile.name}</p>
+                                                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
                                             </div>
                                         </div>
-                                        <button onClick={removeFile} className="p-2 hover:bg-background rounded-full text-muted hover:text-error transition-colors">
-                                            <X size={20} />
+                                                    <button 
+                                                        type="button"
+                                                        onClick={removeFile} 
+                                                        className="text-zinc-400 hover:text-white"
+                                                    >
+                                                        <span className="material-symbols-outlined text-xl">close</span>
                                         </button>
                                     </div>
-                                )}
-                                <div className="mt-4 p-3 bg-info/10 border border-info/30 rounded text-xs text-info flex gap-2">
-                                    <Shield size={16} />
-                                    <span>Files will be encrypted before uploading to IPFS. Use this for secure file sharing - add authorized users in the next step.</span>
                                 </div>
+                                            <div className="h-1.5 w-full rounded-full bg-zinc-200 dark:bg-zinc-800">
+                                                <div className="h-1.5 rounded-full bg-primary" style={{ width: '100%' }}></div>
                             </div>
-                        )}
-                    </Card>
-                )}
+                                        </>
+                                    )}
+                                </>
+                            )}
+                            {errors.mnemonic && (
+                                <div className="text-xs text-red-500 font-bold">{errors.mnemonic.message as string}</div>
+                            )}
+                        </div>
 
+                        <div className="mt-8 flex items-center justify-between border-t border-zinc-200 pt-6 dark:border-zinc-800">
+                            <button 
+                                type="button"
+                                onClick={() => navigate('/')}
+                                className="rounded-md px-4 py-2 text-sm font-bold text-zinc-700 ring-1 ring-inset ring-zinc-300 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-zinc-300 dark:ring-zinc-700 dark:hover:bg-zinc-800" 
+                                disabled
+                            >
+                                Back
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={nextStep}
+                                className="rounded-md bg-primary px-6 py-2 text-sm font-bold uppercase text-zinc-900 hover:bg-primary/90"
+                            >
+                                Continue
+                            </button>
+                        </div>
+                    </div>
+                )}
                 {/* Step 2: Heir Addresses */}
                 {step === 2 && (
-                    <Card title="2. Add Authorized Users" className="animate-fade-in">
-                        <p className="text-sm text-muted mb-6">
-                            Add wallet addresses of users who should have access to this vault. 
-                            {contentType === 'file' ? ' Perfect for secure file sharing - only authorized addresses can decrypt and access your files.' : ' These addresses will be able to access the vault after the release date.'}
-                        </p>
-                        
-                        <div className="space-y-3 mb-4">
-                            {heirAddresses.map((addr, index) => (
-                                <div key={index} className="flex gap-2 items-start">
-                                    <div className="flex-1">
-                                        <Input
-                                            label={index === 0 ? "Heir Wallet Address" : ""}
+                    <div className="flex flex-col gap-8">
+                        <div className="flex flex-col gap-4">
+                            <div className="flex flex-wrap items-start justify-between gap-4">
+                                <div className="flex min-w-72 flex-col gap-2">
+                                    <p className="text-3xl font-bold leading-tight tracking-tighter text-zinc-900 dark:text-white sm:text-4xl">Add Your Heirs</p>
+                                    <p className="text-base font-normal leading-normal text-zinc-600 dark:text-zinc-400">Specify the wallet addresses that will be authorized to access this vault.</p>
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-2 pt-2">
+                                <div className="flex justify-end">
+                                    <p className="text-sm font-normal leading-normal text-zinc-900 dark:text-white">Step 2 of 4</p>
+                                </div>
+                                <div className="h-2 rounded-full bg-zinc-200 dark:bg-zinc-800">
+                                    <div className="h-2 rounded-full bg-primary" style={{ width: '50%' }}></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-6">
+                            <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Authorized Users</h2>
+                            
+                            <div className="flex flex-col gap-4">
+                                {heirAddresses.map((addr, index) => {
+                                    const isValid = addr.trim() === '' || ethers.isAddress(addr);
+                                    const isOwnAddress = addr.toLowerCase() === address?.toLowerCase();
+                                    const hasError = addr.trim() !== '' && (!isValid || isOwnAddress);
+                                    
+                                    return (
+                                        <div key={index} className="relative flex items-center">
+                                            <span className={`absolute left-4 font-bold ${hasError ? 'text-error' : isValid && addr.trim() !== '' ? 'text-primary' : 'text-zinc-400'}`}>
+                                                {index + 1}.
+                                            </span>
+                                            <input
                                             value={addr}
                                             onChange={(e) => {
                                                 const newAddresses = [...heirAddresses];
                                                 newAddresses[index] = e.target.value;
                                                 setHeirAddresses(newAddresses);
                                             }}
-                                            placeholder="0x..."
-                                            error={
-                                                addr && !ethers.isAddress(addr) 
-                                                    ? 'Invalid Ethereum address' 
-                                                    : addr && addr.toLowerCase() === address?.toLowerCase()
-                                                    ? 'Cannot add your own address'
-                                                    : ''
-                                            }
-                                        />
-                                    </div>
+                                                className={`w-full rounded-lg border-2 py-4 pl-10 pr-12 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-0 dark:bg-zinc-900 dark:text-white ${
+                                                    hasError 
+                                                        ? 'border-error bg-zinc-100 ring-2 ring-error/20 dark:border-error' 
+                                                        : isValid && addr.trim() !== ''
+                                                        ? 'border-primary bg-zinc-100 ring-2 ring-primary/20 dark:border-primary'
+                                                        : 'border-zinc-200 bg-zinc-100 dark:border-zinc-700'
+                                                }`}
+                                                placeholder="Enter wallet address"
+                                                type="text"
+                                            />
                                     {heirAddresses.length > 1 && (
                                         <button
                                             type="button"
                                             onClick={() => {
                                                 setHeirAddresses(heirAddresses.filter((_, i) => i !== index));
                                             }}
-                                            className="p-3 text-error hover:bg-error/10 rounded-lg transition-colors mt-6"
+                                                    className="absolute right-3 flex size-8 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-200 dark:text-zinc-400 dark:hover:bg-zinc-800"
                                         >
-                                            <Trash2 size={18} />
+                                                    <span className="material-symbols-outlined text-xl">close</span>
                                         </button>
                                     )}
                                 </div>
-                            ))}
+                                    );
+                                })}
                         </div>
                         
-                        <p className="text-sm text-muted mb-6">
-                            <strong>Note:</strong> Access is controlled by wallet addresses on the blockchain. 
-                            Only the addresses you add here will be able to unlock this vault after the release time.
-                            {contentType === 'file' && ' This makes it perfect for secure file sharing with controlled access.'}
-                        </p>
-                        
-                        <Button
+                            <button
                             type="button"
-                            variant="outline"
                             onClick={() => setHeirAddresses([...heirAddresses, ''])}
-                            icon={<UserPlus size={18} />}
-                            className="mb-6"
+                                className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-zinc-300 py-4 text-center text-zinc-500 transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-primary dark:hover:bg-primary/10"
                         >
-                            Add Another User
-                        </Button>
+                                <span className="material-symbols-outlined">add_circle</span>
+                                <span className="font-bold">Add Another Heir</span>
+                            </button>
                         
-                        <div className="bg-info/10 border border-info/30 rounded-lg p-4 text-sm text-info">
+                            <div className="bg-primary/20 border border-primary/30 rounded-lg p-4">
                             <div className="flex gap-2 items-start">
-                                <Shield size={16} className="mt-0.5 shrink-0" />
+                                    <Shield size={16} className="mt-0.5 shrink-0 text-primary" />
                                 <div>
-                                    <span className="font-bold block mb-1">How it works:</span>
-                                    <ul className="list-disc list-inside space-y-1 text-xs">
+                                        <span className="font-bold block mb-1 text-primary dark:text-primary">How it works:</span>
+                                        <ul className="list-disc list-inside space-y-1 text-sm text-zinc-900 dark:text-white">
                                         <li>Authorized users can use their wallet to decrypt and access the vault after the release date</li>
                                         <li>You can add multiple authorized users to the same vault - perfect for secure file sharing</li>
                                         <li>Access is controlled on-chain via FHEVM Access Control Lists (ACL)</li>
                                         <li>Only the wallet addresses you add here will be able to decrypt the content</li>
+                                            <li>You can revoke access to heirs after the vault is created</li>
                                     </ul>
                                 </div>
                             </div>
                         </div>
-                    </Card>
+                        </div>
+                    </div>
                 )}
 
                 {/* Step 3: Schedule */}
-                {step === 3 && (
-                    <Card title="4. Release Schedule" className="animate-fade-in">
-                        <p className="text-sm text-muted mb-6">When can your heir access this vault?</p>
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label className="block text-sm font-bold text-muted mb-2 uppercase tracking-wider">Release Date</label>
+                {step === 3 && (() => {
+                    const releaseDate = watch('releaseDate') || '';
+                    const releaseTime = watch('releaseTime') || '10:30';
+                    const [hours, minutes] = releaseTime.split(':');
+                    const hour12 = hours ? (parseInt(hours) % 12 || 12).toString().padStart(2, '0') : '10';
+                    const minute12 = minutes || '30';
+                    const currentAMPM = hours ? (parseInt(hours) >= 12 ? 'PM' : 'AM') : 'AM';
+                    
+                    // Sync selectedAMPM with current time
+                    if (selectedAMPM !== currentAMPM && releaseTime) {
+                        setSelectedAMPM(currentAMPM);
+                    }
+                    
+                    const handleHourChange = (value: string) => {
+                        const hour = parseInt(value) || 0;
+                        if (hour < 1 || hour > 12) return;
+                        let newHour = hour;
+                        if (selectedAMPM === 'PM' && hour < 12) {
+                            newHour = hour + 12;
+                        } else if (selectedAMPM === 'AM' && hour === 12) {
+                            newHour = 0;
+                        }
+                        const newTime = `${newHour.toString().padStart(2, '0')}:${minute12}`;
+                        setValue('releaseTime', newTime);
+                    };
+                    
+                    const handleMinuteChange = (value: string) => {
+                        const minute = parseInt(value) || 0;
+                        if (minute < 0 || minute > 59) return;
+                        const newTime = `${hours || '10'}:${minute.toString().padStart(2, '0')}`;
+                        setValue('releaseTime', newTime);
+                    };
+                    
+                    const handleAMPMChange = (value: 'AM' | 'PM') => {
+                        setSelectedAMPM(value);
+                        const currentHour = parseInt(hours) || 10;
+                        let newHour = currentHour;
+                        if (value === 'PM' && currentHour < 12) {
+                            newHour = currentHour + 12;
+                        } else if (value === 'AM' && currentHour >= 12) {
+                            newHour = currentHour - 12;
+                        }
+                        const newTime = `${newHour.toString().padStart(2, '0')}:${minute12}`;
+                        setValue('releaseTime', newTime);
+                    };
+                    
+                    const previewDate = releaseDate && releaseTime 
+                        ? new Date(`${releaseDate}T${releaseTime}`)
+                        : null;
+                    
+                    return (
+                        <div className="flex flex-col gap-8">
+                            <div className="flex flex-col gap-4">
+                                <div className="flex flex-wrap items-start justify-between gap-4">
+                                    <div className="flex min-w-72 flex-col gap-2">
+                                        <p className="text-3xl font-bold leading-tight tracking-tighter text-zinc-900 dark:text-white sm:text-4xl">Set the Release Schedule</p>
+                                        <p className="text-base font-normal leading-normal text-zinc-600 dark:text-zinc-400">Choose the exact date and time your vault will become accessible to its recipient.</p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-2 pt-2">
+                                    <div className="flex justify-end">
+                                        <p className="text-sm font-normal leading-normal text-zinc-900 dark:text-white">Step 3 of 4</p>
+                                    </div>
+                                    <div className="h-2 rounded-full bg-zinc-200 dark:bg-zinc-800">
+                                        <div className="h-2 rounded-full bg-primary" style={{ width: '75%' }}></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                                {/* Date Picker Section */}
+                                <div className="flex flex-col gap-8">
+                                    <div className="flex flex-col">
+                                        <h2 className="px-4 pb-3 pt-5 text-[22px] font-bold leading-tight tracking-[-0.015em] text-zinc-900 dark:text-white">Release Date</h2>
+                                        <div className="rounded-xl border border-zinc-200 bg-background-light p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+                                            {(() => {
+                                                const selectedDate = releaseDate ? new Date(releaseDate) : null;
+                                                const currentMonth = calendarMonth;
+                                                const currentYear = calendarYear;
+                                                
+                                                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                                                const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+                                                
+                                                const firstDay = new Date(currentYear, currentMonth, 1);
+                                                const lastDay = new Date(currentYear, currentMonth + 1, 0);
+                                                const daysInMonth = lastDay.getDate();
+                                                const startingDayOfWeek = firstDay.getDay();
+                                                
+                                                const handlePrevMonth = () => {
+                                                    if (currentMonth === 0) {
+                                                        setCalendarMonth(11);
+                                                        setCalendarYear(currentYear - 1);
+                                                    } else {
+                                                        setCalendarMonth(currentMonth - 1);
+                                                    }
+                                                };
+                                                
+                                                const handleNextMonth = () => {
+                                                    if (currentMonth === 11) {
+                                                        setCalendarMonth(0);
+                                                        setCalendarYear(currentYear + 1);
+                                                    } else {
+                                                        setCalendarMonth(currentMonth + 1);
+                                                    }
+                                                };
+                                                
+                                                const handleDateSelect = (day: number) => {
+                                                    const selected = new Date(currentYear, currentMonth, day);
+                                                    const today = new Date();
+                                                    today.setHours(0, 0, 0, 0);
+                                                    if (selected >= today) {
+                                                        const dateStr = selected.toISOString().split('T')[0];
+                                                        setValue('releaseDate', dateStr);
+                                                    }
+                                                };
+                                                
+                                                const today = new Date();
+                                                const isToday = (day: number) => {
+                                                    return today.getDate() === day && 
+                                                           today.getMonth() === currentMonth && 
+                                                           today.getFullYear() === currentYear;
+                                                };
+                                                
+                                                const isSelected = (day: number) => {
+                                                    if (!selectedDate) return false;
+                                                    return selectedDate.getDate() === day && 
+                                                           selectedDate.getMonth() === currentMonth && 
+                                                           selectedDate.getFullYear() === currentYear;
+                                                };
+                                                
+                                                const isPast = (day: number) => {
+                                                    const date = new Date(currentYear, currentMonth, day);
+                                                    const today = new Date();
+                                                    today.setHours(0, 0, 0, 0);
+                                                    return date < today;
+                                                };
+                                                
+                                                const days = [];
+                                                // Empty cells for days before the first day of the month
+                                                for (let i = 0; i < startingDayOfWeek; i++) {
+                                                    days.push(null);
+                                                }
+                                                // Days of the month
+                                                for (let day = 1; day <= daysInMonth; day++) {
+                                                    days.push(day);
+                                                }
+                                                
+                                                return (
+                                                    <div className="flex w-full max-w-sm flex-col gap-0.5">
+                                                        <div className="flex items-center justify-between p-1">
+                                                            <button 
+                                                                type="button"
+                                                                onClick={handlePrevMonth}
+                                                                className="flex size-10 items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                                                            >
+                                                                <span className="material-symbols-outlined text-xl">chevron_left</span>
+                                                            </button>
+                                                            <p className="flex-1 text-center text-base font-bold leading-tight text-zinc-900 dark:text-white">
+                                                                {monthNames[currentMonth]} {currentYear}
+                                                            </p>
+                                                            <button 
+                                                                type="button"
+                                                                onClick={handleNextMonth}
+                                                                className="flex size-10 items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                                                            >
+                                                                <span className="material-symbols-outlined text-xl">chevron_right</span>
+                                                            </button>
+                                                        </div>
+                                                        <div className="grid grid-cols-7">
+                                                            {dayNames.map((day, idx) => (
+                                                                <p key={idx} className="flex h-12 w-full items-center justify-center pb-0.5 text-[13px] font-bold leading-normal tracking-[0.015em] text-zinc-500 dark:text-zinc-400">
+                                                                    {day}
+                                                                </p>
+                                                            ))}
+                                                            {days.map((day, idx) => {
+                                                                if (day === null) {
+                                                                    return <div key={`empty-${idx}`} className="h-12 w-full" />;
+                                                                }
+                                                                const selected = isSelected(day);
+                                                                const past = isPast(day);
+                                                                
+                                                                return (
+                                                                    <button
+                                                                        key={day}
+                                                                        type="button"
+                                                                        onClick={() => !past && handleDateSelect(day)}
+                                                                        disabled={past}
+                                                                        className={`h-12 w-full text-sm font-medium leading-normal transition-colors ${
+                                                                            past 
+                                                                                ? 'text-zinc-400 dark:text-zinc-600 cursor-not-allowed' 
+                                                                                : 'text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                                                                        }`}
+                                                                    >
+                                                                        <div className={`flex size-full items-center justify-center rounded-full ${
+                                                                            selected 
+                                                                                ? 'bg-primary text-zinc-900 dark:text-black' 
+                                                                                : ''
+                                                                        }`}>
+                                                                            {day}
+                                                                        </div>
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Time & Preview Section */}
+                                <div className="flex flex-col gap-8">
+                                    {/* Time Picker Section */}
+                                    <div className="flex flex-col">
+                                        <h2 className="px-4 pb-3 pt-5 text-[22px] font-bold leading-tight tracking-[-0.015em] text-zinc-900 dark:text-white">Release Time</h2>
+                                        <div className="flex flex-col gap-4 rounded-xl border border-zinc-200 bg-background-light p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <div className="flex items-center">
                                 <input 
-                                    type="date" 
-                                    {...register('releaseDate', { required: true })} 
-                                    min={new Date().toISOString().split('T')[0]} 
-                                    className="w-full bg-background text-foreground border-2 border-border rounded-lg px-4 py-3 focus:outline-none focus:ring-0 focus:border-primary focus:shadow-neo transition-all cursor-pointer [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:brightness-0 [&::-webkit-calendar-picker-indicator]:contrast-200" 
+                                                        type="text"
+                                                        value={hour12}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value.replace(/\D/g, '').slice(0, 2);
+                                                            if (value) {
+                                                                const num = parseInt(value);
+                                                                if (num >= 1 && num <= 12) {
+                                                                    handleHourChange(value);
+                                                                }
+                                                            }
+                                                        }}
+                                                        className="h-20 w-20 rounded-md border-zinc-200 bg-zinc-100 text-center text-5xl font-bold text-zinc-900 focus:border-primary focus:ring-primary dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-primary"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-bold text-muted mb-2 uppercase tracking-wider">Release Time</label>
+                                                <span className="pb-1 text-5xl font-bold text-zinc-400 dark:text-zinc-600">:</span>
+                                                <div className="flex items-center">
                                 <input 
-                                    type="time" 
-                                    {...register('releaseTime', { required: true })} 
-                                    className="w-full bg-background text-foreground border-2 border-border rounded-lg px-4 py-3 focus:outline-none focus:ring-0 focus:border-primary focus:shadow-neo transition-all cursor-pointer [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:brightness-0 [&::-webkit-calendar-picker-indicator]:contrast-200" 
+                                                        type="text"
+                                                        value={minute12}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value.replace(/\D/g, '').slice(0, 2);
+                                                            if (value) {
+                                                                const num = parseInt(value);
+                                                                if (num >= 0 && num <= 59) {
+                                                                    handleMinuteChange(value);
+                                                                }
+                                                            }
+                                                        }}
+                                                        className="h-20 w-20 rounded-md border-zinc-200 bg-zinc-100 text-center text-5xl font-bold text-zinc-900 focus:border-primary focus:ring-primary dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-primary"
                                 />
                             </div>
+                                                <div className="flex flex-col gap-2 pl-2">
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => handleAMPMChange('AM')}
+                                                        className={`rounded-md border px-4 py-2 text-sm font-bold transition-colors ${
+                                                            selectedAMPM === 'AM' 
+                                                                ? 'border-primary bg-primary/20 text-primary dark:border-primary dark:bg-primary/20' 
+                                                                : 'border-zinc-200 bg-transparent text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800'
+                                                        }`}
+                                                    >
+                                                        AM
+                                                    </button>
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => handleAMPMChange('PM')}
+                                                        className={`rounded-md border px-4 py-2 text-sm font-medium transition-colors ${
+                                                            selectedAMPM === 'PM' 
+                                                                ? 'border-primary bg-primary/20 text-primary dark:border-primary dark:bg-primary/20' 
+                                                                : 'border-zinc-200 bg-transparent text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800'
+                                                        }`}
+                                                    >
+                                                        PM
+                                                    </button>
                         </div>
-                        <div className="bg-surface-hover rounded-lg p-4 border-2 border-border">
-                            <label className="block text-xs font-bold text-muted mb-1 uppercase tracking-wider">Release Date & Time Preview</label>
-                            <div className="text-lg font-bold text-foreground">
-                                {watch('releaseDate') && watch('releaseTime') ? (
-                                    new Date(`${watch('releaseDate')}T${watch('releaseTime')}`).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-                                ) : 'Please select date and time'}
+                            </div>
+                                            <div>
+                                                <label className="sr-only" htmlFor="timezone">Timezone</label>
+                                                <select 
+                                                    id="timezone" 
+                                                    name="timezone"
+                                                    className="mt-1 block w-full rounded-md border-zinc-200 bg-zinc-100 py-2 pl-3 pr-10 text-base text-zinc-900 focus:border-primary focus:outline-none focus:ring-primary dark:border-zinc-700 dark:bg-zinc-800 dark:text-white sm:text-sm"
+                                                >
+                                                    <option>Pacific Standard Time (PST)</option>
+                                                    <option>Mountain Standard Time (MST)</option>
+                                                    <option>Central Standard Time (CST)</option>
+                                                    <option>Eastern Standard Time (EST)</option>
+                                                    <option>Coordinated Universal Time (UTC)</option>
+                                                </select>
+                        </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Preview Section */}
+                                    <div className="flex flex-col">
+                                        <h2 className="px-4 pb-3 pt-5 text-[22px] font-bold leading-tight tracking-[-0.015em] text-zinc-900 dark:text-white">Release ETA</h2>
+                                        <div className="flex h-full min-h-[180px] flex-col items-center justify-center rounded-xl bg-zinc-900 text-center">
+                                            {previewDate ? (
+                                                <>
+                                                    <p className="text-xl font-medium leading-relaxed text-zinc-400">
+                                                        {previewDate.toLocaleDateString('en-US', { weekday: 'long' })}
+                                                    </p>
+                                                    <p className="font-display text-4xl font-bold tracking-tighter text-white sm:text-5xl">
+                                                        {previewDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                                                    </p>
+                                                    <p className="mt-2 text-xl font-medium text-zinc-400">
+                                                        at <span className="font-bold text-primary">
+                                                            {previewDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} PST
+                                                        </span>
+                                                    </p>
+                                                </>
+                                            ) : (
+                                                <p className="text-xl font-medium text-zinc-400">Please select date and time</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </Card>
-                )}
+                    );
+                })()}
 
                 {/* Step 4: Review */}
                 {step === 4 && (() => {
@@ -609,44 +978,104 @@ const CreateVaultPage = () => {
                         addr.trim() !== '' && 
                         ethers.isAddress(addr)
                     );
+                    const releaseDate = watch('releaseDate');
+                    const releaseTime = watch('releaseTime');
+                    const previewDate = releaseDate && releaseTime 
+                        ? new Date(`${releaseDate}T${releaseTime}`)
+                        : null;
+                    
                     return (
-                    <Card title="Review & Create" className="animate-fade-in">
-                         <p className="text-sm text-muted mb-6">Verify your vault details before creating</p>
-                         <div className="space-y-4">
-                             <div className="flex justify-between items-center p-3 bg-surface-hover rounded border border-border">
-                                 <span className="text-sm text-muted">Vault ID</span>
-                                 <span className="font-mono text-xs font-bold text-primary">{previewVaultId}</span>
+                        <div className="flex flex-col gap-8">
+                            <div className="flex flex-col gap-4">
+                                <div className="flex flex-wrap items-start justify-between gap-4">
+                                    <div className="flex min-w-72 flex-col gap-2">
+                                        <p className="text-3xl font-bold leading-tight tracking-tighter text-zinc-900 dark:text-white sm:text-4xl">Review & Create</p>
+                                        <p className="text-base font-normal leading-normal text-zinc-600 dark:text-zinc-400">Verify your vault details before creating</p>
                              </div>
-                             <div className="flex justify-between items-center p-3 bg-surface-hover rounded border border-border">
-                                 <span className="text-sm text-muted">Vault Type</span>
-                                 <span className="font-bold uppercase text-primary">{contentType === 'text' ? 'Mnemonic / Text' : 'File Upload'}</span>
                              </div>
+                                <div className="flex flex-col gap-2 pt-2">
+                                    <div className="flex justify-end">
+                                        <p className="text-sm font-normal leading-normal text-zinc-900 dark:text-white">Step 4 of 4</p>
+                                    </div>
+                                    <div className="h-2 rounded-full bg-zinc-200 dark:bg-zinc-800">
+                                        <div className="h-2 rounded-full bg-primary" style={{ width: '100%' }}></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                {/* Left Column */}
+                                <div className="flex flex-col gap-6">
+                                    <div className="flex flex-col gap-4 rounded-xl border border-zinc-200 bg-background-light p-6 dark:border-zinc-800 dark:bg-zinc-900/50">
+                                        <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">Vault Details</h2>
+                                        
+                                        <div className="flex flex-col gap-4">
+                                            <div className="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-800">
+                                                <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Vault ID</span>
+                                                <span className="font-mono text-sm font-bold text-zinc-900 dark:text-primary">{previewVaultId}</span>
+                                            </div>
+                                            
+                                            <div className="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-800">
+                                                <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Vault Type</span>
+                                                <span className="text-sm font-bold text-zinc-900 dark:text-white uppercase">{contentType === 'text' ? 'Secret Text' : 'File Upload'}</span>
+                                            </div>
+                                            
                              {contentType === 'text' && (
-                                <div className="flex justify-between items-center p-3 bg-surface-hover rounded border border-border">
-                                    <span className="text-sm text-muted">Word Count</span>
-                                    <span className="font-bold text-success border border-success/30 bg-success/10 px-2 py-0.5 rounded text-xs">{wordCount} words</span>
+                                                <div className="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-800">
+                                                    <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Content Length</span>
+                                                    <span className="text-sm font-bold text-zinc-900 dark:text-white">{wordCount} words</span>
                                 </div>
                              )}
-                             {contentType === 'file' && (
-                                <div className="flex justify-between items-center p-3 bg-surface-hover rounded border border-border">
-                                    <span className="text-sm text-muted">File Name</span>
-                                    <span className="font-bold truncate max-w-[150px]">{selectedFile?.name}</span>
+                                            
+                                            {contentType === 'file' && selectedFile && (
+                                                <div className="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-800">
+                                                    <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">File Name</span>
+                                                    <span className="text-sm font-bold text-zinc-900 dark:text-white truncate max-w-[200px]">{selectedFile.name}</span>
                                 </div>
                              )}
-                             <div className="flex justify-between items-center p-3 bg-surface-hover rounded border border-border">
-                                 <span className="text-sm text-muted">Release Date</span>
-                                 <span className="font-bold">{new Date(`${watch('releaseDate')}T${watch('releaseTime')}`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                            
+                                            <div className="flex justify-between items-center py-3">
+                                                <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Owner Address</span>
+                                                <span className="font-mono text-xs text-zinc-900 dark:text-zinc-400">{address?.slice(0, 8)}...{address?.slice(-6)}</span>
                              </div>
-                             <div className="flex justify-between items-center p-3 bg-surface-hover rounded border border-border">
-                                 <span className="text-sm text-muted">Owner Address</span>
-                                 <span className="font-mono text-xs">{address?.slice(0, 8)}...{address?.slice(-6)}</span>
                              </div>
-                             <div className="flex justify-between items-center p-3 bg-surface-hover rounded border border-border">
-                                 <span className="text-sm text-muted">Heir Addresses</span>
-                                 <span className="font-bold text-primary">{heirAddresses.filter(addr => addr.trim() !== '' && ethers.isAddress(addr)).length} added</span>
                              </div>
                          </div>
-                    </Card>
+
+                                {/* Right Column */}
+                                <div className="flex flex-col gap-6">
+                                    <div className="flex flex-col gap-4 rounded-xl border border-zinc-200 bg-background-light p-6 dark:border-zinc-800 dark:bg-zinc-900/50">
+                                        <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">Access & Schedule</h2>
+                                        
+                                        <div className="flex flex-col gap-4">
+                                            <div className="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-800">
+                                                <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Heir Addresses</span>
+                                                <span className="text-sm font-bold text-primary">{validHeirsPreview.length} {validHeirsPreview.length === 1 ? 'address' : 'addresses'}</span>
+                                            </div>
+                                            
+                                            {previewDate && (
+                                                <>
+                                                    <div className="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-800">
+                                                        <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Release Date</span>
+                                                        <span className="text-sm font-bold text-zinc-900 dark:text-white">
+                                                            {previewDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    <div className="flex justify-between items-center py-3">
+                                                        <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Release Time</span>
+                                                        <span className="text-sm font-bold text-zinc-900 dark:text-white">
+                                                            {previewDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                                        </span>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
                     );
                 })()}
 
@@ -689,23 +1118,42 @@ const CreateVaultPage = () => {
                     </Card>
                 )}
 
-                {/* Buttons */}
-                {!vaultCreated && (
-                    <div className="flex justify-between mt-8">
-                        {step > 1 ? (
-                            <Button type="button" variant="secondary" onClick={prevStep} className="w-28">Back</Button>
-                        ) : (
-                            <Button type="button" variant="outline" onClick={() => navigate('/')} className="w-28">Cancel</Button>
-                        )}
-                        
+                {/* Buttons - Only for steps 2-4 */}
+                {!vaultCreated && step > 1 && (
+                    <div className="flex justify-between mt-8 border-t border-zinc-200 pt-6 dark:border-zinc-800">
+                        <button 
+                            type="button"
+                            onClick={prevStep}
+                            className="rounded-md px-4 py-2 text-sm font-bold text-zinc-700 ring-1 ring-inset ring-zinc-300 hover:bg-zinc-100 dark:text-zinc-300 dark:ring-zinc-700 dark:hover:bg-zinc-800"
+                        >
+                            Back
+                        </button>
                         {step < 4 ? (
-                            <Button type="button" onClick={nextStep} className="w-full sm:w-auto sm:min-w-[120px] ml-auto">Continue</Button>
+                            <button 
+                                type="button"
+                                onClick={nextStep}
+                                className="rounded-md bg-primary px-6 py-2 text-sm font-bold uppercase text-zinc-900 hover:bg-primary/90"
+                            >
+                                Continue
+                            </button>
                         ) : (
-                            <Button type="submit" isLoading={isLoading} className="w-full sm:w-auto sm:min-w-[160px] ml-auto">Create Vault</Button>
+                            <button 
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    handleSubmit(onSubmit)();
+                                }}
+                                disabled={isLoading}
+                                className="rounded-md bg-primary px-6 py-2 text-sm font-bold uppercase text-zinc-900 hover:bg-primary/90 disabled:opacity-50"
+                            >
+                                {isLoading ? 'Creating...' : 'Create Vault'}
+                            </button>
                         )}
                     </div>
                 )}
             </form>
+                </div>
+            </div>
         </div>
     );
 };

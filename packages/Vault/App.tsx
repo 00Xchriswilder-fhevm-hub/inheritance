@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { HashRouter, Routes, Route, useLocation, Link, useNavigate } from 'react-router-dom';
-import { Wallet, Menu, X, Shield, Key, Lock } from 'lucide-react';
+// Material Symbols icons are used via className="material-symbols-outlined"
 import '@rainbow-me/rainbowkit/styles.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider } from 'wagmi';
@@ -15,7 +15,7 @@ import { WalletProvider, WalletContext } from './contexts/WalletContext';
 import { ToastProvider } from './contexts/ToastContext';
 
 // Components
-import Button from './components/Button';
+// Material Symbols and custom styling used instead of component library
 
 const queryClient = new QueryClient();
 
@@ -35,12 +35,12 @@ const Navbar = () => {
     const toggleMenu = () => setIsOpen(!isOpen);
 
     return (
-        <nav className="border-b border-border bg-surface sticky top-0 z-50">
+        <nav className="border-b border-white/10 bg-background-dark sticky top-0 z-50 font-display">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     <Link to="/" className="flex-shrink-0 flex items-center gap-2 cursor-pointer no-underline">
-                        <Shield className="h-8 w-8 text-primary" />
-                        <span className="font-black text-xl tracking-tighter text-foreground">LEGACY<span className="text-primary">VAULT</span></span>
+                        <span className="material-symbols-outlined text-primary text-3xl">shield</span>
+                        <span className="font-bold text-xl tracking-tighter text-white font-display">LEGACY<span className="text-primary">VAULT</span></span>
                     </Link>
                     
                     {/* Desktop Menu */}
@@ -50,10 +50,10 @@ const Navbar = () => {
                                 <Link
                                     key={link.name}
                                     to={link.path}
-                                    className={`px-3 py-2 rounded-md text-sm font-bold uppercase tracking-wide transition-colors ${
+                                    className={`px-3 py-2 rounded-md text-sm font-bold uppercase tracking-wide transition-colors font-display ${
                                         location.pathname === link.path 
                                             ? 'text-primary' 
-                                            : 'text-muted hover:text-foreground'
+                                            : 'text-white/50 hover:text-white'
                                     }`}
                                 >
                                     {link.name}
@@ -95,17 +95,24 @@ const Navbar = () => {
                                         {(() => {
                                             if (!connected) {
                                                 return (
-                                                    <Button variant="primary" size="sm" onClick={openConnectModal} icon={<Wallet size={16} />}>
-                                                        Connect Wallet
-                                                    </Button>
+                                                    <button 
+                                                        onClick={openConnectModal}
+                                                        className="flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-black transition-opacity hover:opacity-90"
+                                                    >
+                                                        <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
+                                                        <span>Connect Wallet</span>
+                                                    </button>
                                                 );
                                             }
 
                                             if (chain.unsupported) {
                                                 return (
-                                                    <Button variant="outline" size="sm" onClick={openChainModal}>
-                                                        Wrong network
-                                                    </Button>
+                                                    <button 
+                                                        onClick={openChainModal}
+                                                        className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                                    >
+                                                        <span>Wrong network</span>
+                                                    </button>
                                                 );
                                             }
 
@@ -113,7 +120,7 @@ const Navbar = () => {
                                                 <div className="flex items-center gap-4">
                                                     <button
                                                         onClick={openChainModal}
-                                                        className="flex items-center gap-2 text-xs font-mono bg-background px-3 py-1 rounded border border-border text-muted hover:text-foreground transition-colors"
+                                                        className="flex items-center gap-2 text-xs font-mono bg-zinc-900 px-3 py-1 rounded border border-white/10 text-white/50 hover:text-white transition-colors"
                                                         type="button"
                                                     >
                                                         {chain.hasIcon && (
@@ -142,7 +149,7 @@ const Navbar = () => {
                                                     <button
                                                         onClick={openAccountModal}
                                                         type="button"
-                                                        className="text-xs font-mono bg-background px-3 py-1 rounded border border-border text-success hover:bg-surface-hover transition-colors"
+                                                        className="text-xs font-mono bg-zinc-900 px-3 py-1 rounded border border-white/10 text-[#22c55e] hover:bg-zinc-800 transition-colors"
                                                     >
                                                         {account.displayName}
                                                         {account.displayBalance && 
@@ -164,9 +171,11 @@ const Navbar = () => {
                     <div className="md:hidden">
                         <button
                             onClick={toggleMenu}
-                            className="inline-flex items-center justify-center p-2 rounded-md text-muted hover:text-foreground hover:bg-surface-hover focus:outline-none"
+                            className="inline-flex items-center justify-center p-2 rounded-md text-white/50 hover:text-white hover:bg-white/5 focus:outline-none"
                         >
-                            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                            <span className="material-symbols-outlined text-2xl">
+                                {isOpen ? 'close' : 'menu'}
+                            </span>
                         </button>
                     </div>
                 </div>
@@ -174,23 +183,23 @@ const Navbar = () => {
 
             {/* Mobile Menu */}
             {isOpen && (
-                <div className="md:hidden bg-surface border-t border-border">
+                <div className="md:hidden bg-background-dark border-t border-white/10">
                     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                         {navLinks.map((link) => (
                             <Link
                                 key={link.name}
                                 to={link.path}
                                 onClick={() => setIsOpen(false)}
-                                className={`block px-3 py-2 rounded-md text-base font-bold uppercase ${
+                                className={`block px-3 py-2 rounded-md text-base font-bold uppercase font-display ${
                                     location.pathname === link.path 
-                                        ? 'text-primary bg-background' 
-                                        : 'text-muted hover:text-foreground hover:bg-surface-hover'
+                                        ? 'text-primary bg-zinc-900' 
+                                        : 'text-white/50 hover:text-white hover:bg-white/5'
                                 }`}
                             >
                                 {link.name}
                             </Link>
                         ))}
-                        <div className="mt-4 pt-4 border-t border-border">
+                        <div className="mt-4 pt-4 border-t border-white/10">
                             <ConnectButton.Custom>
                                 {({
                                     account,
@@ -215,28 +224,38 @@ const Navbar = () => {
 
                                     if (!connected) {
                                         return (
-                                            <Button variant="primary" fullWidth onClick={openConnectModal} icon={<Wallet size={16} />}>
-                                                Connect Wallet
-                                            </Button>
+                                            <button 
+                                                onClick={openConnectModal}
+                                                className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-black transition-opacity hover:opacity-90"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
+                                                <span>Connect Wallet</span>
+                                            </button>
                                         );
                                     }
 
                                     if (chain.unsupported) {
                                         return (
-                                            <Button variant="outline" fullWidth onClick={openChainModal}>
-                                                Wrong network
-                                            </Button>
+                                            <button 
+                                                onClick={openChainModal}
+                                                className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                            >
+                                                <span>Wrong network</span>
+                                            </button>
                                         );
                                     }
 
                                     return (
                                         <div className="flex flex-col gap-2">
-                                            <div className="text-xs font-mono text-center text-muted">
+                                            <div className="text-xs font-mono text-center text-white/50">
                                                 Connected: {account.displayName}
                                             </div>
-                                            <Button variant="outline" fullWidth onClick={openAccountModal}>
-                                                Account
-                                            </Button>
+                                            <button 
+                                                onClick={openAccountModal}
+                                                className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                            >
+                                                <span>Account</span>
+                                            </button>
                                         </div>
                                     );
                                 }}
@@ -250,17 +269,38 @@ const Navbar = () => {
 };
 
 const Footer = () => (
-    <footer className="bg-surface border-t border-border mt-auto py-8">
+    <footer className="bg-background-dark border-t border-white/10 mt-auto py-8 font-display">
         <div className="max-w-7xl mx-auto px-4 text-center">
             <div className="flex justify-center gap-6 mb-4">
-                <Shield className="text-muted hover:text-primary cursor-pointer transition-colors" />
-                <Key className="text-muted hover:text-primary cursor-pointer transition-colors" />
-                <Lock className="text-muted hover:text-primary cursor-pointer transition-colors" />
+                <span className="material-symbols-outlined text-white/50 hover:text-primary cursor-pointer transition-colors text-2xl">shield</span>
+                <span className="material-symbols-outlined text-white/50 hover:text-primary cursor-pointer transition-colors text-2xl">vpn_key</span>
+                <span className="material-symbols-outlined text-white/50 hover:text-primary cursor-pointer transition-colors text-2xl">lock</span>
             </div>
-            <p className="text-muted text-sm">© 2025 LegacyVault. Secure Your Digital Legacy.</p>
+            <p className="text-white/50 text-sm font-display">© 2025 LegacyVault. Secure Your Digital Legacy.</p>
         </div>
     </footer>
 );
+
+const AppContent = () => {
+    const location = useLocation();
+    const isLandingPage = location.pathname === '/' || location.pathname === '';
+
+    return (
+        <div className="min-h-screen flex flex-col bg-background text-foreground">
+            {!isLandingPage && <Navbar />}
+            <main className="flex-grow">
+                <Routes>
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/create" element={<CreateVaultPage />} />
+                    <Route path="/unlock-owner" element={<UnlockOwnerPage />} />
+                    <Route path="/unlock-heir" element={<UnlockHeirPage />} />
+                    <Route path="/my-vaults" element={<MyVaultsPage />} />
+                </Routes>
+            </main>
+            {!isLandingPage && <Footer />}
+        </div>
+    );
+};
 
 const App = () => {
     return (
@@ -268,7 +308,7 @@ const App = () => {
             <QueryClientProvider client={queryClient}>
                 <RainbowKitProvider
                     theme={darkTheme({
-                        accentColor: '#ffd208',
+                        accentColor: '#fbd00e',
                         accentColorForeground: '#000000',
                         borderRadius: 'medium',
                         fontStack: 'system',
@@ -278,19 +318,7 @@ const App = () => {
                     <ToastProvider>
                         <WalletProvider>
                             <HashRouter>
-                                <div className="min-h-screen flex flex-col bg-background text-foreground font-sans">
-                                    <Navbar />
-                                    <main className="flex-grow">
-                                        <Routes>
-                                            <Route path="/" element={<LandingPage />} />
-                                            <Route path="/create" element={<CreateVaultPage />} />
-                                            <Route path="/unlock-owner" element={<UnlockOwnerPage />} />
-                                            <Route path="/unlock-heir" element={<UnlockHeirPage />} />
-                                            <Route path="/my-vaults" element={<MyVaultsPage />} />
-                                        </Routes>
-                                    </main>
-                                    <Footer />
-                                </div>
+                                <AppContent />
                             </HashRouter>
                         </WalletProvider>
                     </ToastProvider>

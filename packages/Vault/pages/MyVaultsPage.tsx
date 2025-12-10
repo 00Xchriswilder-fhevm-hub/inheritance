@@ -1,13 +1,10 @@
 import React, { useContext, useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Box, Clock, Calendar as CalendarIcon, FileText, AlignLeft, Loader2, RefreshCw, Wallet } from 'lucide-react';
+import { Box, Loader2, Wallet } from 'lucide-react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { WalletContext } from '../contexts/WalletContext';
 import { getVaults } from '../services/vaultService';
 import type { Vault } from '../types';
-import Button from '../components/Button';
-import Card from '../components/Card';
-import Badge from '../components/Badge';
 import { useToast } from '../contexts/ToastContext';
 import { getUserVaults, getHeirVaults, getVaultMetadata } from '../services/vaultContractService';
 import { useVaultContract } from '../hooks/useVaultContract';
@@ -42,34 +39,42 @@ const VaultCountdown = ({ releaseTime }: { releaseTime: number }) => {
         return () => clearInterval(timer);
     }, [releaseTime]);
 
-    if (isExpired) return <div className="text-success font-black text-lg uppercase tracking-wider">UNLOCKED</div>;
-    if (!timeLeft) return <div className="text-muted text-sm font-mono">Calculating...</div>;
+    if (isExpired) return null;
+    if (!timeLeft) return (
+        <div className="mt-2 flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
+            <span className="text-white/50 text-sm">Calculating...</span>
+        </div>
+    );
 
     return (
-        <div className="flex gap-3">
+        <div className="mt-3 flex items-baseline gap-3">
             <div className="flex flex-col items-center">
-                <div className="bg-black border border-border rounded w-12 h-12 flex items-center justify-center mb-1 shadow-sm">
-                    <span className="text-xl font-black text-primary">{timeLeft.d}</span>
-                </div>
-                <span className="text-[9px] font-bold text-muted uppercase tracking-wider">Days</span>
+                <p className="text-4xl font-black text-white leading-none">
+                    {timeLeft.d}
+                </p>
+                <span className="text-xs font-bold uppercase tracking-widest text-white/40 mt-1">days</span>
             </div>
+            <span className="text-2xl font-bold text-white/30 pb-2">:</span>
             <div className="flex flex-col items-center">
-                <div className="bg-black border border-border rounded w-12 h-12 flex items-center justify-center mb-1 shadow-sm">
-                    <span className="text-xl font-black text-primary">{timeLeft.h}</span>
-                </div>
-                <span className="text-[9px] font-bold text-muted uppercase tracking-wider">Hrs</span>
+                <p className="text-4xl font-black text-white leading-none">
+                    {String(timeLeft.h).padStart(2, '0')}
+                </p>
+                <span className="text-xs font-bold uppercase tracking-widest text-white/40 mt-1">hours</span>
             </div>
+            <span className="text-2xl font-bold text-white/30 pb-2">:</span>
             <div className="flex flex-col items-center">
-                <div className="bg-black border border-border rounded w-12 h-12 flex items-center justify-center mb-1 shadow-sm">
-                    <span className="text-xl font-black text-primary">{timeLeft.m}</span>
-                </div>
-                <span className="text-[9px] font-bold text-muted uppercase tracking-wider">Min</span>
+                <p className="text-4xl font-black text-white leading-none">
+                    {String(timeLeft.m).padStart(2, '0')}
+                </p>
+                <span className="text-xs font-bold uppercase tracking-widest text-white/40 mt-1">mins</span>
             </div>
+            <span className="text-2xl font-bold text-white/30 pb-2">:</span>
             <div className="flex flex-col items-center">
-                <div className="bg-black border border-border rounded w-12 h-12 flex items-center justify-center mb-1 shadow-sm">
-                    <span className="text-xl font-black text-primary">{timeLeft.s}</span>
-                </div>
-                <span className="text-[9px] font-bold text-muted uppercase tracking-wider">Sec</span>
+                <p className="text-4xl font-black text-white leading-none">
+                    {String(timeLeft.s).padStart(2, '0')}
+                </p>
+                <span className="text-xs font-bold uppercase tracking-widest text-white/40 mt-1">secs</span>
             </div>
         </div>
     );
@@ -214,127 +219,223 @@ const MyVaultsPage = () => {
 
     if (!isConnected) {
         return (
-             <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-                <Box className="w-20 h-20 text-muted mb-6 opacity-20" />
-                <h2 className="text-2xl font-bold mb-4">Connect Wallet</h2>
-                <p className="text-muted mb-8 max-w-md">Connect your wallet to view your created vaults and manage your digital legacy.</p>
-                <ConnectButton.Custom>
-                    {({ openConnectModal }) => (
-                        <Button onClick={openConnectModal} icon={<Wallet size={18} />}>
-                            Connect Wallet
-                        </Button>
-                    )}
-                </ConnectButton.Custom>
+            <div className="relative flex min-h-screen w-full flex-col bg-background-dark">
+                <div className="flex h-full grow flex-col">
+                    <div className="flex flex-1 items-center justify-center px-4 py-20">
+                        <div className="flex flex-col items-center justify-center text-center max-w-md">
+                            <div className="relative mb-8">
+                                <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full"></div>
+                                <div className="relative bg-[#1A1A1A] border border-white/10 rounded-2xl p-8">
+                                    <span className="material-symbols-outlined text-6xl text-primary">account_balance_wallet</span>
+                                </div>
+                            </div>
+                            <h2 className="text-3xl font-bold mb-3 text-white">Connect Your Wallet</h2>
+                            <p className="text-white/60 mb-8 leading-relaxed">Connect your wallet to view your created vaults and manage your digital legacy securely.</p>
+                            <ConnectButton.Custom>
+                                {({ openConnectModal }) => (
+                                    <button 
+                                        onClick={openConnectModal}
+                                        className="flex h-12 min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg bg-primary px-6 text-sm font-bold text-black transition-all hover:opacity-90 hover:scale-105 shadow-lg shadow-primary/20"
+                                    >
+                                        <Wallet size={18} className="text-black" />
+                                        <span className="text-black">Connect Wallet</span>
+                                    </button>
+                                )}
+                            </ConnectButton.Custom>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="max-w-5xl mx-auto py-12 px-4">
-            <div className="flex justify-between items-center mb-12">
-                <h1 className="text-4xl font-black uppercase tracking-tighter text-white">My Vaults</h1>
-                <div className="flex gap-3">
-                    <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={handleRefresh} 
-                        icon={<RefreshCw size={16} />}
-                        disabled={isLoading}
-                    >
-                        Refresh
-                    </Button>
-                    <Button size="sm" onClick={() => navigate('/create')} icon={<Plus size={16} />}>
-                        Create New
-                    </Button>
+        <div className="relative flex min-h-screen w-full flex-col bg-background-dark">
+            <div className="flex h-full grow flex-col">
+                <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-8 lg:px-12">
+                    <div className="flex w-full max-w-7xl flex-col">
+                        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-8 mb-4">
+                            <div className="flex flex-col gap-2">
+                                <h1 className="text-4xl font-black text-white md:text-5xl tracking-tight">My Vaults</h1>
+                                <p className="text-white/50 text-sm font-medium">
+                                    {vaults.length === 0 ? 'No vaults yet' : `${vaults.length} ${vaults.length === 1 ? 'vault' : 'vaults'}`}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <button 
+                                    onClick={handleRefresh}
+                                    disabled={isLoading}
+                                    className="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-[#1A1A1A] text-white/70 transition-all hover:bg-white/5 hover:border-primary/50 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Refresh vaults"
+                                >
+                                    <span className={`material-symbols-outlined ${isLoading ? 'animate-spin' : ''}`}>refresh</span>
+                                </button>
+                                <button 
+                                    onClick={() => navigate('/create')}
+                                    className="flex h-10 min-w-[140px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg bg-primary px-5 text-sm font-bold text-black transition-all hover:opacity-90 hover:scale-105 shadow-lg shadow-primary/20"
+                                >
+                                    <span className="material-symbols-outlined text-lg text-black">add</span>
+                                    <span className="truncate text-black">Create New</span>
+                                </button>
+                            </div>
+                        </header>
+
+                        <main className="flex-1">
+                            {isLoading ? (
+                                <div className="flex flex-col items-center justify-center py-24">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full"></div>
+                                        <Loader2 className="relative w-16 h-16 text-primary animate-spin" />
+                                    </div>
+                                    <p className="mt-6 text-white/60 text-sm font-medium">Loading your vaults...</p>
+                                </div>
+                            ) : vaults.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-24 text-center">
+                                    <div className="relative mb-8">
+                                        <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full"></div>
+                                        <div className="relative bg-[#1A1A1A] border border-white/10 rounded-2xl p-12">
+                                            <span className="material-symbols-outlined text-7xl text-white/20">lock</span>
+                                        </div>
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-white mb-3">No Vaults Found</h3>
+                                    <p className="text-white/60 mb-8 max-w-md leading-relaxed">You haven't created any vaults yet. Create your first vault to secure your digital legacy.</p>
+                                    <button 
+                                        onClick={() => navigate('/create')}
+                                        className="flex h-12 min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg bg-primary px-6 text-sm font-bold text-black transition-all hover:opacity-90 hover:scale-105 shadow-lg shadow-primary/20"
+                                    >
+                                        <span className="material-symbols-outlined text-lg text-black">add</span>
+                                        <span className="truncate text-black">Create Your First Vault</span>
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                                    {vaults.map((vault) => {
+                                        const isLocked = Date.now() < vault.releaseTime;
+                                        const releaseDate = new Date(vault.releaseTime);
+                                        const vaultWithRole = vault as Vault & { _isOwner?: boolean; _isHeir?: boolean };
+                                        const isOwner = vaultWithRole._isOwner;
+                                        const isHeir = vaultWithRole._isHeir;
+                                        
+                                        // Format vault ID - use # prefix like old design
+                                        const formatVaultId = (id: string) => {
+                                            if (id.startsWith('0x')) {
+                                                return `#${id.slice(2)}`;
+                                            }
+                                            return `#${id}`;
+                                        };
+                                        
+                                        return (
+                                            <div 
+                                                key={vault.id} 
+                                                className="group relative flex flex-col rounded-xl border border-white/10 bg-gradient-to-br from-[#1A1A1A] to-[#151515] p-6 transition-all duration-300 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 overflow-hidden"
+                                            >
+                                                {/* Subtle gradient overlay on hover */}
+                                                <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-primary/0 group-hover:from-primary/5 group-hover:to-transparent transition-all duration-300 pointer-events-none"></div>
+                                                
+                                                <div className="relative z-10 flex flex-col h-full">
+                                                    {/* Header */}
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={`material-symbols-outlined text-lg ${
+                                                                isOwner ? 'text-primary' : 'text-white/60'
+                                                            }`}>
+                                                                {isOwner ? 'lock_clock' : 'person'}
+                                                            </span>
+                                                            <p className="text-xs font-bold uppercase tracking-wider text-white/50">
+                                                                {isOwner ? 'Time-Locked' : 'Heir'}
+                                                            </p>
+                                                        </div>
+                                                        <div className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-black uppercase tracking-wider backdrop-blur-sm ${
+                                                            isLocked 
+                                                                ? 'bg-primary/20 text-primary border border-primary/30' 
+                                                                : 'bg-[#16a34a]/20 text-[#22c55e] border border-[#22c55e]/30'
+                                                        }`}>
+                                                            <div className={`h-2 w-2 rounded-full animate-pulse ${
+                                                                isLocked ? 'bg-primary' : 'bg-[#22c55e]'
+                                                            }`}></div>
+                                                            <span>{isLocked ? 'LOCKED' : 'RELEASED'}</span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {/* Vault ID */}
+                                                    <div className="mb-4">
+                                                        <p className="text-3xl font-black text-primary tracking-tight leading-none">
+                                                            {formatVaultId(String(vault.id))}
+                                                        </p>
+                                                    </div>
+                                                    
+                                                    {/* Content Type Tag */}
+                                                    <div className="mb-6 flex items-center gap-2">
+                                                        {vault.vaultType === 'file' ? (
+                                                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/5 border border-white/10">
+                                                                <span className="material-symbols-outlined text-sm text-white/70">description</span>
+                                                                <span className="text-xs font-bold uppercase tracking-wide text-white/60">File</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/5 border border-white/10">
+                                                                <span className="material-symbols-outlined text-sm text-white/70">lock</span>
+                                                                <span className="text-xs font-bold uppercase tracking-wide text-white/60">Secret Text</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    {/* Content Section */}
+                                                    <div className="mt-auto flex flex-1 flex-col justify-end pt-4 border-t border-white/5">
+                                                        {isLocked ? (
+                                                            <div>
+                                                                <p className="text-xs font-bold uppercase tracking-widest text-white/40 mb-3">Unlocks In</p>
+                                                                <VaultCountdown releaseTime={vault.releaseTime} />
+                                                                <button 
+                                                                    onClick={() => {
+                                                                        if (isOwner) {
+                                                                            navigate('/unlock-owner', { state: { vaultId: vault.id } });
+                                                                        } else {
+                                                                            navigate('/unlock-heir', { state: { vaultId: vault.id } });
+                                                                        }
+                                                                    }}
+                                                                    className="mt-6 flex h-11 w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg bg-primary px-4 text-sm font-bold text-black transition-all hover:opacity-90 hover:scale-[1.02] shadow-lg shadow-primary/20"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-lg">settings</span>
+                                                                    <span className="text-black">Manage</span>
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div>
+                                                                <p className="text-xs font-bold uppercase tracking-widest text-white/40 mb-3">Released On</p>
+                                                                <div className="mb-2">
+                                                                    <p className="text-2xl font-black text-white leading-tight">
+                                                                        {releaseDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}
+                                                                    </p>
+                                                                    <p className="mt-1.5 text-sm font-medium text-white/60">
+                                                                        {releaseDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                                                    </p>
+                                                                </div>
+                                                                <button 
+                                                                    onClick={() => {
+                                                                        if (isOwner) {
+                                                                            navigate('/unlock-owner', { state: { vaultId: vault.id } });
+                                                                        } else {
+                                                                            navigate('/unlock-heir', { state: { vaultId: vault.id } });
+                                                                        }
+                                                                    }}
+                                                                    className="mt-6 flex h-11 w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg bg-primary px-4 text-sm font-bold text-black transition-all hover:opacity-90 hover:scale-[1.02] shadow-lg shadow-primary/20"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-lg">settings</span>
+                                                                    <span className="text-black">Manage</span>
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </main>
+                    </div>
                 </div>
             </div>
-
-            {isLoading ? (
-                <div className="bg-surface border-2 border-dashed border-border rounded-xl p-16 text-center">
-                    <Loader2 className="w-12 h-12 text-primary mx-auto mb-6 animate-spin" />
-                    <h3 className="text-xl font-bold mb-2">Loading Vaults...</h3>
-                    <p className="text-muted">Fetching your vaults from the blockchain</p>
-                </div>
-            ) : vaults.length === 0 ? (
-                <div className="bg-surface border-2 border-dashed border-border rounded-xl p-16 text-center">
-                    <div className="w-16 h-16 bg-surface-hover rounded-full flex items-center justify-center mx-auto mb-6 text-muted">
-                        <Box size={32} />
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">No Vaults Found</h3>
-                    <p className="text-muted mb-8">You haven't created any vaults yet.</p>
-                    <Button onClick={() => navigate('/create')}>Create Your First Vault</Button>
-                </div>
-            ) : (
-                <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8">
-                    {vaults.map((vault) => {
-                        const isLocked = Date.now() < vault.releaseTime;
-                        const releaseDate = new Date(vault.releaseTime);
-                        const createdDate = new Date(vault.createdAt);
-                        
-                        return (
-                            <Card key={vault.id} className="relative group flex flex-col h-full bg-[#121212]" hoverEffect noPadding>
-                                <div className="p-6 pb-0 flex justify-between items-start">
-                                    <div>
-                                        <div className="text-[10px] text-muted font-bold uppercase tracking-widest mb-1">Vault ID</div>
-                                        <div className="text-3xl font-black tracking-tight text-primary">
-                                            #{vault.id}
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-2">
-                                            {vault.vaultType === 'file' ? <FileText size={14}/> : <AlignLeft size={14}/>}
-                                            <span className="text-xs font-bold uppercase tracking-wide text-muted">
-                                                {vault.vaultType === 'file' ? 'File Storage' : 'Mnemonic'}
-                                            </span>
-                                            {(vault as Vault & { _isOwner?: boolean; _isHeir?: boolean })._isHeir && (
-                                                <Badge variant="outline" className="text-[9px] px-1.5 py-0.5">Heir</Badge>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <Badge variant={isLocked ? 'warning' : 'success'} className="px-3 py-1 text-[10px] tracking-widest uppercase">
-                                        {isLocked ? 'LOCKED' : 'RELEASED'}
-                                    </Badge>
-                                </div>
-                                
-                                <div className="p-6 flex-grow flex flex-col gap-6">
-                                    {isLocked && (
-                                        <div className="bg-background rounded-lg border border-border p-4">
-                                            <div className="text-[10px] text-muted font-bold uppercase tracking-widest mb-3">Unlocks In</div>
-                                            <VaultCountdown releaseTime={vault.releaseTime} />
-                                        </div>
-                                    )}
-
-                                    <div className="space-y-2 mt-auto">
-                                        <div className="flex items-center gap-3 text-xs font-medium text-muted">
-                                            <CalendarIcon size={14} />
-                                            <span>Created: {createdDate.toLocaleDateString()}</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 text-xs font-medium text-muted">
-                                            <Clock size={14} />
-                                            <span>Release: {releaseDate.toLocaleDateString()} {releaseDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="p-6 pt-0 mt-auto">
-                                    <Button 
-                                        variant="secondary" 
-                                        className="w-full"
-                                        onClick={() => {
-                                            const vaultWithRole = vault as Vault & { _isOwner?: boolean; _isHeir?: boolean };
-                                            if (vaultWithRole._isOwner) {
-                                                navigate('/unlock-owner', { state: { vaultId: vault.id } });
-                                            } else {
-                                                navigate('/unlock-heir', { state: { vaultId: vault.id } });
-                                            }
-                                        }}
-                                    >
-                                        {(vault as Vault & { _isOwner?: boolean })._isOwner ? 'Manage' : 'Unlock as Heir'}
-                                    </Button>
-                                </div>
-                            </Card>
-                        );
-                    })}
-                </div>
-            )}
         </div>
     );
 };

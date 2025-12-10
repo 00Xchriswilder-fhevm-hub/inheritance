@@ -2,13 +2,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLocation } from 'react-router-dom';
-import { Lock, Clock, AlertTriangle, Download, FileText, Eye, EyeOff, Copy, Trash2, Save, Wallet } from 'lucide-react';
+// Material Symbols icons are used via className="material-symbols-outlined"
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { getVaultById } from '../services/vaultService';
-import Button from '../components/Button';
-import Input from '../components/Input';
-import Card from '../components/Card';
-import Badge from '../components/Badge';
 import { useToast } from '../contexts/ToastContext';
 import { WalletContext } from '../contexts/WalletContext';
 import { getVaultMetadata, isAuthorized } from '../services/vaultContractService';
@@ -384,165 +380,208 @@ const UnlockHeirPage = () => {
 
     if ((decryptedData || decryptedFileBuffer) && currentVault && countdown) {
         return (
-            <div className="max-w-3xl mx-auto py-12 px-4 animate-fade-in">
-                {/* Header Stats */}
-                <div className="bg-surface border-2 border-border rounded-xl p-6 mb-8 relative overflow-hidden">
-                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
-                        <div>
-                            <div className="flex items-center gap-4 mb-2">
-                                <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
-                                    <Lock className="text-primary w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h1 className="text-2xl font-black uppercase text-foreground">Vault #{currentVault.id}</h1>
-                                    <p className="text-xs text-muted">Created {new Date(currentVault.createdAt).toLocaleDateString()}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted mt-2">
-                                <Clock size={16} />
-                                <span>Release: {new Date(currentVault.releaseTime).toLocaleString()}</span>
-                            </div>
-                        </div>
-                        <div className="flex flex-col items-center">
-                            <Badge variant={Date.now() < currentVault.releaseTime ? 'warning' : 'success'} className="mb-3 px-3 py-1">
-                                {Date.now() < currentVault.releaseTime ? 'Active' : 'Released'}
-                            </Badge>
-                            <div className="flex gap-2 text-center">
-                                <div className="bg-background border border-border rounded p-2 w-12 sm:w-14">
-                                    <div className="text-xl sm:text-2xl font-black text-primary">{countdown.days}</div>
-                                    <div className="text-[10px] uppercase text-muted font-bold">Days</div>
-                                </div>
-                                <div className="bg-background border border-border rounded p-2 w-12 sm:w-14">
-                                    <div className="text-xl sm:text-2xl font-black text-primary">{countdown.hours}</div>
-                                    <div className="text-[10px] uppercase text-muted font-bold">Hours</div>
-                                </div>
-                                <div className="bg-background border border-border rounded p-2 w-12 sm:w-14">
-                                    <div className="text-xl sm:text-2xl font-black text-primary">{countdown.min}</div>
-                                    <div className="text-[10px] uppercase text-muted font-bold">Min</div>
-                                </div>
-                                <div className="bg-background border border-border rounded p-2 w-12 sm:w-14">
-                                    <div className="text-xl sm:text-2xl font-black text-primary">{countdown.sec}</div>
-                                    <div className="text-[10px] uppercase text-muted font-bold">Sec</div>
-                                </div>
-                            </div>
-                            <div className="text-xs text-muted mt-2">until vault becomes available to heir</div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Main Action Bar */}
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold">
-                        {currentVault.vaultType === 'file' ? 'Decrypted File' : 'Recovery Phrase'}
-                    </h2>
-                    <div className="flex gap-2">
-                        {currentVault.vaultType === 'text' && (
-                            <>
-                                <Button size="sm" variant="outline" onClick={() => setHideMnemonic(!hideMnemonic)} icon={hideMnemonic ? <Eye size={14} /> : <EyeOff size={14} />}>
-                                    {hideMnemonic ? 'Show' : 'Hide'}
-                                </Button>
-                                <Button size="sm" variant="outline" onClick={copyToClipboard} icon={<Copy size={14} />}>
-                                    Copy
-                                </Button>
-                            </>
-                        )}
-                        <Button size="sm" variant="danger" onClick={clearData} icon={<Trash2 size={14} />}>
-                            Clear
-                        </Button>
-                    </div>
-                </div>
-
-                {/* Content Display */}
-                {currentVault.vaultType === 'file' ? (
-                    <div className="bg-surface border-2 border-border rounded-xl p-8 mb-8 flex flex-col items-center text-center">
-                        <FileText className="w-16 h-16 text-primary mb-4" />
-                        <h3 className="text-lg font-bold mb-2">{currentVault.fileName || 'Unknown File'}</h3>
-                        {decryptedFileBuffer ? (
-                            <>
-                                <p className="text-sm text-muted mb-6">
-                                    File decrypted successfully ({decryptedFileBuffer.byteLength} bytes). Ready for download.
-                                </p>
-                                <Button onClick={downloadFile} icon={<Download size={18} />} size="lg">
-                                    Download Decrypted File
-                                </Button>
-                            </>
-                        ) : (
-                            <p className="text-sm text-warning mb-6">File data not available</p>
-                        )}
-                    </div>
-                ) : (
-                    (() => {
-                        // Check if this is a txt file or plain text (not mnemonic)
-                        const isTxtFile = currentVault.vaultType === 'file' && (
-                            currentVault.fileName?.toLowerCase().endsWith('.txt') || 
-                            currentVault.mimeType === 'text/plain'
-                        );
-                        
-                        // Check if text content looks like a mnemonic (12 or 24 words, typically 3-8 chars each)
-                        const words = decryptedData ? decryptedData.trim().split(/\s+/) : [];
-                        const isMnemonic = words.length === 12 || words.length === 24 || words.length === 18;
-                        const hasMnemonicPattern = isMnemonic && words.every(w => w.length >= 3 && w.length <= 8 && /^[a-z]+$/.test(w.toLowerCase()));
-                        
-                        const shouldShowAsPlainText = isTxtFile || !hasMnemonicPattern;
-                        
-                        return shouldShowAsPlainText ? (
-                            <div className="bg-surface border-2 border-border rounded-xl p-6 mb-8">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-sm font-bold uppercase text-muted">Decrypted Text</h3>
-                                    <div className="flex gap-2">
-                                        <Button onClick={downloadFile} variant="outline" size="sm" icon={<Download size={16} />}>
-                                            Download Text
-                                        </Button>
+            <div className="relative flex min-h-screen w-full flex-col bg-background-dark font-display">
+                <div className="flex h-full grow flex-col">
+                    <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-8 lg:px-12">
+                        <div className="flex w-full max-w-5xl flex-col">
+                            {/* Header Stats */}
+                            <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6 mb-8">
+                                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                                    <div>
+                                        <div className="flex items-center gap-4 mb-2">
+                                            <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+                                                <span className="material-symbols-outlined text-primary text-2xl">lock</span>
+                                            </div>
+                                            <div>
+                                                <h1 className="text-2xl font-bold text-white font-display">Vault #{currentVault.id}</h1>
+                                                <p className="text-xs text-white/50 font-display">Created {new Date(currentVault.createdAt).toLocaleDateString()}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-sm text-white/50 mt-2">
+                                            <span className="material-symbols-outlined text-base">schedule</span>
+                                            <span className="font-display">Release: {new Date(currentVault.releaseTime).toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col items-center">
+                                        <div className={`flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold mb-3 ${
+                                            Date.now() < currentVault.releaseTime 
+                                                ? 'bg-primary/20 text-primary' 
+                                                : 'bg-[#16a34a]/20 text-[#22c55e]'
+                                        }`}>
+                                            <div className={`h-2 w-2 rounded-full ${
+                                                Date.now() < currentVault.releaseTime ? 'bg-primary' : 'bg-[#22c55e]'
+                                            }`}></div>
+                                            <span>{Date.now() < currentVault.releaseTime ? 'LOCKED' : 'RELEASED'}</span>
+                                        </div>
+                                        <div className="flex gap-2 text-center">
+                                            <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
+                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.days}</div>
+                                                <div className="text-[10px] uppercase text-white/50 font-bold font-display">Days</div>
+                                            </div>
+                                            <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
+                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.hours}</div>
+                                                <div className="text-[10px] uppercase text-white/50 font-bold font-display">Hours</div>
+                                            </div>
+                                            <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
+                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.min}</div>
+                                                <div className="text-[10px] uppercase text-white/50 font-bold font-display">Min</div>
+                                            </div>
+                                            <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
+                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.sec}</div>
+                                                <div className="text-[10px] uppercase text-white/50 font-bold font-display">Sec</div>
+                                            </div>
+                                        </div>
+                                        <div className="text-xs text-white/50 mt-2 font-display">until vault becomes available to heir</div>
                                     </div>
                                 </div>
-                                <div className="bg-background border border-border rounded-lg p-4">
-                                    <pre className="whitespace-pre-wrap break-words font-mono text-sm text-foreground max-h-96 overflow-y-auto">
-                                        {hideMnemonic ? '••••••••••••••••••••••••••••••••••••••••' : decryptedData}
-                                    </pre>
+                            </div>
+
+                            {/* Main Action Bar */}
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-bold text-white font-display">
+                                    {currentVault.vaultType === 'file' ? 'Decrypted File' : 'Recovery Phrase'}
+                                </h2>
+                                <div className="flex gap-2">
+                                    {currentVault.vaultType === 'text' && (
+                                        <>
+                                            <button 
+                                                onClick={() => setHideMnemonic(!hideMnemonic)}
+                                                className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">
+                                                    {hideMnemonic ? 'visibility' : 'visibility_off'}
+                                                </span>
+                                                <span>{hideMnemonic ? 'Show' : 'Hide'}</span>
+                                            </button>
+                                            <button 
+                                                onClick={copyToClipboard}
+                                                className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">content_copy</span>
+                                                <span>Copy</span>
+                                            </button>
+                                        </>
+                                    )}
+                                    <button 
+                                        onClick={clearData}
+                                        className="flex h-10 items-center justify-center gap-2 rounded-lg border border-red-500/50 bg-transparent px-4 text-sm font-bold text-red-500 transition-colors hover:bg-red-500/10"
+                                    >
+                                        <span className="material-symbols-outlined text-lg">delete</span>
+                                        <span>Clear</span>
+                                    </button>
                                 </div>
-                    </div>
-                ) : (
-                    <div className="bg-surface border-2 border-border rounded-xl p-6 mb-8">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-sm font-bold uppercase text-muted">Decrypted Mnemonic</h3>
-                            <div className="flex gap-2">
-                                <Button onClick={downloadFile} variant="outline" size="sm" icon={<Download size={16} />}>
-                                    Download Text
-                                </Button>
+                            </div>
+
+                            {/* Content Display */}
+                            {currentVault.vaultType === 'file' ? (
+                                <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-8 mb-8 flex flex-col items-center text-center">
+                                    <span className="material-symbols-outlined text-primary text-6xl mb-4">description</span>
+                                    <h3 className="text-lg font-bold text-white mb-2 font-display">{currentVault.fileName || 'Unknown File'}</h3>
+                                    {decryptedFileBuffer ? (
+                                        <>
+                                            <p className="text-sm text-white/50 mb-6 font-display">
+                                                File decrypted successfully ({decryptedFileBuffer.byteLength} bytes). Ready for download.
+                                            </p>
+                                            <button 
+                                                onClick={downloadFile}
+                                                className="flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-black transition-opacity hover:opacity-90"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">download</span>
+                                                <span>Download Decrypted File</span>
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <p className="text-sm text-yellow-500 mb-6 font-display">File data not available</p>
+                                    )}
+                                </div>
+                            ) : (
+                                (() => {
+                                    // Check if this is a txt file or plain text (not mnemonic)
+                                    const isTxtFile = currentVault.vaultType === 'file' && (
+                                        currentVault.fileName?.toLowerCase().endsWith('.txt') || 
+                                        currentVault.mimeType === 'text/plain'
+                                    );
+                                    
+                                    // Check if text content looks like a mnemonic (12 or 24 words, typically 3-8 chars each)
+                                    const words = decryptedData ? decryptedData.trim().split(/\s+/) : [];
+                                    const isMnemonic = words.length === 12 || words.length === 24 || words.length === 18;
+                                    const hasMnemonicPattern = isMnemonic && words.every(w => w.length >= 3 && w.length <= 8 && /^[a-z]+$/.test(w.toLowerCase()));
+                                    
+                                    const shouldShowAsPlainText = isTxtFile || !hasMnemonicPattern;
+                                    
+                                    return shouldShowAsPlainText ? (
+                                        <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6 mb-8">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h3 className="text-sm font-bold uppercase text-white/50 font-display">Decrypted Text</h3>
+                                                <div className="flex gap-2">
+                                                    <button 
+                                                        onClick={downloadFile}
+                                                        className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                                    >
+                                                        <span className="material-symbols-outlined text-lg">download</span>
+                                                        <span>Download Text</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="bg-zinc-900 border border-white/10 rounded-lg p-4">
+                                                <pre className="whitespace-pre-wrap break-words font-mono text-sm text-white max-h-96 overflow-y-auto">
+                                                    {hideMnemonic ? '••••••••••••••••••••••••••••••••••••••••' : decryptedData}
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6 mb-8">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h3 className="text-sm font-bold uppercase text-white/50 font-display">Decrypted Mnemonic</h3>
+                                                <div className="flex gap-2">
+                                                    <button 
+                                                        onClick={downloadFile}
+                                                        className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                                    >
+                                                        <span className="material-symbols-outlined text-lg">download</span>
+                                                        <span>Download Text</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                                {words.map((word, index) => (
+                                                    <div key={index} className="bg-zinc-900 border border-white/10 rounded px-3 py-2 flex items-center gap-3">
+                                                        <span className="text-xs font-mono text-white/50 select-none">{index + 1}</span>
+                                                        <span className={`font-mono font-medium text-white ${hideMnemonic ? 'blur-sm select-none' : ''}`}>
+                                                            {hideMnemonic ? '•••••' : word}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })()
+                            )}
+
+                            {/* Warning Banner */}
+                            <div className="border border-yellow-500/50 bg-yellow-500/5 rounded-xl p-4 flex items-start gap-4 mb-8">
+                                <span className="material-symbols-outlined text-yellow-500 shrink-0 mt-0.5">warning</span>
+                                <div>
+                                    <h3 className="font-bold text-yellow-500 mb-1 font-display">Security Warning</h3>
+                                    <p className="text-sm text-white/70 font-display">
+                                        {currentVault.vaultType === 'file' 
+                                            ? 'Ensure you download this file to a secure location. Once this window is closed, you will need to decrypt it again.' 
+                                            : 'Keep this recovery phrase secure. Never share it with anyone. Anyone with access to these words can control your assets.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="text-center pb-8">
+                                <button 
+                                    onClick={clearData}
+                                    className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-6 text-sm font-bold text-white transition-colors hover:bg-white/5 mx-auto"
+                                >
+                                    <span className="material-symbols-outlined text-lg">lock</span>
+                                    <span>Lock & Close</span>
+                                </button>
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                    {words.map((word, index) => (
-                                <div key={index} className="bg-background border border-border rounded px-3 py-2 flex items-center gap-3">
-                                    <span className="text-xs font-mono text-muted select-none">{(index + 1).toString().padStart(2, '0')}</span>
-                                    <span className={`font-mono font-medium ${hideMnemonic ? 'blur-sm select-none' : ''}`}>
-                                        {hideMnemonic ? '•••••' : word}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
                     </div>
-                        );
-                    })()
-                )}
-
-                {/* Warning Banner */}
-                <div className="border border-warning/50 bg-warning/5 rounded-xl p-4 flex items-start gap-4 mb-8">
-                     <AlertTriangle className="text-warning shrink-0 mt-0.5" />
-                     <div>
-                         <h3 className="font-bold text-warning mb-1">Security Warning</h3>
-                         <p className="text-sm text-muted">
-                             {currentVault.vaultType === 'file' 
-                                ? 'Ensure you download this file to a secure location. Once this window is closed, you will need to decrypt it again.' 
-                                : 'Keep this recovery phrase secure. Never share it with anyone. Anyone with access to these words can control your assets.'}
-                         </p>
-                     </div>
-                </div>
-
-                <div className="text-center pb-8">
-                     <Button variant="secondary" onClick={clearData}>
-                        <Lock size={16} className="mr-2" /> Lock & Close
-                     </Button>
                 </div>
             </div>
         );
@@ -550,61 +589,111 @@ const UnlockHeirPage = () => {
 
     if (!isConnected) {
         return (
-            <div className="max-w-xl mx-auto py-16 px-4">
-                <div className="text-center mb-10">
-                    <h1 className="text-3xl font-black uppercase tracking-tight mb-2">Unlock as Heir</h1>
-                    <p className="text-muted">Connect your wallet to access vaults you've been granted access to.</p>
+            <div className="relative flex min-h-screen w-full flex-col bg-background-dark font-display">
+                <div className="flex h-full grow flex-col">
+                    <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-8 lg:px-12">
+                        <div className="flex w-full max-w-xl flex-col">
+                            <div className="text-center mb-10">
+                                <h1 className="text-3xl font-bold mb-2 text-white font-display">Unlock as Heir</h1>
+                                <p className="text-white/50 font-display">Connect your wallet to access vaults you've been granted access to.</p>
+                            </div>
+                            <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-10 text-center">
+                                <p className="text-white/50 mb-6 font-display">You need to connect your wallet to unlock vaults.</p>
+                                <ConnectButton.Custom>
+                                    {({ openConnectModal }) => (
+                                        <button 
+                                            onClick={openConnectModal}
+                                            className="flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-black transition-opacity hover:opacity-90 mx-auto"
+                                        >
+                                            <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
+                                            <span>Connect Wallet</span>
+                                        </button>
+                                    )}
+                                </ConnectButton.Custom>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <Card className="mb-8 text-center py-10">
-                    <p className="text-muted mb-6">You need to connect your wallet to unlock vaults.</p>
-                    <ConnectButton.Custom>
-                        {({ openConnectModal }) => (
-                            <Button onClick={openConnectModal} icon={<Wallet size={18} />}>
-                                Connect Wallet
-                            </Button>
-                        )}
-                    </ConnectButton.Custom>
-                </Card>
             </div>
         );
     }
 
     return (
-        <div className="max-w-xl mx-auto py-16 px-4">
-            <div className="text-center mb-10">
-                <h1 className="text-3xl font-black uppercase tracking-tight mb-2">Unlock as Heir</h1>
-                <p className="text-muted">Claim access to a designated vault using your heir key.</p>
-            </div>
-            <Card className="mb-8">
-                <form onSubmit={handleSubmit(onSubmit)}>
-                    <Input label="Vault ID" type="text" placeholder="Enter Vault ID (e.g., x5gsyts)" {...register('vaultId', { required: 'Vault ID is required', minLength: { value: 1, message: 'Vault ID must be at least 1 character' } })} error={errors.vaultId?.message as string} />
-                    {vaultStatus !== 'idle' && (
-                        <div className={`mb-6 p-4 rounded-lg border flex items-center gap-4 ${vaultStatus === 'available' ? 'bg-success/10 border-success/30' : vaultStatus === 'locked' ? 'bg-warning/10 border-warning/30' : vaultStatus === 'unauthorized' ? 'bg-error/10 border-error/30' : 'bg-error/10 border-error/30'}`}>
-                            {vaultStatus === 'available' && <Clock className="text-success" />}
-                            {vaultStatus === 'locked' && <Lock className="text-warning" />}
-                            {(vaultStatus === 'not-found' || vaultStatus === 'unauthorized') && <AlertTriangle className="text-error" />}
-                            <div className="flex-1">
-                                <div className="text-xs font-bold uppercase mb-1">Status</div>
-                                <div className="font-bold">
-                                    {vaultStatus === 'available' && "Ready to Unlock"}
-                                    {vaultStatus === 'locked' && "Time Locked"}
-                                    {vaultStatus === 'not-found' && "Vault Not Found"}
-                                    {vaultStatus === 'unauthorized' && "Not Authorized"}
-                                </div>
-                                {releaseDate && <div className="text-sm font-mono mt-1 opacity-80">Release: {releaseDate.toLocaleDateString()}</div>}
-                                {vaultStatus === 'unauthorized' && <div className="text-sm mt-1 opacity-80">The owner must grant you access to this vault.</div>}
-                            </div>
-                            {vaultStatus === 'locked' && releaseDate && <div className="text-right"><div className="text-xs font-bold uppercase mb-1">Opens In</div><div className="font-mono text-lg font-bold text-warning">{releaseDate.toLocaleDateString()}</div></div>}
+        <div className="relative flex min-h-screen w-full flex-col bg-background-dark font-display">
+            <div className="flex h-full grow flex-col">
+                <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-8 lg:px-12">
+                    <div className="flex w-full max-w-xl flex-col">
+                        <div className="text-center mb-10">
+                            <h1 className="text-3xl font-bold mb-2 text-white font-display">Unlock as Heir</h1>
+                            <p className="text-white/50 font-display">Claim access to a designated vault using your heir key.</p>
                         </div>
-                    )}
-                    <Button type="submit" fullWidth isLoading={isLoading} disabled={vaultStatus !== 'available'} className="mt-4">
-                        {vaultStatus === 'locked' ? 'Vault Locked' : 
-                         vaultStatus === 'unauthorized' ? 'Not Authorized' :
-                         vaultStatus === 'not-found' ? 'Vault Not Found' :
-                         'Unlock Vault'}
-                    </Button>
-                </form>
-            </Card>
+                        <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6 mb-8">
+                            <form onSubmit={handleSubmit(onSubmit)}>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-bold text-white/50 mb-2 uppercase tracking-wider font-display">Vault ID</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Enter Vault ID (e.g., x5gsyts)" 
+                                        {...register('vaultId', { required: 'Vault ID is required', minLength: { value: 1, message: 'Vault ID must be at least 1 character' } })} 
+                                        className={`w-full rounded-lg border-2 py-3 px-4 text-white bg-zinc-900 placeholder-white/30 focus:outline-none focus:ring-0 font-mono ${
+                                            errors.vaultId ? 'border-red-500' : 'border-white/10 focus:border-primary'
+                                        }`}
+                                    />
+                                    {errors.vaultId && (
+                                        <p className="text-xs text-red-500 mt-1 font-display">{errors.vaultId.message as string}</p>
+                                    )}
+                                </div>
+                                {vaultStatus !== 'idle' && (
+                                    <div className={`mb-6 p-4 rounded-lg border flex items-center gap-4 ${
+                                        vaultStatus === 'available' ? 'bg-[#16a34a]/10 border-[#22c55e]/30' : 
+                                        vaultStatus === 'locked' ? 'bg-primary/10 border-primary/30' : 
+                                        'bg-red-500/10 border-red-500/30'
+                                    }`}>
+                                        {vaultStatus === 'available' && <span className="material-symbols-outlined text-[#22c55e]">schedule</span>}
+                                        {vaultStatus === 'locked' && <span className="material-symbols-outlined text-primary">lock</span>}
+                                        {(vaultStatus === 'not-found' || vaultStatus === 'unauthorized') && <span className="material-symbols-outlined text-red-500">warning</span>}
+                                        <div className="flex-1">
+                                            <div className="text-xs font-bold uppercase mb-1 text-white/50 font-display">Status</div>
+                                            <div className="font-bold text-white font-display">
+                                                {vaultStatus === 'available' && "Ready to Unlock"}
+                                                {vaultStatus === 'locked' && "Time Locked"}
+                                                {vaultStatus === 'not-found' && "Vault Not Found"}
+                                                {vaultStatus === 'unauthorized' && "Not Authorized"}
+                                            </div>
+                                            {releaseDate && <div className="text-sm font-mono mt-1 text-white/70">Release: {releaseDate.toLocaleDateString()}</div>}
+                                            {vaultStatus === 'unauthorized' && <div className="text-sm mt-1 text-white/70 font-display">The owner must grant you access to this vault.</div>}
+                                        </div>
+                                        {vaultStatus === 'locked' && releaseDate && (
+                                            <div className="text-right">
+                                                <div className="text-xs font-bold uppercase mb-1 text-white/50 font-display">Opens In</div>
+                                                <div className="font-mono text-lg font-bold text-primary">{releaseDate.toLocaleDateString()}</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                <button 
+                                    type="submit" 
+                                    disabled={isLoading || vaultStatus !== 'available'} 
+                                    className={`mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold transition-opacity ${
+                                        isLoading || vaultStatus !== 'available'
+                                            ? 'bg-primary/50 text-black/50 cursor-not-allowed'
+                                            : 'text-black hover:opacity-90'
+                                    }`}
+                                >
+                                    <span className="material-symbols-outlined text-lg">lock_open</span>
+                                    <span>
+                                        {isLoading ? 'Unlocking...' :
+                                         vaultStatus === 'locked' ? 'Vault Locked' : 
+                                         vaultStatus === 'unauthorized' ? 'Not Authorized' :
+                                         vaultStatus === 'not-found' ? 'Vault Not Found' :
+                                         'Unlock Vault'}
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

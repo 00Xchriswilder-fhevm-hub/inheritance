@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Unlock, Copy, AlertCircle, Trash2, Calendar, Clock, Lock, ArrowLeft, Download, FileText, Save, RefreshCw, Users, UserPlus, UserMinus } from 'lucide-react';
+// Material Symbols icons are used via className="material-symbols-outlined"
 import { getVaultById, mockDecrypt, updateVault } from '../services/vaultService';
 import type { Vault } from '../types';
-import Button from '../components/Button';
-import Input from '../components/Input';
-import Card from '../components/Card';
-import Badge from '../components/Badge';
+// Material Symbols and custom styling used instead of component library
 import { useToast } from '../contexts/ToastContext';
 import { useContext } from 'react';
 import { WalletContext } from '../contexts/WalletContext';
@@ -634,98 +631,130 @@ LegacyVault App - FHE-Encrypted Vault System
 
     if ((decryptedData || decryptedFileBuffer) && currentVault && countdown) {
         return (
-            <div className="max-w-3xl mx-auto py-12 px-4 animate-fade-in">
-                {/* Header Stats */}
-                <div className="bg-surface border-2 border-border rounded-xl p-6 mb-8 relative overflow-hidden">
-                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
-                        <div>
-                            <div className="flex items-center gap-4 mb-2">
-                                <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
-                                    <Lock className="text-primary w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h1 className="text-2xl font-black uppercase text-foreground">Vault #{currentVault.id}</h1>
-                                    <p className="text-xs text-muted">Created {new Date(currentVault.createdAt).toLocaleDateString()}</p>
+            <div className="relative flex min-h-screen w-full flex-col bg-background-dark font-display">
+                <div className="flex h-full grow flex-col">
+                    <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-8 lg:px-12">
+                        <div className="flex w-full max-w-5xl flex-col">
+                            {/* Header Stats */}
+                            <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6 mb-8">
+                                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                                    <div>
+                                        <div className="flex items-center gap-4 mb-2">
+                                            <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+                                                <span className="material-symbols-outlined text-primary text-2xl">lock</span>
+                                            </div>
+                                            <div>
+                                                <h1 className="text-2xl font-bold text-white font-display">Vault #{currentVault.id}</h1>
+                                                <p className="text-xs text-white/50 font-display">Created {new Date(currentVault.createdAt).toLocaleDateString()}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-sm text-white/50 mt-2">
+                                            <span className="material-symbols-outlined text-base">schedule</span>
+                                            <span className="font-display">Release: {new Date(currentVault.releaseTime).toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col items-center">
+                                        <div className={`flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold mb-3 ${
+                                            Date.now() < currentVault.releaseTime 
+                                                ? 'bg-primary/20 text-primary' 
+                                                : 'bg-[#16a34a]/20 text-[#22c55e]'
+                                        }`}>
+                                            <div className={`h-2 w-2 rounded-full ${
+                                                Date.now() < currentVault.releaseTime ? 'bg-primary' : 'bg-[#22c55e]'
+                                            }`}></div>
+                                            <span>{Date.now() < currentVault.releaseTime ? 'LOCKED' : 'RELEASED'}</span>
+                                        </div>
+                                        <div className="flex gap-2 text-center">
+                                            <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
+                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.days}</div>
+                                                <div className="text-[10px] uppercase text-white/50 font-bold font-display">Days</div>
+                                            </div>
+                                            <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
+                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.hours}</div>
+                                                <div className="text-[10px] uppercase text-white/50 font-bold font-display">Hours</div>
+                                            </div>
+                                            <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
+                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.min}</div>
+                                                <div className="text-[10px] uppercase text-white/50 font-bold font-display">Min</div>
+                                            </div>
+                                            <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
+                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.sec}</div>
+                                                <div className="text-[10px] uppercase text-white/50 font-bold font-display">Sec</div>
+                                            </div>
+                                        </div>
+                                        <div className="text-xs text-white/50 mt-2 font-display">until vault becomes available to heir</div>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-muted mt-2">
-                                <Clock size={16} />
-                                <span>Release: {new Date(currentVault.releaseTime).toLocaleString()}</span>
-                            </div>
-                        </div>
-                        <div className="flex flex-col items-center">
-                            <Badge variant={Date.now() < currentVault.releaseTime ? 'warning' : 'success'} className="mb-3 px-3 py-1">
-                                {Date.now() < currentVault.releaseTime ? 'Active' : 'Released'}
-                            </Badge>
-                            <div className="flex gap-2 text-center">
-                                <div className="bg-background border border-border rounded p-2 w-12 sm:w-14">
-                                    <div className="text-xl sm:text-2xl font-black text-primary">{countdown.days}</div>
-                                    <div className="text-[10px] uppercase text-muted font-bold">Days</div>
-                                </div>
-                                <div className="bg-background border border-border rounded p-2 w-12 sm:w-14">
-                                    <div className="text-xl sm:text-2xl font-black text-primary">{countdown.hours}</div>
-                                    <div className="text-[10px] uppercase text-muted font-bold">Hours</div>
-                                </div>
-                                <div className="bg-background border border-border rounded p-2 w-12 sm:w-14">
-                                    <div className="text-xl sm:text-2xl font-black text-primary">{countdown.min}</div>
-                                    <div className="text-[10px] uppercase text-muted font-bold">Min</div>
-                                </div>
-                                <div className="bg-background border border-border rounded p-2 w-12 sm:w-14">
-                                    <div className="text-xl sm:text-2xl font-black text-primary">{countdown.sec}</div>
-                                    <div className="text-[10px] uppercase text-muted font-bold">Sec</div>
-                                </div>
-                            </div>
-                            <div className="text-xs text-muted mt-2">until vault becomes available to heir</div>
-                        </div>
-                    </div>
-                </div>
 
-                {/* Main Action Bar */}
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold">
-                        {currentVault.vaultType === 'file' ? 'Decrypted File' : 'Recovery Phrase'}
-                    </h2>
-                    <div className="flex gap-2">
-                        {currentVault.vaultType === 'text' && (
-                            <>
-                                <Button size="sm" variant="outline" onClick={() => setHideMnemonic(!hideMnemonic)} icon={hideMnemonic ? <Eye size={14} /> : <EyeOff size={14} />}>
-                                    {hideMnemonic ? 'Show' : 'Hide'}
-                                </Button>
-                                <Button size="sm" variant="outline" onClick={copyToClipboard} icon={<Copy size={14} />}>
-                                    Copy
-                                </Button>
-                            </>
-                        )}
-                        <Button size="sm" variant="danger" onClick={clearData} icon={<Trash2 size={14} />}>
-                            Clear
-                        </Button>
-                    </div>
-                </div>
-
-                {/* Content Display */}
-                {currentVault.vaultType === 'file' ? (
-                    <div className="bg-surface border-2 border-border rounded-xl p-8 mb-8 flex flex-col items-center text-center">
-                        <FileText className="w-16 h-16 text-primary mb-4" />
-                        <h3 className="text-lg font-bold mb-2">{currentVault.fileName || 'Unknown File'}</h3>
-                        {decryptedFileBuffer ? (
-                            <>
-                                <p className="text-sm text-muted mb-6">
-                                    File decrypted successfully ({decryptedFileBuffer.byteLength} bytes). Ready for download.
-                                </p>
-                                <div className="flex gap-3">
-                                    <Button onClick={downloadFile} icon={<Download size={18} />} size="lg">
-                                        Download Decrypted File
-                                    </Button>
-                                    <Button onClick={downloadEncryptedBackup} variant="outline" icon={<Save size={18} />} size="lg">
-                                        Download Encrypted Backup
-                                    </Button>
+                            {/* Main Action Bar */}
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-bold text-white font-display">
+                                    {currentVault.vaultType === 'file' ? 'Decrypted File' : 'Recovery Phrase'}
+                                </h2>
+                                <div className="flex gap-2">
+                                    {currentVault.vaultType === 'text' && (
+                                        <>
+                                            <button 
+                                                onClick={() => setHideMnemonic(!hideMnemonic)}
+                                                className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">
+                                                    {hideMnemonic ? 'visibility' : 'visibility_off'}
+                                                </span>
+                                                <span>{hideMnemonic ? 'Show' : 'Hide'}</span>
+                                            </button>
+                                            <button 
+                                                onClick={copyToClipboard}
+                                                className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">content_copy</span>
+                                                <span>Copy</span>
+                                            </button>
+                                        </>
+                                    )}
+                                    <button 
+                                        onClick={clearData}
+                                        className="flex h-10 items-center justify-center gap-2 rounded-lg border border-red-500/50 bg-transparent px-4 text-sm font-bold text-red-500 transition-colors hover:bg-red-500/10"
+                                    >
+                                        <span className="material-symbols-outlined text-lg">delete</span>
+                                        <span>Clear</span>
+                                    </button>
                                 </div>
-                            </>
-                        ) : (
-                            <p className="text-sm text-warning mb-6">File data not available</p>
-                        )}
-                    </div>
-                ) : (
+                            </div>
+
+                            {/* Content Display */}
+                            {currentVault.vaultType === 'file' ? (
+                                <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-8 mb-8 flex flex-col items-center text-center">
+                                    <span className="material-symbols-outlined text-primary text-6xl mb-4">description</span>
+                                    <h3 className="text-lg font-bold text-white mb-2 font-display">{currentVault.fileName || 'Unknown File'}</h3>
+                                    {decryptedFileBuffer ? (
+                                        <>
+                                            <p className="text-sm text-white/50 mb-6 font-display">
+                                                File decrypted successfully ({decryptedFileBuffer.byteLength} bytes). Ready for download.
+                                            </p>
+                                            <div className="flex gap-3">
+                                                <button 
+                                                    onClick={downloadFile}
+                                                    className="flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-black transition-opacity hover:opacity-90"
+                                                >
+                                                    <span className="material-symbols-outlined text-lg">download</span>
+                                                    <span>Download Decrypted File</span>
+                                                </button>
+                                                <button 
+                                                    onClick={downloadEncryptedBackup}
+                                                    className="flex h-12 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-6 text-sm font-bold text-white transition-colors hover:bg-white/5"
+                                                >
+                                                    <span className="material-symbols-outlined text-lg">save</span>
+                                                    <span>Download Encrypted Backup</span>
+                                                </button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <p className="text-sm text-yellow-500 mb-6 font-display">File data not available</p>
+                                    )}
+                                </div>
+                            ) : (
                     (() => {
                         // Check if this is a txt file or plain text (not mnemonic)
                         const isTxtFile = currentVault.vaultType === 'file' && (
@@ -741,42 +770,58 @@ LegacyVault App - FHE-Encrypted Vault System
                         const shouldShowAsPlainText = isTxtFile || !hasMnemonicPattern;
                         
                         return shouldShowAsPlainText ? (
-                            <div className="bg-surface border-2 border-border rounded-xl p-6 mb-8">
+                            <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6 mb-8">
                                 <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-sm font-bold uppercase text-muted">Decrypted Text</h3>
+                                    <h3 className="text-sm font-bold uppercase text-white/50 font-display">Decrypted Text</h3>
                                     <div className="flex gap-2">
-                                        <Button onClick={downloadFile} variant="outline" size="sm" icon={<Download size={16} />}>
-                                            Download Text
-                                        </Button>
-                                        <Button onClick={downloadEncryptedBackup} variant="outline" size="sm" icon={<Save size={16} />}>
-                                            Encrypted Backup
-                                        </Button>
+                                        <button 
+                                            onClick={downloadFile}
+                                            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                        >
+                                            <span className="material-symbols-outlined text-lg">download</span>
+                                            <span>Download Text</span>
+                                        </button>
+                                        <button 
+                                            onClick={downloadEncryptedBackup}
+                                            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                        >
+                                            <span className="material-symbols-outlined text-lg">save</span>
+                                            <span>Encrypted Backup</span>
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="bg-background border border-border rounded-lg p-4">
-                                    <pre className="whitespace-pre-wrap break-words font-mono text-sm text-foreground max-h-96 overflow-y-auto">
+                                <div className="bg-zinc-900 border border-white/10 rounded-lg p-4">
+                                    <pre className="whitespace-pre-wrap break-words font-mono text-sm text-white max-h-96 overflow-y-auto">
                                         {hideMnemonic ? '••••••••••••••••••••••••••••••••••••••••' : decryptedData}
                                     </pre>
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-surface border-2 border-border rounded-xl p-6 mb-8">
+                            <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6 mb-8">
                                 <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-sm font-bold uppercase text-muted">Decrypted Mnemonic</h3>
+                                    <h3 className="text-sm font-bold uppercase text-white/50 font-display">Decrypted Mnemonic</h3>
                                     <div className="flex gap-2">
-                                        <Button onClick={downloadFile} variant="outline" size="sm" icon={<Download size={16} />}>
-                                            Download Text
-                                        </Button>
-                                        <Button onClick={downloadEncryptedBackup} variant="outline" size="sm" icon={<Save size={16} />}>
-                                            Encrypted Backup
-                                        </Button>
+                                        <button 
+                                            onClick={downloadFile}
+                                            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                        >
+                                            <span className="material-symbols-outlined text-lg">download</span>
+                                            <span>Download Text</span>
+                                        </button>
+                                        <button 
+                                            onClick={downloadEncryptedBackup}
+                                            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                        >
+                                            <span className="material-symbols-outlined text-lg">save</span>
+                                            <span>Encrypted Backup</span>
+                                        </button>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                     {words.map((word, index) => (
-                                        <div key={index} className="bg-background border border-border rounded px-3 py-2 flex items-center gap-3">
-                                            <span className="text-xs font-mono text-muted select-none">{(index + 1).toString().padStart(2, '0')}</span>
-                                            <span className={`font-mono font-medium ${hideMnemonic ? 'blur-sm select-none' : ''}`}>
+                                        <div key={index} className="bg-zinc-900 border border-white/10 rounded px-3 py-2 flex items-center gap-3">
+                                            <span className="text-xs font-mono text-white/50 select-none">{index + 1}</span>
+                                            <span className={`font-mono font-medium text-white ${hideMnemonic ? 'blur-sm select-none' : ''}`}>
                                                 {hideMnemonic ? '•••••' : word}
                                             </span>
                                         </div>
@@ -785,39 +830,38 @@ LegacyVault App - FHE-Encrypted Vault System
                             </div>
                         );
                     })()
-                )}
+                            )}
 
-                {/* Heir Management Section */}
-                <div className="mb-8">
-                     <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                         <Users size={20} /> Manage Heirs
-                     </h2>
-                     <div className="bg-black border-2 border-border rounded-xl p-6">
-                         {isLoadingHeirs ? (
-                             <div className="text-center py-4">
-                                 <p className="text-sm text-muted">Loading authorized heirs...</p>
-                             </div>
-                         ) : (
-                             <>
-                                 {authorizedHeirs.length > 0 && (
-                                     <div className="mb-4">
-                                         <div className="text-sm text-muted uppercase tracking-wider mb-3">Authorized Heirs</div>
-                                         <div className="space-y-2">
-                                             {authorizedHeirs.map((heirAddress) => (
-                                                 <div key={heirAddress} className="flex items-center justify-between bg-surface-hover p-3 rounded-lg border border-border">
-                                                     <div className="flex items-center gap-3">
-                                                         <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                                                             <Users size={14} className="text-primary" />
-                                                         </div>
-                                                         <div>
-                                                             <div className="font-mono text-sm">{heirAddress.slice(0, 6)}...{heirAddress.slice(-4)}</div>
-                                                             <div className="text-xs text-muted">Authorized</div>
-                                                         </div>
-                                                     </div>
-                                                     <Button
-                                                         size="sm"
-                                                         variant="danger"
-                                                         onClick={async () => {
+                            {/* Heir Management Section */}
+                            <div className="mb-8">
+                                <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-white font-display">
+                                    <span className="material-symbols-outlined text-xl">group</span>
+                                    <span>Manage Heirs</span>
+                                </h2>
+                                <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6">
+                                    {isLoadingHeirs ? (
+                                        <div className="text-center py-4">
+                                            <p className="text-sm text-white/50 font-display">Loading authorized heirs...</p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {authorizedHeirs.length > 0 && (
+                                                <div className="mb-4">
+                                                    <div className="text-sm text-white/50 uppercase tracking-wider mb-3 font-display">Authorized Heirs</div>
+                                                    <div className="space-y-2">
+                                                        {authorizedHeirs.map((heirAddress) => (
+                                                            <div key={heirAddress} className="flex items-center justify-between bg-zinc-900 p-3 rounded-lg border border-white/10">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                                                                        <span className="material-symbols-outlined text-primary text-base">person</span>
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="font-mono text-sm text-white">{heirAddress.slice(0, 6)}...{heirAddress.slice(-4)}</div>
+                                                                        <div className="text-xs text-white/50 font-display">Authorized</div>
+                                                                    </div>
+                                                                </div>
+                                                                <button
+                                                                    onClick={async () => {
                                                              if (!currentVault || !address) return;
                                                              
                                                              const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
@@ -846,49 +890,65 @@ LegacyVault App - FHE-Encrypted Vault System
                                                                  toast.error(getTransactionErrorMessage(error));
                                                              } finally {
                                                                  setIsRevokingAccess(null);
-                                                             }
-                                                         }}
-                                                         disabled={isRevokingAccess === heirAddress}
-                                                         isLoading={isRevokingAccess === heirAddress}
-                                                         icon={<UserMinus size={14} />}
-                                                     >
-                                                         Revoke
-                                                     </Button>
+                                                                    }
+                                                                }}
+                                                                disabled={isRevokingAccess === heirAddress}
+                                                                className={`flex h-10 items-center justify-center gap-2 rounded-lg border px-4 text-sm font-bold transition-colors ${
+                                                                    isRevokingAccess === heirAddress
+                                                                        ? 'border-red-500/50 bg-red-500/10 text-red-500/50 cursor-not-allowed'
+                                                                        : 'border-red-500/50 bg-transparent text-red-500 hover:bg-red-500/10'
+                                                                }`}
+                                                            >
+                                                                <span className="material-symbols-outlined text-lg">person_remove</span>
+                                                                <span>{isRevokingAccess === heirAddress ? 'Revoking...' : 'Revoke'}</span>
+                                                            </button>
                                                  </div>
                                              ))}
                                          </div>
                                      </div>
                                  )}
                                  
-                                 {isManagingHeirs ? (
-                                     <div className="animate-fade-in">
-                                         <div className="mb-4">
-                                             <label className="block text-xs font-bold text-muted mb-2 uppercase tracking-wider">New Heir Address</label>
-                                             <Input
-                                                 value={newHeirAddress}
-                                                 onChange={(e) => setNewHeirAddress(e.target.value)}
-                                                 placeholder="0x..."
-                                                 error={
-                                                     newHeirAddress && !ethers.isAddress(newHeirAddress)
-                                                         ? 'Invalid Ethereum address'
-                                                         : newHeirAddress && newHeirAddress.toLowerCase() === address?.toLowerCase()
-                                                         ? 'Cannot add your own address'
-                                                         : newHeirAddress && authorizedHeirs.some(h => h.toLowerCase() === newHeirAddress.toLowerCase())
-                                                         ? 'This address is already authorized'
-                                                         : ''
-                                                 }
-                                             />
-                                         </div>
-                                         <div className="flex gap-3 justify-end">
-                                             <Button variant="outline" size="sm" onClick={() => {
-                                                 setIsManagingHeirs(false);
-                                                 setNewHeirAddress('');
-                                             }}>
-                                                 Cancel
-                                             </Button>
-                                             <Button 
-                                                 size="sm" 
-                                                 onClick={async () => {
+                                            {isManagingHeirs ? (
+                                                <div className="animate-fade-in">
+                                                    <div className="mb-4">
+                                                        <label className="block text-xs font-bold text-white/50 mb-2 uppercase tracking-wider font-display">New Heir Address</label>
+                                                        <input
+                                                            type="text"
+                                                            value={newHeirAddress}
+                                                            onChange={(e) => setNewHeirAddress(e.target.value)}
+                                                            placeholder="0x..."
+                                                            className={`w-full rounded-lg border-2 py-3 px-4 text-white bg-zinc-900 placeholder-white/30 focus:outline-none focus:ring-0 font-mono ${
+                                                                newHeirAddress && (!ethers.isAddress(newHeirAddress) || 
+                                                                newHeirAddress.toLowerCase() === address?.toLowerCase() ||
+                                                                authorizedHeirs.some(h => h.toLowerCase() === newHeirAddress.toLowerCase()))
+                                                                    ? 'border-red-500' 
+                                                                    : 'border-white/10 focus:border-primary'
+                                                            }`}
+                                                        />
+                                                        {newHeirAddress && (!ethers.isAddress(newHeirAddress) || 
+                                                            newHeirAddress.toLowerCase() === address?.toLowerCase() ||
+                                                            authorizedHeirs.some(h => h.toLowerCase() === newHeirAddress.toLowerCase())) && (
+                                                            <p className="text-xs text-red-500 mt-1 font-display">
+                                                                {!ethers.isAddress(newHeirAddress)
+                                                                    ? 'Invalid Ethereum address'
+                                                                    : newHeirAddress.toLowerCase() === address?.toLowerCase()
+                                                                    ? 'Cannot add your own address'
+                                                                    : 'This address is already authorized'}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex gap-3 justify-end">
+                                                        <button 
+                                                            onClick={() => {
+                                                                setIsManagingHeirs(false);
+                                                                setNewHeirAddress('');
+                                                            }}
+                                                            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                                        >
+                                                            <span>Cancel</span>
+                                                        </button>
+                                                        <button 
+                                                            onClick={async () => {
                                                      if (!currentVault || !address || !newHeirAddress) return;
                                                      
                                                      if (!ethers.isAddress(newHeirAddress)) {
@@ -927,118 +987,188 @@ LegacyVault App - FHE-Encrypted Vault System
                                                      } catch (error: any) {
                                                          console.error('Error granting access:', error);
                                                          toast.error(getTransactionErrorMessage(error));
-                                                     } finally {
-                                                         setIsGrantingAccess(false);
-                                                     }
-                                                 }}
-                                                 disabled={!newHeirAddress || !ethers.isAddress(newHeirAddress) || isGrantingAccess}
-                                                 isLoading={isGrantingAccess}
-                                                 icon={<UserPlus size={16} />}
-                                             >
-                                                 Grant Access
-                                             </Button>
-                                         </div>
-                                     </div>
-                                 ) : (
-                                     <div className="flex justify-between items-center">
-                                         <div>
-                                             <div className="text-sm text-muted uppercase tracking-wider mb-1">Authorized Heirs</div>
-                                             <div className="text-lg font-bold text-foreground">
-                                                 {authorizedHeirs.length} {authorizedHeirs.length === 1 ? 'heir' : 'heirs'}
-                                             </div>
-                                         </div>
-                                         <Button variant="outline" onClick={() => setIsManagingHeirs(true)} icon={<UserPlus size={16} />}>
-                                             Add Heir
-                                         </Button>
-                                     </div>
-                                 )}
+                                                            } finally {
+                                                                setIsGrantingAccess(false);
+                                                            }
+                                                        }}
+                                                        disabled={!newHeirAddress || !ethers.isAddress(newHeirAddress) || isGrantingAccess || 
+                                                            newHeirAddress.toLowerCase() === address?.toLowerCase() ||
+                                                            authorizedHeirs.some(h => h.toLowerCase() === newHeirAddress.toLowerCase())}
+                                                        className={`flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-bold transition-opacity ${
+                                                            !newHeirAddress || !ethers.isAddress(newHeirAddress) || isGrantingAccess ||
+                                                            newHeirAddress.toLowerCase() === address?.toLowerCase() ||
+                                                            authorizedHeirs.some(h => h.toLowerCase() === newHeirAddress.toLowerCase())
+                                                                ? 'bg-primary/50 text-black/50 cursor-not-allowed'
+                                                                : 'bg-primary text-black hover:opacity-90'
+                                                        }`}
+                                                    >
+                                                        <span className="material-symbols-outlined text-lg">person_add</span>
+                                                        <span>{isGrantingAccess ? 'Granting...' : 'Grant Access'}</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex justify-between items-center">
+                                                <div>
+                                                    <div className="text-sm text-white/50 uppercase tracking-wider mb-1 font-display">Authorized Heirs</div>
+                                                    <div className="text-lg font-bold text-white font-display">
+                                                        {authorizedHeirs.length} {authorizedHeirs.length === 1 ? 'heir' : 'heirs'}
+                                                    </div>
+                                                </div>
+                                                <button 
+                                                    onClick={() => setIsManagingHeirs(true)}
+                                                    className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white transition-colors hover:bg-white/5"
+                                                >
+                                                    <span className="material-symbols-outlined text-lg">person_add</span>
+                                                    <span>Add Heir</span>
+                                                </button>
+                                            </div>
+                                        )}
                              </>
                          )}
                      </div>
                 </div>
 
-                {/* Reschedule Section */}
-                <div className="mb-8">
-                     <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                         <Calendar size={20} /> Manage Schedule
-                     </h2>
-                     <div className="bg-black border-2 border-border rounded-xl p-6">
-                         {!isEditingSchedule ? (
-                             <div className="flex justify-between items-center">
-                                 <div>
-                                     <div className="text-sm text-muted uppercase tracking-wider mb-1">Current Release Date</div>
-                                     <div className="text-lg font-bold text-foreground">{new Date(currentVault.releaseTime).toLocaleString()}</div>
-                                 </div>
-                                 <Button variant="outline" onClick={() => setIsEditingSchedule(true)} icon={<RefreshCw size={16} />}>
-                                     Reschedule
-                                 </Button>
-                             </div>
-                         ) : (
-                             <div className="animate-fade-in">
-                                 <div className="grid md:grid-cols-2 gap-4 mb-4">
-                                     <div>
-                                         <label className="block text-xs font-bold text-muted mb-2 uppercase tracking-wider">New Date</label>
-                                         <input 
-                                             type="date" 
-                                             value={newReleaseDate} 
-                                             onChange={(e) => setNewReleaseDate(e.target.value)}
-                                             className="w-full bg-surface text-foreground border-2 border-border rounded-lg px-4 py-3 focus:border-primary focus:outline-none focus:shadow-neo transition-all [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100" 
-                                         />
-                                     </div>
-                                     <div>
-                                         <label className="block text-xs font-bold text-muted mb-2 uppercase tracking-wider">New Time</label>
-                                         <input 
-                                             type="time" 
-                                             value={newReleaseTime} 
-                                             onChange={(e) => setNewReleaseTime(e.target.value)}
-                                             className="w-full bg-surface text-foreground border-2 border-border rounded-lg px-4 py-3 focus:border-primary focus:outline-none focus:shadow-neo transition-all [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100" 
-                                         />
-                                     </div>
-                                 </div>
-                                 <div className="flex gap-3 justify-end">
-                                     <Button variant="outline" size="sm" onClick={() => setIsEditingSchedule(false)}>Cancel</Button>
-                                     <Button size="sm" onClick={handleUpdateSchedule} icon={<Save size={16} />}>Save Changes</Button>
-                                 </div>
-                             </div>
-                         )}
-                     </div>
-                </div>
+                            {/* Reschedule Section */}
+                            <div className="mb-8">
+                                <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-white font-display">
+                                    <span className="material-symbols-outlined text-xl">calendar_today</span>
+                                    <span>Manage Schedule</span>
+                                </h2>
+                                <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6">
+                                    {!isEditingSchedule ? (
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <div className="text-sm text-white/50 uppercase tracking-wider mb-1 font-display">Current Release Date</div>
+                                                <div className="text-lg font-bold text-white font-display">{new Date(currentVault.releaseTime).toLocaleString()}</div>
+                                            </div>
+                                            <button 
+                                                onClick={() => setIsEditingSchedule(true)}
+                                                className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white transition-colors hover:bg-white/5"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">schedule</span>
+                                                <span>Reschedule</span>
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="animate-fade-in">
+                                            <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                                <div>
+                                                    <label className="block text-xs font-bold text-white/50 mb-2 uppercase tracking-wider font-display">New Date</label>
+                                                    <input 
+                                                        type="date" 
+                                                        value={newReleaseDate} 
+                                                        onChange={(e) => setNewReleaseDate(e.target.value)}
+                                                        className="w-full bg-zinc-900 text-white border-2 border-white/10 rounded-lg px-4 py-3 focus:border-primary focus:outline-none focus:ring-0 transition-all font-display [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100" 
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-white/50 mb-2 uppercase tracking-wider font-display">New Time</label>
+                                                    <input 
+                                                        type="time" 
+                                                        value={newReleaseTime} 
+                                                        onChange={(e) => setNewReleaseTime(e.target.value)}
+                                                        className="w-full bg-zinc-900 text-white border-2 border-white/10 rounded-lg px-4 py-3 focus:border-primary focus:outline-none focus:ring-0 transition-all font-display [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100" 
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-3 justify-end">
+                                                <button 
+                                                    onClick={() => setIsEditingSchedule(false)}
+                                                    className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                                >
+                                                    <span>Cancel</span>
+                                                </button>
+                                                <button 
+                                                    onClick={handleUpdateSchedule}
+                                                    disabled={isLoading}
+                                                    className={`flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-bold transition-opacity ${
+                                                        isLoading 
+                                                            ? 'bg-primary/50 text-black/50 cursor-not-allowed'
+                                                            : 'bg-primary text-black hover:opacity-90'
+                                                    }`}
+                                                >
+                                                    <span className="material-symbols-outlined text-lg">save</span>
+                                                    <span>{isLoading ? 'Saving...' : 'Save Changes'}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
 
-                {/* Warning Banner */}
-                <div className="border border-warning/50 bg-warning/5 rounded-xl p-4 flex items-start gap-4 mb-8">
-                     <AlertCircle className="text-warning shrink-0 mt-0.5" />
-                     <div>
-                         <h3 className="font-bold text-warning mb-1">Security Warning</h3>
-                         <p className="text-sm text-muted">
-                             {currentVault.vaultType === 'file' 
-                                ? 'Ensure you download this file to a secure location. Once this window is closed, you will need to decrypt it again.' 
-                                : 'Keep this recovery phrase secure. Never share it with anyone. Anyone with access to these words can control your assets.'}
-                         </p>
-                     </div>
-                </div>
+                            {/* Warning Banner */}
+                            <div className="border border-yellow-500/50 bg-yellow-500/5 rounded-xl p-4 flex items-start gap-4 mb-8">
+                                <span className="material-symbols-outlined text-yellow-500 shrink-0 mt-0.5">warning</span>
+                                <div>
+                                    <h3 className="font-bold text-yellow-500 mb-1 font-display">Security Warning</h3>
+                                    <p className="text-sm text-white/70 font-display">
+                                        {currentVault.vaultType === 'file' 
+                                            ? 'Ensure you download this file to a secure location. Once this window is closed, you will need to decrypt it again.' 
+                                            : 'Keep this recovery phrase secure. Never share it with anyone. Anyone with access to these words can control your assets.'}
+                                    </p>
+                                </div>
+                            </div>
 
-                <div className="text-center pb-8">
-                     <Button variant="secondary" onClick={clearData}>
-                        <Lock size={16} className="mr-2" /> Lock & Close
-                     </Button>
+                            <div className="text-center pb-8">
+                                <button 
+                                    onClick={clearData}
+                                    className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-6 text-sm font-bold text-white transition-colors hover:bg-white/5 mx-auto"
+                                >
+                                    <span className="material-symbols-outlined text-lg">lock</span>
+                                    <span>Lock & Close</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="max-w-xl mx-auto py-16 px-4">
-            <div className="text-center mb-10">
-                <h1 className="text-3xl font-black uppercase tracking-tight mb-2">Unlock as Owner</h1>
-                <p className="text-muted">Enter your credentials to access the vault contents immediately.</p>
+        <div className="relative flex min-h-screen w-full flex-col bg-background-dark font-display">
+            <div className="flex h-full grow flex-col">
+                <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-8 lg:px-12">
+                    <div className="flex w-full max-w-xl flex-col">
+                        <div className="text-center mb-10">
+                            <h1 className="text-3xl font-bold mb-2 text-white font-display">Unlock as Owner</h1>
+                            <p className="text-white/50 font-display">Enter your credentials to access the vault contents immediately.</p>
+                        </div>
+                        <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6">
+                            <form onSubmit={handleSubmit(onSubmit)}>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-bold text-white/50 mb-2 uppercase tracking-wider font-display">Vault ID</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="e.g. mxon2g6" 
+                                        {...register('vaultId', { required: 'Vault ID is required', validate: (value) => value.trim().length > 0 || 'Vault ID cannot be empty' })} 
+                                        className={`w-full rounded-lg border-2 py-3 px-4 text-white bg-zinc-900 placeholder-white/30 focus:outline-none focus:ring-0 font-mono ${
+                                            errors.vaultId ? 'border-red-500' : 'border-white/10 focus:border-primary'
+                                        }`}
+                                    />
+                                    {errors.vaultId && (
+                                        <p className="text-xs text-red-500 mt-1 font-display">{errors.vaultId.message as string}</p>
+                                    )}
+                                </div>
+                                <p className="text-xs text-white/50 mt-2 font-display">Connect your wallet to unlock vaults. Wallet authentication is used for access control.</p>
+                                <button 
+                                    type="submit" 
+                                    disabled={isLoading}
+                                    className={`mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold transition-opacity ${
+                                        isLoading 
+                                            ? 'bg-primary/50 text-black/50 cursor-not-allowed'
+                                            : 'text-black hover:opacity-90'
+                                    }`}
+                                >
+                                    <span className="material-symbols-outlined text-lg">lock_open</span>
+                                    <span>{isLoading ? 'Decrypting...' : 'Decrypt Vault'}</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <Card>
-                <form onSubmit={handleSubmit(onSubmit)}>
-                    <Input label="Vault ID" type="text" placeholder="e.g. mxon2g6" {...register('vaultId', { required: 'Vault ID is required', validate: (value) => value.trim().length > 0 || 'Vault ID cannot be empty' })} error={errors.vaultId?.message as string} />
-                    <p className="text-xs text-muted mt-2">Connect your wallet to unlock vaults. Wallet authentication is used for access control.</p>
-                    <Button type="submit" fullWidth isLoading={isLoading} className="mt-4" icon={<Unlock size={18} />}>Decrypt Vault</Button>
-                </form>
-            </Card>
         </div>
     );
 };
