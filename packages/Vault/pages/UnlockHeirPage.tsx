@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form';
 import { useLocation } from 'react-router-dom';
 // Material Symbols icons are used via className="material-symbols-outlined"
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { getVaultById } from '../services/vaultService';
 import { useToast } from '../contexts/ToastContext';
 import { WalletContext } from '../contexts/WalletContext';
 import { getVaultMetadata, isAuthorized } from '../services/vaultContractService';
@@ -57,19 +56,9 @@ const UnlockHeirPage = () => {
             const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
             
             if (!CONTRACT_ADDRESS) {
-                // Fallback to local storage check
-                const vault = getVaultById(vaultId);
-                if (vault) {
-                    setReleaseDate(new Date(vault.releaseTime));
-                    if (Date.now() < vault.releaseTime) {
-                        setVaultStatus('locked');
-                    } else {
-                        setVaultStatus('available');
-                    }
-                } else {
-                    setVaultStatus('not-found');
-                    setReleaseDate(null);
-                }
+                toast.error('Blockchain connection required. Please configure contract address.');
+                setVaultStatus('not-found');
+                setReleaseDate(null);
                 return;
             }
 
@@ -149,59 +138,61 @@ const UnlockHeirPage = () => {
         try {
             const vaultId = data.vaultId.trim();
             
-            // First try to get from local storage (same as Owner unlock)
-            let vault = getVaultById(vaultId);
-            
-            // If not found locally, try to fetch from blockchain
-            if (!vault) {
-                const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
-                if (CONTRACT_ADDRESS && (window as any).ethereum) {
-                    try {
-                        const provider = new ethers.BrowserProvider((window as any).ethereum);
-                        const metadata = await getVaultMetadata(CONTRACT_ADDRESS, provider, vaultId);
-                        
-                        // Try to get IPFS metadata to determine vault type, filename, and mime type
-                        let vaultType: 'text' | 'file' = 'text';
-                        let fileName: string | undefined;
-                        let mimeType: string | undefined;
-                        
-                        try {
-                            const ipfsMetadata = await getIPFSMetadata(metadata.cid);
-                            if (ipfsMetadata?.keyvalues) {
-                                if (ipfsMetadata.keyvalues.type === 'file') {
-                                    vaultType = 'file';
+            // Fetch vault from blockchain only
+            const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
+            if (!CONTRACT_ADDRESS || !(window as any).ethereum) {
+                toast.error('Blockchain connection required. Please connect your wallet.');
+                setIsLoading(false);
+                return;
             }
-                                if (ipfsMetadata.keyvalues.fileName) {
-                                    fileName = ipfsMetadata.keyvalues.fileName;
-                                }
-                                if (ipfsMetadata.keyvalues.mimeType) {
-                                    mimeType = ipfsMetadata.keyvalues.mimeType;
-                                }
-                            }
-                        } catch (error) {
-                            console.warn('Could not fetch IPFS metadata, defaulting to text type:', error);
+
+            let vault;
+            try {
+                const provider = new ethers.BrowserProvider((window as any).ethereum);
+                const metadata = await getVaultMetadata(CONTRACT_ADDRESS, provider, vaultId);
+                
+                // Try to get IPFS metadata to determine vault type, filename, and mime type
+                let vaultType: 'text' | 'file' = 'text';
+                let fileName: string | undefined;
+                let mimeType: string | undefined;
+                
+                try {
+                    const ipfsMetadata = await getIPFSMetadata(metadata.cid);
+                    if (ipfsMetadata?.keyvalues) {
+                        if (ipfsMetadata.keyvalues.type === 'file') {
+                            vaultType = 'file';
                         }
-                        
-                        // Create vault object from blockchain data
-                        vault = {
-                            id: vaultId,
-                            ownerAddress: metadata.owner,
-                            encryptedData: metadata.cid, // IPFS CID
-                            cid: metadata.cid,
-                            vaultType: vaultType,
-                            fileName: fileName,
-                            mimeType: mimeType,
-                            heirKeyHash: '',
-                            releaseTime: Number(metadata.releaseTimestamp) * 1000,
-                            createdAt: Number(metadata.createdAt) * 1000,
-                            isReleased: Date.now() >= Number(metadata.releaseTimestamp) * 1000,
-                            description: `Vault ${vaultId}`,
-                        };
-                    } catch (error) {
-                        console.error('Error fetching vault from blockchain:', error);
-                        // Continue to show error below
+                        if (ipfsMetadata.keyvalues.fileName) {
+                            fileName = ipfsMetadata.keyvalues.fileName;
+                        }
+                        if (ipfsMetadata.keyvalues.mimeType) {
+                            mimeType = ipfsMetadata.keyvalues.mimeType;
+                        }
                     }
+                } catch (error) {
+                    console.warn('Could not fetch IPFS metadata, defaulting to text type:', error);
                 }
+                
+                // Create vault object from blockchain data
+                vault = {
+                    id: vaultId,
+                    ownerAddress: metadata.owner,
+                    encryptedData: metadata.cid, // IPFS CID
+                    cid: metadata.cid,
+                    vaultType: vaultType,
+                    fileName: fileName,
+                    mimeType: mimeType,
+                    heirKeyHash: '',
+                    releaseTime: Number(metadata.releaseTimestamp) * 1000,
+                    createdAt: Number(metadata.createdAt) * 1000,
+                    isReleased: Date.now() >= Number(metadata.releaseTimestamp) * 1000,
+                    description: `Vault ${vaultId}`,
+                };
+            } catch (error) {
+                console.error('Error fetching vault from blockchain:', error);
+                toast.error("Vault not found or error fetching from blockchain. Please check the Vault ID.");
+                setIsLoading(false);
+                return;
             }
             
             if (!vault) {

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Loader2, Wallet } from 'lucide-react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { WalletContext } from '../contexts/WalletContext';
-import { getVaults } from '../services/vaultService';
 import type { Vault } from '../types';
 import { useToast } from '../contexts/ToastContext';
 import { getUserVaults, getHeirVaults, getVaultMetadata } from '../services/vaultContractService';
@@ -170,39 +169,13 @@ const MyVaultsPage = () => {
                     }
                 }
 
-                // Also get vaults from local storage (for backward compatibility)
-                const localVaults = getVaults().filter(v => v.ownerAddress === address);
-                console.log(`Found ${localVaults.length} vaults in local storage`);
-
-                // Merge vaults: prioritize blockchain data, but keep local data for vaults not on blockchain
-                const allVaultIds = new Set([
-                    ...blockchainVaults.map(v => String(v.id)),
-                    ...localVaults.map(v => String(v.id))
-                ]);
-
-                const mergedVaults: Vault[] = [];
-                
-                // Add blockchain vaults first
-                blockchainVaults.forEach(vault => {
-                    mergedVaults.push(vault);
-                });
-
-                // Add local vaults that aren't on blockchain
-                localVaults.forEach(localVault => {
-                    if (!allVaultIds.has(String(localVault.id)) || 
-                        !blockchainVaults.some(bv => String(bv.id) === String(localVault.id))) {
-                        mergedVaults.push(localVault);
-                    }
-                });
-
-                setVaults(mergedVaults);
-                console.log(`Total vaults to display: ${mergedVaults.length}`);
+                // Use blockchain vaults only - no local storage fallback
+                setVaults(blockchainVaults);
+                console.log(`Total vaults to display: ${blockchainVaults.length}`);
             } catch (error) {
                 console.error('Error fetching vaults:', error);
-                toast.error('Failed to load vaults');
-                // Fallback to local storage only
-                const localVaults = getVaults().filter(v => v.ownerAddress === address);
-                setVaults(localVaults);
+                toast.error('Failed to load vaults from blockchain');
+                setVaults([]);
             } finally {
                 setIsLoading(false);
             }

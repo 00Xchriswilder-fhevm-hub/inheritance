@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form';
 import { Eye, EyeOff, Calendar, AlertTriangle, CheckCircle, Lock, ArrowLeft, ArrowRight, Shield, Key, Clock, Check, FileText, Upload, X, UserPlus, Trash2, Wallet } from 'lucide-react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { WalletContext } from '../contexts/WalletContext';
-import { saveVault, mockHash, mockEncrypt } from '../services/vaultService';
 import Button from '../components/Button';
 import { Input } from '../components/Input';
 import Card from '../components/Card';
@@ -318,22 +317,7 @@ const CreateVaultPage = () => {
                 return true;
             });
 
-            // Also save to local storage for demo purposes (backward compatibility)
-            // Save to local storage for backward compatibility
-            saveVault({
-                id: vaultId, // Now using string ID
-                ownerAddress: address,
-                encryptedData: result.cid, // Store CID instead
-                vaultType: contentType,
-                fileName: selectedFile?.name,
-                mimeType: selectedFile?.type,
-                heirKeyHash: '', // Deprecated - access is now controlled by blockchain addresses
-                releaseTime: combinedDateTime.getTime(),
-                createdAt: Date.now(),
-                isReleased: false,
-                description: contentType === 'file' ? `File Vault: ${selectedFile?.name}` : `Mnemonic Vault ${vaultId}`,
-                // Password/key system removed - access is now controlled by blockchain addresses
-            });
+            // Vault is now stored on blockchain only - no local storage needed
 
             // If there are valid heirs, show grant access option
             if (filteredHeirs.length > 0) {
