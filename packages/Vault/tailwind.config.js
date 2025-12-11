@@ -17,6 +17,7 @@ export default {
         background: '#000000',
         'background-light': '#f8f8f5',
         'background-dark': '#000000',
+        'card-dark': '#1A1A1A',
         surface: '#121212',
         'surface-hover': '#1e1e1e',
         foreground: '#ffffff',
@@ -44,5 +45,7 @@ export default {
       }
     }
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/container-queries'),
+  ],
 }
