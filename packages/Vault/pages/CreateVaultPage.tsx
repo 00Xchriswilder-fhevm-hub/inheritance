@@ -17,6 +17,7 @@ import { grantAccessToMultiple } from '../services/vaultContractService';
 import { ethers } from 'ethers';
 import { generateVaultId } from '../utils/vaultIdGenerator';
 import { getTransactionErrorMessage } from '../utils/errorHandler';
+import { vaultService, userService, heirService } from '../supabase/supabaseService';
 
 const STEPS = [
     { id: 1, label: 'Content', icon: FileText },
@@ -303,6 +304,46 @@ const CreateVaultPage = () => {
             // User can approve this transaction separately
             console.log("Vault created successfully. Heir access can be granted separately.");
             
+            // Log vault to Supabase
+            if (address && result) {
+                try {
+                    // Ensure user exists in Supabase
+                    await userService.upsertUser(address);
+                    
+                    // Get transaction receipt for block number and hash
+                    const receipt = result.receipt || result;
+                    const blockNumber = receipt?.blockNumber;
+                    const transactionHash = receipt?.hash || receipt?.transactionHash;
+                    
+                    // Build IPFS gateway URL
+                    const ipfsGatewayUrl = result.cid 
+                        ? `https://gateway.pinata.cloud/ipfs/${result.cid}`
+                        : undefined;
+                    
+                    // Log vault to Supabase
+                    await vaultService.createVault({
+                        vaultId: vaultId,
+                        ownerAddress: address,
+                        cid: result.cid || '',
+                        ipfsGatewayUrl: ipfsGatewayUrl,
+                        releaseTimestamp: Math.floor(combinedDateTime.getTime() / 1000),
+                        vaultType: contentType,
+                        contentLength: contentType === 'text' 
+                            ? values.mnemonic.length 
+                            : selectedFile?.size,
+                        fileName: contentType === 'file' ? selectedFile?.name : undefined,
+                        fileType: contentType === 'file' ? selectedFile?.type : undefined,
+                        blockNumber: blockNumber ? Number(blockNumber) : undefined,
+                        transactionHash: transactionHash,
+                    });
+                    
+                    console.log('✅ Vault logged to Supabase successfully');
+                } catch (dbError) {
+                    console.error('Error logging vault to Supabase:', dbError);
+                    // Don't fail vault creation if DB logging fails
+                }
+            }
+            
             // Filter valid heirs
             const filteredHeirs = validHeirs.filter(heirAddr => {
                 const addr = heirAddr.trim();
@@ -441,7 +482,19 @@ const CreateVaultPage = () => {
 
                         <div className="flex flex-col gap-4">
                         {contentType === 'text' ? (
-                                <div className="flex flex-col rounded-xl border border-zinc-200 bg-zinc-900 p-4 dark:border-zinc-800">
+                                <div className="flex flex-col gap-4 rounded-xl border border-zinc-200 bg-zinc-100 p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                                    {/* Recovery Image */}
+                                    <div className="flex items-center justify-center">
+                                        <div className="relative w-32 h-32 rounded-xl overflow-hidden bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center">
+                                            <img 
+                                                src="/recovery.jpeg" 
+                                                alt="Recovery phrase" 
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    </div>
+                                    {/* Textarea */}
+                                    <div className="flex flex-col rounded-xl border border-zinc-200 bg-zinc-900 p-4 dark:border-zinc-800">
                                     <textarea
                                         {...register('mnemonic', {
                                             required: 'Content is required',
@@ -449,21 +502,22 @@ const CreateVaultPage = () => {
                                                 return value.length > 0 || "Content cannot be empty";
                                             }
                                         })}
-                                        className={`min-h-[200px] w-full resize-none border-0 bg-transparent font-mono text-sm leading-relaxed text-zinc-400 placeholder-zinc-600 focus:ring-0 ${!showMnemonic ? 'text-security-disc' : ''}`}
-                                        placeholder="Type your secret message here..."
+                                            className={`min-h-[200px] w-full resize-none border-0 bg-transparent font-mono text-sm leading-relaxed text-zinc-400 placeholder-zinc-600 focus:ring-0 ${!showMnemonic ? 'text-security-disc' : ''}`}
+                                            placeholder="Type your secret message here..."
                                         style={!showMnemonic ? { WebkitTextSecurity: 'disc' } as any : {}}
                                     />
-                                    <div className="flex items-center justify-end gap-3 border-t border-zinc-800 pt-3">
-                                        <span className="text-xs font-medium text-zinc-400">Mask Content</span>
-                                        <button 
-                                            type="button"
-                                            onClick={() => setShowMnemonic(!showMnemonic)}
-                                            aria-checked={!showMnemonic}
-                                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-zinc-900 ${!showMnemonic ? 'bg-primary' : 'bg-zinc-600'}`}
-                                            role="switch"
-                                        >
-                                            <span className={`inline-block h-5 w-5 transform rounded-full bg-black shadow ring-0 transition duration-200 ease-in-out ${!showMnemonic ? 'translate-x-5' : 'translate-x-0'}`}></span>
+                                        <div className="flex items-center justify-end gap-3 border-t border-zinc-800 pt-3">
+                                            <span className="text-xs font-medium text-zinc-400">Mask Content</span>
+                                            <button 
+                                                type="button"
+                                                onClick={() => setShowMnemonic(!showMnemonic)}
+                                                aria-checked={!showMnemonic}
+                                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-zinc-900 ${!showMnemonic ? 'bg-primary' : 'bg-zinc-600'}`}
+                                                role="switch"
+                                            >
+                                                <span className={`inline-block h-5 w-5 transform rounded-full bg-black shadow ring-0 transition duration-200 ease-in-out ${!showMnemonic ? 'translate-x-5' : 'translate-x-0'}`}></span>
                                     </button>
+                                </div>
                                 </div>
                             </div>
                         ) : (
@@ -486,21 +540,31 @@ const CreateVaultPage = () => {
                                     </div>
                                 ) : (
                                         <>
-                                            <div className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                                            <div className="flex flex-col gap-4 rounded-xl border border-zinc-200 bg-zinc-100 p-6 dark:border-zinc-800 dark:bg-zinc-900">
                                                 <div className="flex items-start justify-between gap-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary">
-                                                            <span className="material-symbols-outlined text-2xl text-black">description</span>
+                                                    <div className="flex flex-col items-center gap-3 flex-1">
+                                                        {/* Media Image - Bigger */}
+                                                        <div className="relative w-32 h-32 rounded-xl overflow-hidden bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center">
+                                                            <img 
+                                                                src="/media.jpeg" 
+                                                                alt="Media file" 
+                                                                className="w-full h-full object-cover"
+                                                            />
                                             </div>
-                                                        <div className="flex flex-col">
-                                                            <p className="text-sm font-bold text-zinc-900 dark:text-white">{selectedFile.name}</p>
-                                                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                                        {/* File Info */}
+                                                        <div className="flex flex-col items-center gap-1 w-full">
+                                                            <p className="text-sm font-bold text-zinc-900 dark:text-white text-center truncate max-w-full px-2">
+                                                                {selectedFile.name}
+                                                            </p>
+                                                            <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center">
+                                                                {selectedFile.type || 'Unknown type'} • {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                                                            </p>
                                             </div>
                                         </div>
                                                     <button 
                                                         type="button"
                                                         onClick={removeFile} 
-                                                        className="text-zinc-400 hover:text-white"
+                                                        className="text-zinc-400 hover:text-white transition-colors flex-shrink-0"
                                                     >
                                                         <span className="material-symbols-outlined text-xl">close</span>
                                         </button>
@@ -510,12 +574,12 @@ const CreateVaultPage = () => {
                                                 <div className="h-1.5 rounded-full bg-primary" style={{ width: '100%' }}></div>
                             </div>
                                         </>
-                                    )}
+                        )}
                                 </>
                             )}
                             {errors.mnemonic && (
                                 <div className="text-xs text-red-500 font-bold">{errors.mnemonic.message as string}</div>
-                            )}
+                )}
                         </div>
 
                         <div className="mt-8 flex items-center justify-between border-t border-zinc-200 pt-6 dark:border-zinc-800">
@@ -559,7 +623,7 @@ const CreateVaultPage = () => {
 
                         <div className="flex flex-col gap-6">
                             <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Authorized Users</h2>
-                            
+                        
                             <div className="flex flex-col gap-4">
                                 {heirAddresses.map((addr, index) => {
                                     const isValid = addr.trim() === '' || ethers.isAddress(addr);
