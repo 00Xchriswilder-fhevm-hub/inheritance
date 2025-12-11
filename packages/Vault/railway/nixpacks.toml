@@ -1,5 +1,8 @@
+[providers]
+node = "20"
+
 [phases.install]
-cmds = ["npm ci"]
+cmds = ["npm install"]
 
 [start]
 cmd = "node indexer.js"
