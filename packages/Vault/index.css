@@ -50,3 +50,31 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
 }
 
+/* Equalizer Bar Animation */
+.equalizer-bar {
+  animation: bounce 1s infinite ease-in-out;
+}
+
+.equalizer-bar:nth-child(2n) {
+  animation-delay: 0.1s;
+}
+
+.equalizer-bar:nth-child(3n) {
+  animation-delay: 0.2s;
+}
+
+.equalizer-bar:nth-child(4n) {
+  animation-delay: 0.3s;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    height: 4px;
+    opacity: 0.3;
+  }
+  50% {
+    height: 12px;
+    opacity: 1;
+  }
+}
+
