@@ -4,6 +4,7 @@
   "description": "Railway indexer service for Legacy Vault",
   "main": "indexer.js",
   "type": "module",
+  "packageManager": "npm@10.0.0",
   "scripts": {
     "start": "node indexer.js",
     "check-vaults": "node checkVaultIds.js"
