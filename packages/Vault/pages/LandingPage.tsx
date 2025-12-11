@@ -31,7 +31,7 @@ const LandingPage = () => {
                         </header>
 
                         <main className="flex flex-col gap-16 md:gap-24 mt-16">
-                            {/* Hero Section */}
+            {/* Hero Section */}
                             <section className="px-4">
                                 <div className="md:p-4">
                                     <div 
@@ -43,10 +43,10 @@ const LandingPage = () => {
                                         <div className="flex flex-col gap-4 text-left max-w-3xl">
                                             <h1 className="text-white text-4xl font-black leading-tight tracking-[-0.033em] md:text-5xl">
                                                 The Future of Digital Inheritance. Secured by Confidential Computing on EVM.
-                                            </h1>
+                </h1>
                                             <p className="text-white/90 text-sm font-normal leading-normal md:text-base">
                                                 LegacyVault combines time-locked access and Fully Homomorphic Encryption to protect your digital assets for the next generation.
-                                            </p>
+                </p>
                                         </div>
                                         <button 
                                             onClick={() => navigate('/create')}
@@ -55,8 +55,8 @@ const LandingPage = () => {
                                             <span className="truncate">Secure Your Assets</span>
                                         </button>
                                     </div>
-                                </div>
-                            </section>
+                </div>
+            </section>
 
                             {/* Features Section */}
                             <section className="flex flex-col gap-10 px-4 py-10" id="features">
@@ -72,32 +72,32 @@ const LandingPage = () => {
                                     <div className="flex flex-1 gap-4 rounded-lg border border-white/10 bg-white/5 p-6 flex-col hover:bg-white/10 transition-colors">
                                         <div className="text-primary">
                                             <span className="material-symbols-outlined text-3xl">lock</span>
-                                        </div>
+                    </div>
                                         <div className="flex flex-col gap-1">
                                             <h3 className="text-white text-lg font-bold leading-tight">Confidential Vaults</h3>
                                             <p className="text-white/70 text-sm font-normal leading-normal">Securely store your digital assets in vaults protected by Fully Homomorphic Encryption.</p>
-                                        </div>
-                                    </div>
+                    </div>
+                    </div>
                                     <div className="flex flex-1 gap-4 rounded-lg border border-white/10 bg-white/5 p-6 flex-col hover:bg-white/10 transition-colors">
                                         <div className="text-primary">
                                             <span className="material-symbols-outlined text-3xl">schedule</span>
-                                        </div>
+                </div>
                                         <div className="flex flex-col gap-1">
                                             <h3 className="text-white text-lg font-bold leading-tight">Time-Locked Release</h3>
                                             <p className="text-white/70 text-sm font-normal leading-normal">Set predetermined access triggers and time-based release schedules for your beneficiaries.</p>
-                                        </div>
-                                    </div>
+                        </div>
+                        </div>
                                     <div className="flex flex-1 gap-4 rounded-lg border border-white/10 bg-white/5 p-6 flex-col hover:bg-white/10 transition-colors">
                                         <div className="text-primary">
                                             <span className="material-symbols-outlined text-3xl">hub</span>
-                                        </div>
+                        </div>
                                         <div className="flex flex-col gap-1">
                                             <h3 className="text-white text-lg font-bold leading-tight">Blockchain Access Control</h3>
                                             <p className="text-white/70 text-sm font-normal leading-normal">Leverage decentralized and tamper-proof permissions for ultimate control and security.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
+                        </div>
+                        </div>
+                </div>
+            </section>
 
                             {/* Use Cases Section */}
                             <section className="flex flex-col gap-6 px-4" id="use-cases">
@@ -122,7 +122,7 @@ const LandingPage = () => {
                                     <div className="flex flex-1 gap-4 rounded-lg border border-white/10 bg-white/5 p-6 flex-col hover:bg-white/10 transition-colors">
                                         <div className="text-primary">
                                             <span className="material-symbols-outlined text-3xl">gavel</span>
-                                        </div>
+                            </div>
                                         <div className="flex flex-col gap-1">
                                             <h3 className="text-white text-lg font-bold leading-tight">Legal Agreements</h3>
                                             <p className="text-white/70 text-sm font-normal leading-normal">Protect sensitive contracts and legal documents with time-locked access, ensuring they are only revealed to authorized parties at the designated time.</p>
@@ -158,6 +158,105 @@ const LandingPage = () => {
                                 </div>
                             </section>
 
+                            {/* Epic Vault Content Infographic Section */}
+                            <section className="px-4 py-10" id="infographic">
+                                <div className="relative min-h-[600px] md:min-h-[800px] flex flex-col items-center justify-center overflow-hidden">
+                                    {/* SVG Lines */}
+                                    <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="xMidYMid meet" viewBox="0 0 1000 800" xmlns="http://www.w3.org/2000/svg">
+                                        <defs>
+                                            <filter id="glow">
+                                                <feGaussianBlur result="coloredBlur" stdDeviation="3.5"></feGaussianBlur>
+                                                <feMerge>
+                                                    <feMergeNode in="coloredBlur"></feMergeNode>
+                                                    <feMergeNode in="SourceGraphic"></feMergeNode>
+                                                </feMerge>
+                                            </filter>
+                                        </defs>
+                                        <g filter="url(#glow)" stroke="#fbd00e" strokeOpacity="0.3" strokeWidth="2">
+                                            {/* 6 lines evenly distributed at 60° intervals: 0°, 60°, 120°, 180°, 240°, 300° */}
+                                            <line x1="500" x2="500" y1="400" y2="150"></line> {/* 0° - Top */}
+                                            <line x1="500" x2="750" y1="400" y2="250"></line> {/* 60° - Top Right */}
+                                            <line x1="500" x2="750" y1="400" y2="550"></line> {/* 120° - Bottom Right */}
+                                            <line x1="500" x2="500" y1="400" y2="650"></line> {/* 180° - Bottom */}
+                                            <line x1="500" x2="250" y1="400" y2="550"></line> {/* 240° - Bottom Left */}
+                                            <line x1="500" x2="250" y1="400" y2="250"></line> {/* 300° - Top Left */}
+                                        </g>
+                                    </svg>
+
+                                    {/* Icons positioned around center */}
+                                    <div className="relative w-full max-w-7xl h-[600px] md:h-[800px]">
+                                        {/* Logo at center intersection */}
+                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+                                            <img 
+                                                src="/logo.png" 
+                                                alt="LegacyVault Logo" 
+                                                className="w-16 h-16 md:w-20 md:h-20 mx-auto"
+                                            />
+                                        </div>
+
+                                        {/* Business Assets - 300° (Top Left) */}
+                                        <div className="absolute top-[15%] left-[10%] md:top-[12%] md:left-[12%] text-center w-32 md:w-40">
+                                            <img 
+                                                alt="Yellow icon representing business assets with arrows, a factory, and a handshake" 
+                                                className="w-20 h-20 md:w-24 md:h-24 mx-auto" 
+                                                src="/business.jpeg"
+                                            />
+                                            <p className="mt-3 font-semibold text-primary text-sm md:text-base">Business Assets</p>
+                                        </div>
+
+                                        {/* Financial Documents - 60° (Top Right) */}
+                                        <div className="absolute top-[15%] right-[10%] md:top-[12%] md:right-[12%] text-center w-32 md:w-40">
+                                            <img 
+                                                alt="Yellow icon representing financial documents with a shield, chart, and dollar sign" 
+                                                className="w-20 h-20 md:w-24 md:h-24 mx-auto" 
+                                                src="/financial.jpeg"
+                                            />
+                                            <p className="mt-3 font-semibold text-primary text-sm md:text-base">Financial Documents</p>
+                                        </div>
+
+                                        {/* Healthcare Records - 120° (Bottom Right) */}
+                                        <div className="absolute bottom-[25%] right-[10%] md:bottom-[20%] md:right-[12%] text-center w-32 md:w-40">
+                                            <img 
+                                                alt="Yellow icon of medical records with a shield, chart, and caduceus symbol" 
+                                                className="w-20 h-20 md:w-24 md:h-24 mx-auto" 
+                                                src="/medical.jpeg"
+                                            />
+                                            <p className="mt-3 font-semibold text-primary text-sm md:text-base">Healthcare Records</p>
+                                        </div>
+
+                                        {/* Legal & Wills - 180° (Bottom) */}
+                                        <div className="absolute bottom-[8%] md:bottom-[5%] left-1/2 -translate-x-1/2 text-center w-32 md:w-40">
+                                            <img 
+                                                alt="Yellow icon of a locked document with a quill, representing legal wills and contracts" 
+                                                className="w-20 h-20 md:w-24 md:h-24 mx-auto" 
+                                                src="/will.jpeg"
+                                            />
+                                            <p className="mt-3 font-semibold text-primary text-sm md:text-base">Legal & Wills</p>
+                                        </div>
+
+                                        {/* Recovery Phrases - 240° (Bottom Left) */}
+                                        <div className="absolute bottom-[25%] left-[10%] md:bottom-[20%] md:left-[12%] text-center w-32 md:w-40">
+                                            <img 
+                                                alt="Yellow icon representing recovery phrases and seed phrases" 
+                                                className="w-20 h-20 md:w-24 md:h-24 mx-auto" 
+                                                src="/recovery.jpeg"
+                                            />
+                                            <p className="mt-3 font-semibold text-primary text-sm md:text-base">Recovery Phrases</p>
+                            </div>
+
+                                        {/* Digital Media - 0° (Top) */}
+                                        <div className="absolute top-[5%] md:top-[3%] left-1/2 -translate-x-1/2 text-center w-32 md:w-40">
+                                            <img 
+                                                alt="Yellow icon of a folder containing various digital media types like video, music, and images" 
+                                                className="w-20 h-20 md:w-24 md:h-24 mx-auto" 
+                                                src="/media.jpeg"
+                                            />
+                                            <p className="mt-3 font-semibold text-primary text-sm md:text-base">Digital Media</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
                             {/* Technology Section */}
                             <section className="px-4" id="technology">
                                 <div className="bg-white/5 border border-white/10 rounded-lg p-8 md:p-12 flex flex-col items-center text-center gap-6">
@@ -166,11 +265,11 @@ const LandingPage = () => {
                                     </h2>
                                     <p className="text-white/80 text-base font-normal leading-normal max-w-[600px]">
                                         We utilize Zama's Fully Homomorphic Encryption (FHE) technology—a confidential computing layer that works across all EVM-compatible blockchains. Your data remains encrypted at all times, even during processing, ensuring unparalleled security and privacy for your most sensitive assets on any chain.
-                                    </p>
+                            </p>
                                     <div className="flex items-center gap-4">
                                         <span className="text-white/60 text-sm font-medium">POWERED BY</span>
                                         <span className="text-primary text-xl font-bold">ZAMA</span>
-                                    </div>
+                        </div>
                                     <a 
                                         href="https://zama.ai" 
                                         target="_blank" 
@@ -179,7 +278,7 @@ const LandingPage = () => {
                                     >
                                         Learn More About FHE Technology
                                     </a>
-                                </div>
+                            </div>
                             </section>
 
                             {/* CTA Section */}
@@ -197,7 +296,7 @@ const LandingPage = () => {
                                     >
                                         <span className="truncate">Create Your Vault</span>
                                     </button>
-                                </div>
+                        </div>
                             </section>
                         </main>
                     </div>

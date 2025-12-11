@@ -40,10 +40,18 @@ const UnlockOwnerPage = () => {
     const { isConnected, address } = useContext(WalletContext);
     const { decryptValue, getSigner } = useFheVault();
 
-    // Auto-fill Vault ID if passed from navigation state
+    // Auto-fill Vault ID and set vault data if passed from navigation state
     useEffect(() => {
-        if (location.state && location.state.vaultId) {
+        if (location.state) {
+            if (location.state.vaultId) {
             setValue('vaultId', location.state.vaultId);
+            }
+            // If full vault object is passed, use it immediately (no need to fetch from blockchain)
+            if (location.state.vault) {
+                const vault = location.state.vault as Vault;
+                setCurrentVault(vault);
+                console.log('✅ Using vault data from navigation state:', vault);
+            }
         }
     }, [location.state, setValue]);
 
@@ -54,56 +62,56 @@ const UnlockOwnerPage = () => {
             const vaultId = data.vaultId.trim();
             
             // Fetch vault from blockchain only
-            const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
+                const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
             if (!CONTRACT_ADDRESS || !(window as any).ethereum) {
                 toast.error('Blockchain connection required. Please connect your wallet.');
                 setIsLoading(false);
                 return;
             }
 
-            try {
-                const { getVaultMetadata } = await import('../services/vaultContractService');
-                const { getIPFSMetadata } = await import('../services/ipfsService');
-                const provider = new (await import('ethers')).BrowserProvider((window as any).ethereum);
-                const metadata = await getVaultMetadata(CONTRACT_ADDRESS, provider, vaultId);
-                
-                // Try to get IPFS metadata to determine vault type, filename, and mime type
-                let vaultType: 'text' | 'file' = 'text';
-                let fileName: string | undefined;
-                let mimeType: string | undefined;
-                
-                try {
-                    const ipfsMetadata = await getIPFSMetadata(metadata.cid);
-                    if (ipfsMetadata?.keyvalues) {
-                        if (ipfsMetadata.keyvalues.type === 'file') {
-                            vaultType = 'file';
+                    try {
+                        const { getVaultMetadata } = await import('../services/vaultContractService');
+                        const { getIPFSMetadata } = await import('../services/ipfsService');
+                        const provider = new (await import('ethers')).BrowserProvider((window as any).ethereum);
+                        const metadata = await getVaultMetadata(CONTRACT_ADDRESS, provider, vaultId);
+                        
+                        // Try to get IPFS metadata to determine vault type, filename, and mime type
+                        let vaultType: 'text' | 'file' = 'text';
+                        let fileName: string | undefined;
+                        let mimeType: string | undefined;
+                        
+                        try {
+                            const ipfsMetadata = await getIPFSMetadata(metadata.cid);
+                            if (ipfsMetadata?.keyvalues) {
+                                if (ipfsMetadata.keyvalues.type === 'file') {
+                                    vaultType = 'file';
+                                }
+                                if (ipfsMetadata.keyvalues.fileName) {
+                                    fileName = ipfsMetadata.keyvalues.fileName;
+                                }
+                                if (ipfsMetadata.keyvalues.mimeType) {
+                                    mimeType = ipfsMetadata.keyvalues.mimeType;
+                                }
+                            }
+                        } catch (error) {
+                            console.warn('Could not fetch IPFS metadata, defaulting to text type:', error);
                         }
-                        if (ipfsMetadata.keyvalues.fileName) {
-                            fileName = ipfsMetadata.keyvalues.fileName;
-                        }
-                        if (ipfsMetadata.keyvalues.mimeType) {
-                            mimeType = ipfsMetadata.keyvalues.mimeType;
-                        }
-                    }
-                } catch (error) {
-                    console.warn('Could not fetch IPFS metadata, defaulting to text type:', error);
-                }
-                
-                // Create vault object from blockchain data
+                        
+                        // Create vault object from blockchain data
                 const vault = {
-                    id: vaultId,
-                    ownerAddress: metadata.owner,
-                    encryptedData: metadata.cid, // IPFS CID
-                    cid: metadata.cid,
-                    vaultType: vaultType,
-                    fileName: fileName,
-                    mimeType: mimeType,
-                    heirKeyHash: '',
-                    releaseTime: Number(metadata.releaseTimestamp) * 1000,
-                    createdAt: Number(metadata.createdAt) * 1000,
-                    isReleased: Date.now() >= Number(metadata.releaseTimestamp) * 1000,
-                    description: `Vault ${vaultId}`,
-                };
+                            id: vaultId,
+                            ownerAddress: metadata.owner,
+                            encryptedData: metadata.cid, // IPFS CID
+                            cid: metadata.cid,
+                            vaultType: vaultType,
+                            fileName: fileName,
+                            mimeType: mimeType,
+                            heirKeyHash: '',
+                            releaseTime: Number(metadata.releaseTimestamp) * 1000,
+                            createdAt: Number(metadata.createdAt) * 1000,
+                            isReleased: Date.now() >= Number(metadata.releaseTimestamp) * 1000,
+                            description: `Vault ${vaultId}`,
+                        };
                 
                 // Set the vault state
                 setCurrentVault(vault);
@@ -111,8 +119,8 @@ const UnlockOwnerPage = () => {
                 // Continue with vault processing below
                 const currentVaultObj = vault;
                 
-            } catch (error) {
-                console.error('Error fetching vault from blockchain:', error);
+                    } catch (error) {
+                        console.error('Error fetching vault from blockchain:', error);
                 toast.error("Vault not found or error fetching from blockchain. Please check the Vault ID.");
                 setIsLoading(false);
                 return;
@@ -643,11 +651,11 @@ LegacyVault App - FHE-Encrypted Vault System
                             {/* Header Stats */}
                             <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6 mb-8">
                                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-                                    <div>
+                                <div>
                                         <div className="flex items-center gap-4 mb-2">
                                             <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
                                                 <span className="material-symbols-outlined text-primary text-2xl">lock</span>
-                                            </div>
+                                </div>
                                             <div>
                                                 <h1 className="text-2xl font-bold text-white font-display">Vault #{currentVault.id}</h1>
                                                 <p className="text-xs text-white/50 font-display">Created {new Date(currentVault.createdAt).toLocaleDateString()}</p>
@@ -700,7 +708,7 @@ LegacyVault App - FHE-Encrypted Vault System
                                 <div className="flex gap-2">
                                     {currentVault.vaultType === 'text' && (
                                         <>
-                                            <button 
+                                <button
                                                 onClick={() => setHideMnemonic(!hideMnemonic)}
                                                 className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
                                             >
@@ -708,23 +716,23 @@ LegacyVault App - FHE-Encrypted Vault System
                                                     {hideMnemonic ? 'visibility' : 'visibility_off'}
                                                 </span>
                                                 <span>{hideMnemonic ? 'Show' : 'Hide'}</span>
-                                            </button>
-                                            <button 
+                                </button>
+                                <button
                                                 onClick={copyToClipboard}
                                                 className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
                                             >
                                                 <span className="material-symbols-outlined text-lg">content_copy</span>
                                                 <span>Copy</span>
-                                            </button>
+                                </button>
                                         </>
                                     )}
-                                    <button 
+                                <button
                                         onClick={clearData}
                                         className="flex h-10 items-center justify-center gap-2 rounded-lg border border-red-500/50 bg-transparent px-4 text-sm font-bold text-red-500 transition-colors hover:bg-red-500/10"
                                     >
                                         <span className="material-symbols-outlined text-lg">delete</span>
                                         <span>Clear</span>
-                                    </button>
+                                </button>
                                 </div>
                             </div>
 
@@ -739,7 +747,7 @@ LegacyVault App - FHE-Encrypted Vault System
                                                 File decrypted successfully ({decryptedFileBuffer.byteLength} bytes). Ready for download.
                                             </p>
                                             <div className="flex gap-3">
-                                                <button 
+                                                    <button 
                                                     onClick={downloadFile}
                                                     className="flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-black transition-opacity hover:opacity-90"
                                                 >
@@ -749,11 +757,11 @@ LegacyVault App - FHE-Encrypted Vault System
                                                 <button 
                                                     onClick={downloadEncryptedBackup}
                                                     className="flex h-12 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-6 text-sm font-bold text-white transition-colors hover:bg-white/5"
-                                                >
+                                                    >
                                                     <span className="material-symbols-outlined text-lg">save</span>
                                                     <span>Download Encrypted Backup</span>
-                                                </button>
-                                            </div>
+                                                    </button>
+                                                </div>
                                         </>
                                     ) : (
                                         <p className="text-sm text-yellow-500 mb-6 font-display">File data not available</p>
@@ -779,8 +787,8 @@ LegacyVault App - FHE-Encrypted Vault System
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="text-sm font-bold uppercase text-white/50 font-display">Decrypted Text</h3>
                                     <div className="flex gap-2">
-                                        <button 
-                                            onClick={downloadFile}
+                                                    <button 
+                                                        onClick={downloadFile}
                                             className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
                                         >
                                             <span className="material-symbols-outlined text-lg">download</span>
@@ -789,11 +797,11 @@ LegacyVault App - FHE-Encrypted Vault System
                                         <button 
                                             onClick={downloadEncryptedBackup}
                                             className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
-                                        >
+                                                    >
                                             <span className="material-symbols-outlined text-lg">save</span>
                                             <span>Encrypted Backup</span>
-                                        </button>
-                                    </div>
+                                                    </button>
+                                                </div>
                                 </div>
                                 <div className="bg-zinc-900 border border-white/10 rounded-lg p-4">
                                     <pre className="whitespace-pre-wrap break-words font-mono text-sm text-white max-h-96 overflow-y-auto">
@@ -806,8 +814,8 @@ LegacyVault App - FHE-Encrypted Vault System
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="text-sm font-bold uppercase text-white/50 font-display">Decrypted Mnemonic</h3>
                                     <div className="flex gap-2">
-                                        <button 
-                                            onClick={downloadFile}
+                                                    <button 
+                                                        onClick={downloadFile}
                                             className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
                                         >
                                             <span className="material-symbols-outlined text-lg">download</span>
@@ -816,12 +824,12 @@ LegacyVault App - FHE-Encrypted Vault System
                                         <button 
                                             onClick={downloadEncryptedBackup}
                                             className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
-                                        >
+                                                    >
                                             <span className="material-symbols-outlined text-lg">save</span>
                                             <span>Encrypted Backup</span>
-                                        </button>
-                                    </div>
-                                </div>
+                                                    </button>
+                                                </div>
+                                        </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                     {words.map((word, index) => (
                                         <div key={index} className="bg-zinc-900 border border-white/10 rounded px-3 py-2 flex items-center gap-3">
@@ -829,13 +837,13 @@ LegacyVault App - FHE-Encrypted Vault System
                                             <span className={`font-mono font-medium text-white ${hideMnemonic ? 'blur-sm select-none' : ''}`}>
                                                 {hideMnemonic ? '•••••' : word}
                                             </span>
-                                        </div>
+                                    </div>
                                     ))}
                                 </div>
                             </div>
                         );
                     })()
-                            )}
+                                )}
 
                             {/* Heir Management Section */}
                             <div className="mb-8">
@@ -844,28 +852,28 @@ LegacyVault App - FHE-Encrypted Vault System
                                     <span>Manage Heirs</span>
                                 </h2>
                                 <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6">
-                                    {isLoadingHeirs ? (
-                                        <div className="text-center py-4">
+                                        {isLoadingHeirs ? (
+                                            <div className="text-center py-4">
                                             <p className="text-sm text-white/50 font-display">Loading authorized heirs...</p>
-                                        </div>
+                                            </div>
                                     ) : (
                                         <>
                                             {authorizedHeirs.length > 0 && (
                                                 <div className="mb-4">
                                                     <div className="text-sm text-white/50 uppercase tracking-wider mb-3 font-display">Authorized Heirs</div>
                                                     <div className="space-y-2">
-                                                        {authorizedHeirs.map((heirAddress) => (
+                                                {authorizedHeirs.map((heirAddress) => (
                                                             <div key={heirAddress} className="flex items-center justify-between bg-zinc-900 p-3 rounded-lg border border-white/10">
                                                                 <div className="flex items-center gap-3">
                                                                     <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
                                                                         <span className="material-symbols-outlined text-primary text-base">person</span>
-                                                                    </div>
+                                                    </div>
                                                                     <div>
                                                                         <div className="font-mono text-sm text-white">{heirAddress.slice(0, 6)}...{heirAddress.slice(-4)}</div>
                                                                         <div className="text-xs text-white/50 font-display">Authorized</div>
-                                                                    </div>
+                                            </div>
                                                                 </div>
-                                                                <button
+                                                    <button
                                                                     onClick={async () => {
                                                              if (!currentVault || !address) return;
                                                              
@@ -903,25 +911,25 @@ LegacyVault App - FHE-Encrypted Vault System
                                                                         ? 'border-red-500/50 bg-red-500/10 text-red-500/50 cursor-not-allowed'
                                                                         : 'border-red-500/50 bg-transparent text-red-500 hover:bg-red-500/10'
                                                                 }`}
-                                                            >
+                                                    >
                                                                 <span className="material-symbols-outlined text-lg">person_remove</span>
                                                                 <span>{isRevokingAccess === heirAddress ? 'Revoking...' : 'Revoke'}</span>
-                                                            </button>
+                                                    </button>
                                                  </div>
                                              ))}
                                          </div>
-                                     </div>
-                                 )}
-                                 
+                                            </div>
+                                        )}
+                                        
                                             {isManagingHeirs ? (
                                                 <div className="animate-fade-in">
                                                     <div className="mb-4">
                                                         <label className="block text-xs font-bold text-white/50 mb-2 uppercase tracking-wider font-display">New Heir Address</label>
-                                                        <input
-                                                            type="text"
-                                                            value={newHeirAddress}
-                                                            onChange={(e) => setNewHeirAddress(e.target.value)}
-                                                            placeholder="0x..."
+                                                    <input
+                                                        type="text"
+                                                        value={newHeirAddress}
+                                                        onChange={(e) => setNewHeirAddress(e.target.value)}
+                                                        placeholder="0x..."
                                                             className={`w-full rounded-lg border-2 py-3 px-4 text-white bg-zinc-900 placeholder-white/30 focus:outline-none focus:ring-0 font-mono ${
                                                                 newHeirAddress && (!ethers.isAddress(newHeirAddress) || 
                                                                 newHeirAddress.toLowerCase() === address?.toLowerCase() ||
@@ -929,7 +937,7 @@ LegacyVault App - FHE-Encrypted Vault System
                                                                     ? 'border-red-500' 
                                                                     : 'border-white/10 focus:border-primary'
                                                             }`}
-                                                        />
+                                                    />
                                                         {newHeirAddress && (!ethers.isAddress(newHeirAddress) || 
                                                             newHeirAddress.toLowerCase() === address?.toLowerCase() ||
                                                             authorizedHeirs.some(h => h.toLowerCase() === newHeirAddress.toLowerCase())) && (
@@ -940,58 +948,58 @@ LegacyVault App - FHE-Encrypted Vault System
                                                                     ? 'Cannot add your own address'
                                                                     : 'This address is already authorized'}
                                                             </p>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex gap-3 justify-end">
-                                                        <button 
-                                                            onClick={() => {
-                                                                setIsManagingHeirs(false);
-                                                                setNewHeirAddress('');
-                                                            }}
+                                                    )}
+                                                </div>
+                                                <div className="flex gap-3 justify-end">
+                                                    <button
+                                                        onClick={() => {
+                                                            setIsManagingHeirs(false);
+                                                            setNewHeirAddress('');
+                                                        }}
                                                             className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
-                                                        >
+                                                    >
                                                             <span>Cancel</span>
-                                                        </button>
-                                                        <button 
-                                                            onClick={async () => {
-                                                     if (!currentVault || !address || !newHeirAddress) return;
+                                                    </button>
+                                                    <button
+                                                        onClick={async () => {
+                                                            if (!currentVault || !address || !newHeirAddress) return;
                                                      
-                                                     if (!ethers.isAddress(newHeirAddress)) {
-                                                         toast.error("Invalid Ethereum address");
-                                                         return;
-                                                     }
+                                                            if (!ethers.isAddress(newHeirAddress)) {
+                                                                toast.error("Invalid Ethereum address");
+                                                                return;
+                                                            }
                                                      
                                                      if (newHeirAddress.toLowerCase() === address.toLowerCase()) {
                                                          toast.error("Cannot add your own address");
                                                          return;
                                                      }
                                                      
-                                                     const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
-                                                     if (!CONTRACT_ADDRESS) {
-                                                         toast.error("Contract address not configured");
-                                                         return;
-                                                     }
+                                                            const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
+                                                            if (!CONTRACT_ADDRESS) {
+                                                                toast.error("Contract address not configured");
+                                                                return;
+                                                            }
                                                      
-                                                     setIsGrantingAccess(true);
-                                                     try {
-                                                         toast.info("Granting access...");
-                                                         const signer = await getSigner();
+                                                            setIsGrantingAccess(true);
+                                                            try {
+                                                                toast.info("Granting access...");
+                                                                const signer = await getSigner();
                                                          if (!signer) {
                                                              throw new Error("Failed to get signer");
                                                          }
                                                          
-                                                         const tx = await grantAccess(CONTRACT_ADDRESS, signer, currentVault.id, newHeirAddress);
-                                                         toast.info("Waiting for transaction confirmation...");
-                                                         await tx.wait();
+                                                                const tx = await grantAccess(CONTRACT_ADDRESS, signer, currentVault.id, newHeirAddress);
+                                                                toast.info("Waiting for transaction confirmation...");
+                                                                await tx.wait();
                                                          
                                                          // Refetch heirs from on-chain data
-                                                         await fetchAuthorizedHeirs();
-                                                         setNewHeirAddress('');
-                                                         setIsManagingHeirs(false);
-                                                         toast.success("Access granted successfully");
-                                                     } catch (error: any) {
-                                                         console.error('Error granting access:', error);
-                                                         toast.error(getTransactionErrorMessage(error));
+                                                                await fetchAuthorizedHeirs();
+                                                                setNewHeirAddress('');
+                                                                setIsManagingHeirs(false);
+                                                                toast.success("Access granted successfully");
+                                                            } catch (error: any) {
+                                                                console.error('Error granting access:', error);
+                                                                toast.error(getTransactionErrorMessage(error));
                                                             } finally {
                                                                 setIsGrantingAccess(false);
                                                             }
@@ -1027,8 +1035,8 @@ LegacyVault App - FHE-Encrypted Vault System
                                                     <span className="material-symbols-outlined text-lg">person_add</span>
                                                     <span>Add Heir</span>
                                                 </button>
-                                            </div>
-                                        )}
+                                    </div>
+                                )}
                              </>
                          )}
                      </div>
@@ -1041,12 +1049,12 @@ LegacyVault App - FHE-Encrypted Vault System
                                     <span>Manage Schedule</span>
                                 </h2>
                                 <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6">
-                                    {!isEditingSchedule ? (
+                                        {!isEditingSchedule ? (
                                         <div className="flex justify-between items-center">
-                                            <div>
+                                                <div>
                                                 <div className="text-sm text-white/50 uppercase tracking-wider mb-1 font-display">Current Release Date</div>
                                                 <div className="text-lg font-bold text-white font-display">{new Date(currentVault.releaseTime).toLocaleString()}</div>
-                                            </div>
+                                                </div>
                                             <button 
                                                 onClick={() => setIsEditingSchedule(true)}
                                                 className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white transition-colors hover:bg-white/5"
@@ -1054,39 +1062,39 @@ LegacyVault App - FHE-Encrypted Vault System
                                                 <span className="material-symbols-outlined text-lg">schedule</span>
                                                 <span>Reschedule</span>
                                             </button>
-                                        </div>
-                                    ) : (
+                                            </div>
+                                        ) : (
                                         <div className="animate-fade-in">
                                             <div className="grid md:grid-cols-2 gap-4 mb-4">
-                                                <div>
+                                                    <div>
                                                     <label className="block text-xs font-bold text-white/50 mb-2 uppercase tracking-wider font-display">New Date</label>
-                                                    <input 
-                                                        type="date" 
-                                                        value={newReleaseDate} 
-                                                        onChange={(e) => setNewReleaseDate(e.target.value)}
+                                                        <input
+                                                            type="date"
+                                                            value={newReleaseDate}
+                                                            onChange={(e) => setNewReleaseDate(e.target.value)}
                                                         className="w-full bg-zinc-900 text-white border-2 border-white/10 rounded-lg px-4 py-3 focus:border-primary focus:outline-none focus:ring-0 transition-all font-display [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100" 
-                                                    />
-                                                </div>
-                                                <div>
+                                                        />
+                                                    </div>
+                                                    <div>
                                                     <label className="block text-xs font-bold text-white/50 mb-2 uppercase tracking-wider font-display">New Time</label>
-                                                    <input 
-                                                        type="time" 
-                                                        value={newReleaseTime} 
-                                                        onChange={(e) => setNewReleaseTime(e.target.value)}
+                                                        <input
+                                                            type="time"
+                                                            value={newReleaseTime}
+                                                            onChange={(e) => setNewReleaseTime(e.target.value)}
                                                         className="w-full bg-zinc-900 text-white border-2 border-white/10 rounded-lg px-4 py-3 focus:border-primary focus:outline-none focus:ring-0 transition-all font-display [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-100" 
-                                                    />
+                                                        />
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="flex gap-3 justify-end">
-                                                <button 
-                                                    onClick={() => setIsEditingSchedule(false)}
+                                                <div className="flex gap-3 justify-end">
+                                                    <button
+                                                        onClick={() => setIsEditingSchedule(false)}
                                                     className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
-                                                >
+                                                    >
                                                     <span>Cancel</span>
-                                                </button>
-                                                <button 
-                                                    onClick={handleUpdateSchedule}
-                                                    disabled={isLoading}
+                                                    </button>
+                                                    <button
+                                                        onClick={handleUpdateSchedule}
+                                                        disabled={isLoading}
                                                     className={`flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-bold transition-opacity ${
                                                         isLoading 
                                                             ? 'bg-primary/50 text-black/50 cursor-not-allowed'
@@ -1095,10 +1103,10 @@ LegacyVault App - FHE-Encrypted Vault System
                                                 >
                                                     <span className="material-symbols-outlined text-lg">save</span>
                                                     <span>{isLoading ? 'Saving...' : 'Save Changes'}</span>
-                                                </button>
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
                                 </div>
                             </div>
 
@@ -1116,16 +1124,16 @@ LegacyVault App - FHE-Encrypted Vault System
                             </div>
 
                             <div className="text-center pb-8">
-                                <button 
+                                            <button
                                     onClick={clearData}
                                     className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-6 text-sm font-bold text-white transition-colors hover:bg-white/5 mx-auto"
-                                >
+                                            >
                                     <span className="material-symbols-outlined text-lg">lock</span>
                                     <span>Lock & Close</span>
-                                </button>
+                                            </button>
+                                    </div>
                             </div>
                         </div>
-                    </div>
                 </div>
             </div>
         );
@@ -1139,40 +1147,40 @@ LegacyVault App - FHE-Encrypted Vault System
                         <div className="text-center mb-10">
                             <h1 className="text-3xl font-bold mb-2 text-white font-display">Unlock as Owner</h1>
                             <p className="text-white/50 font-display">Enter your credentials to access the vault contents immediately.</p>
-                        </div>
+                                </div>
                         <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6">
                             <form onSubmit={handleSubmit(onSubmit)}>
                                 <div className="mb-4">
                                     <label className="block text-sm font-bold text-white/50 mb-2 uppercase tracking-wider font-display">Vault ID</label>
-                                    <input 
-                                        type="text" 
+                                        <input 
+                                            type="text"
                                         placeholder="e.g. mxon2g6" 
-                                        {...register('vaultId', { required: 'Vault ID is required', validate: (value) => value.trim().length > 0 || 'Vault ID cannot be empty' })} 
+                                            {...register('vaultId', { required: 'Vault ID is required', validate: (value) => value.trim().length > 0 || 'Vault ID cannot be empty' })}
                                         className={`w-full rounded-lg border-2 py-3 px-4 text-white bg-zinc-900 placeholder-white/30 focus:outline-none focus:ring-0 font-mono ${
                                             errors.vaultId ? 'border-red-500' : 'border-white/10 focus:border-primary'
                                         }`}
-                                    />
-                                    {errors.vaultId && (
+                                        />
+                                        {errors.vaultId && (
                                         <p className="text-xs text-red-500 mt-1 font-display">{errors.vaultId.message as string}</p>
-                                    )}
+                                        )}
                                 </div>
                                 <p className="text-xs text-white/50 mt-2 font-display">Connect your wallet to unlock vaults. Wallet authentication is used for access control.</p>
-                                <button 
-                                    type="submit" 
-                                    disabled={isLoading}
+                                    <button 
+                                        type="submit"
+                                        disabled={isLoading}
                                     className={`mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold transition-opacity ${
                                         isLoading 
                                             ? 'bg-primary/50 text-black/50 cursor-not-allowed'
                                             : 'text-black hover:opacity-90'
                                     }`}
-                                >
+                                    >
                                     <span className="material-symbols-outlined text-lg">lock_open</span>
                                     <span>{isLoading ? 'Decrypting...' : 'Decrypt Vault'}</span>
-                                </button>
-                            </form>
+                                    </button>
+                                </form>
+                            </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
             </div>
         </div>
     );

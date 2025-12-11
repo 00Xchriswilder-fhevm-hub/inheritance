@@ -31,10 +31,27 @@ const UnlockHeirPage = () => {
     const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm();
     const watchVaultId = watch('vaultId');
 
-    // Set vault ID from navigation state if provided
+    // Set vault ID and vault data from navigation state if provided
     useEffect(() => {
-        if (location.state && location.state.vaultId) {
+        if (location.state) {
+            if (location.state.vaultId) {
             setValue('vaultId', location.state.vaultId);
+            }
+            // If full vault object is passed, use it immediately
+            if (location.state.vault) {
+                const vault = location.state.vault as Vault;
+                setCurrentVault(vault);
+                const releaseTimestamp = vault.releaseTime;
+                setReleaseDate(new Date(releaseTimestamp));
+                
+                // Check if vault is released
+                if (Date.now() >= releaseTimestamp) {
+                    setVaultStatus('available');
+                } else {
+                    setVaultStatus('locked');
+                }
+                console.log('✅ Using vault data from navigation state:', vault);
+            }
         }
     }, [location.state, setValue]);
 
@@ -57,13 +74,64 @@ const UnlockHeirPage = () => {
             
             if (!CONTRACT_ADDRESS) {
                 toast.error('Blockchain connection required. Please configure contract address.');
-                setVaultStatus('not-found');
-                setReleaseDate(null);
+                    setVaultStatus('not-found');
+                    setReleaseDate(null);
                 return;
             }
 
             try {
-                // Check vault on blockchain
+                // Try Supabase first (faster)
+                const { vaultService, heirService, isSupabaseConfigured } = await import('../supabase/supabaseService');
+                
+                if (isSupabaseConfigured()) {
+                    try {
+                        const dbVault = await vaultService.getVault(vaultId);
+                        if (dbVault) {
+                            const releaseTimestamp = Math.floor(new Date(dbVault.release_timestamp).getTime() / 1000) * 1000;
+                            setReleaseDate(new Date(releaseTimestamp));
+                            
+                            // Check if current time is past release time
+                            if (Date.now() < releaseTimestamp) {
+                                setVaultStatus('locked');
+                                return;
+                            }
+                            
+                            // Check if user is an active heir in Supabase
+                            const heirRecords = await heirService.getHeirsByVault(vaultId, true);
+                            const isHeir = heirRecords.some(h => h.heir_address.toLowerCase() === address.toLowerCase());
+                            
+                            if (isHeir) {
+                                setVaultStatus('available');
+                                
+                                // Set vault data
+                                const vault: Vault = {
+                                    id: dbVault.vault_id,
+                                    ownerAddress: dbVault.owner_address,
+                                    encryptedData: dbVault.cid,
+                                    cid: dbVault.cid,
+                                    releaseTime: releaseTimestamp,
+                                    createdAt: Math.floor(new Date(dbVault.created_at).getTime() / 1000) * 1000,
+                                    vaultType: (dbVault.vault_type || 'text') as 'text' | 'file',
+                                    fileName: dbVault.file_name,
+                                    mimeType: dbVault.file_type,
+                                    isReleased: Date.now() >= releaseTimestamp,
+                                    heirKeyHash: '',
+                                    description: `Vault ${dbVault.vault_id}`,
+                                };
+                                setCurrentVault(vault);
+                                console.log('✅ Fetched vault from Supabase');
+                                return; // Exit early - use Supabase data
+                            } else {
+                                setVaultStatus('unauthorized');
+                                return;
+                            }
+                        }
+                    } catch (supabaseError) {
+                        console.warn('⚠️  Could not fetch from Supabase, falling back to blockchain:', supabaseError);
+                    }
+                }
+                
+                // Fallback to blockchain
                 if (!(window as any).ethereum) {
                     setVaultStatus('not-found');
                     return;
@@ -139,7 +207,7 @@ const UnlockHeirPage = () => {
             const vaultId = data.vaultId.trim();
             
             // Fetch vault from blockchain only
-            const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
+                const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
             if (!CONTRACT_ADDRESS || !(window as any).ethereum) {
                 toast.error('Blockchain connection required. Please connect your wallet.');
                 setIsLoading(false);
@@ -147,49 +215,49 @@ const UnlockHeirPage = () => {
             }
 
             let vault;
-            try {
-                const provider = new ethers.BrowserProvider((window as any).ethereum);
-                const metadata = await getVaultMetadata(CONTRACT_ADDRESS, provider, vaultId);
-                
-                // Try to get IPFS metadata to determine vault type, filename, and mime type
-                let vaultType: 'text' | 'file' = 'text';
-                let fileName: string | undefined;
-                let mimeType: string | undefined;
-                
-                try {
-                    const ipfsMetadata = await getIPFSMetadata(metadata.cid);
-                    if (ipfsMetadata?.keyvalues) {
-                        if (ipfsMetadata.keyvalues.type === 'file') {
-                            vaultType = 'file';
+                    try {
+                        const provider = new ethers.BrowserProvider((window as any).ethereum);
+                        const metadata = await getVaultMetadata(CONTRACT_ADDRESS, provider, vaultId);
+                        
+                        // Try to get IPFS metadata to determine vault type, filename, and mime type
+                        let vaultType: 'text' | 'file' = 'text';
+                        let fileName: string | undefined;
+                        let mimeType: string | undefined;
+                        
+                        try {
+                            const ipfsMetadata = await getIPFSMetadata(metadata.cid);
+                            if (ipfsMetadata?.keyvalues) {
+                                if (ipfsMetadata.keyvalues.type === 'file') {
+                                    vaultType = 'file';
+            }
+                                if (ipfsMetadata.keyvalues.fileName) {
+                                    fileName = ipfsMetadata.keyvalues.fileName;
+                                }
+                                if (ipfsMetadata.keyvalues.mimeType) {
+                                    mimeType = ipfsMetadata.keyvalues.mimeType;
+                                }
+                            }
+                        } catch (error) {
+                            console.warn('Could not fetch IPFS metadata, defaulting to text type:', error);
                         }
-                        if (ipfsMetadata.keyvalues.fileName) {
-                            fileName = ipfsMetadata.keyvalues.fileName;
-                        }
-                        if (ipfsMetadata.keyvalues.mimeType) {
-                            mimeType = ipfsMetadata.keyvalues.mimeType;
-                        }
-                    }
-                } catch (error) {
-                    console.warn('Could not fetch IPFS metadata, defaulting to text type:', error);
-                }
-                
-                // Create vault object from blockchain data
-                vault = {
-                    id: vaultId,
-                    ownerAddress: metadata.owner,
-                    encryptedData: metadata.cid, // IPFS CID
-                    cid: metadata.cid,
-                    vaultType: vaultType,
-                    fileName: fileName,
-                    mimeType: mimeType,
-                    heirKeyHash: '',
-                    releaseTime: Number(metadata.releaseTimestamp) * 1000,
-                    createdAt: Number(metadata.createdAt) * 1000,
-                    isReleased: Date.now() >= Number(metadata.releaseTimestamp) * 1000,
-                    description: `Vault ${vaultId}`,
-                };
-            } catch (error) {
-                console.error('Error fetching vault from blockchain:', error);
+                        
+                        // Create vault object from blockchain data
+                        vault = {
+                            id: vaultId,
+                            ownerAddress: metadata.owner,
+                            encryptedData: metadata.cid, // IPFS CID
+                            cid: metadata.cid,
+                            vaultType: vaultType,
+                            fileName: fileName,
+                            mimeType: mimeType,
+                            heirKeyHash: '',
+                            releaseTime: Number(metadata.releaseTimestamp) * 1000,
+                            createdAt: Number(metadata.createdAt) * 1000,
+                            isReleased: Date.now() >= Number(metadata.releaseTimestamp) * 1000,
+                            description: `Vault ${vaultId}`,
+                        };
+                    } catch (error) {
+                        console.error('Error fetching vault from blockchain:', error);
                 toast.error("Vault not found or error fetching from blockchain. Please check the Vault ID.");
                 setIsLoading(false);
                 return;
@@ -375,25 +443,25 @@ const UnlockHeirPage = () => {
                 <div className="flex h-full grow flex-col">
                     <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-8 lg:px-12">
                         <div className="flex w-full max-w-5xl flex-col">
-                            {/* Header Stats */}
+                {/* Header Stats */}
                             <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6 mb-8">
                                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-                                    <div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+                        <div>
+                            <div className="flex items-center gap-4 mb-2">
+                                <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
                                                 <span className="material-symbols-outlined text-primary text-2xl">lock</span>
-                                            </div>
-                                            <div>
+                                </div>
+                                <div>
                                                 <h1 className="text-2xl font-bold text-white font-display">Vault #{currentVault.id}</h1>
                                                 <p className="text-xs text-white/50 font-display">Created {new Date(currentVault.createdAt).toLocaleDateString()}</p>
-                                            </div>
-                                        </div>
+                                </div>
+                            </div>
                                         <div className="flex items-center gap-2 text-sm text-white/50 mt-2">
                                             <span className="material-symbols-outlined text-base">schedule</span>
                                             <span className="font-display">Release: {new Date(currentVault.releaseTime).toLocaleString()}</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col items-center">
+                            </div>
+                        </div>
+                        <div className="flex flex-col items-center">
                                         <div className={`flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold mb-3 ${
                                             Date.now() < currentVault.releaseTime 
                                                 ? 'bg-primary/20 text-primary' 
@@ -404,7 +472,7 @@ const UnlockHeirPage = () => {
                                             }`}></div>
                                             <span>{Date.now() < currentVault.releaseTime ? 'LOCKED' : 'RELEASED'}</span>
                                         </div>
-                                        <div className="flex gap-2 text-center">
+                            <div className="flex gap-2 text-center">
                                             <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
                                                 <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.days}</div>
                                                 <div className="text-[10px] uppercase text-white/50 font-bold font-display">Days</div>
@@ -420,21 +488,21 @@ const UnlockHeirPage = () => {
                                             <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
                                                 <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.sec}</div>
                                                 <div className="text-[10px] uppercase text-white/50 font-bold font-display">Sec</div>
-                                            </div>
-                                        </div>
-                                        <div className="text-xs text-white/50 mt-2 font-display">until vault becomes available to heir</div>
-                                    </div>
                                 </div>
-                            </div>
+                                </div>
+                                        <div className="text-xs text-white/50 mt-2 font-display">until vault becomes available to heir</div>
+                        </div>
+                    </div>
+                </div>
 
-                            {/* Main Action Bar */}
-                            <div className="flex items-center justify-between mb-4">
+                {/* Main Action Bar */}
+                <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-xl font-bold text-white font-display">
-                                    {currentVault.vaultType === 'file' ? 'Decrypted File' : 'Recovery Phrase'}
-                                </h2>
-                                <div className="flex gap-2">
-                                    {currentVault.vaultType === 'text' && (
-                                        <>
+                        {currentVault.vaultType === 'file' ? 'Decrypted File' : 'Recovery Phrase'}
+                    </h2>
+                    <div className="flex gap-2">
+                        {currentVault.vaultType === 'text' && (
+                            <>
                                             <button 
                                                 onClick={() => setHideMnemonic(!hideMnemonic)}
                                                 className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
@@ -451,8 +519,8 @@ const UnlockHeirPage = () => {
                                                 <span className="material-symbols-outlined text-lg">content_copy</span>
                                                 <span>Copy</span>
                                             </button>
-                                        </>
-                                    )}
+                            </>
+                        )}
                                     <button 
                                         onClick={clearData}
                                         className="flex h-10 items-center justify-center gap-2 rounded-lg border border-red-500/50 bg-transparent px-4 text-sm font-bold text-red-500 transition-colors hover:bg-red-500/10"
@@ -460,19 +528,19 @@ const UnlockHeirPage = () => {
                                         <span className="material-symbols-outlined text-lg">delete</span>
                                         <span>Clear</span>
                                     </button>
-                                </div>
-                            </div>
+                    </div>
+                </div>
 
-                            {/* Content Display */}
-                            {currentVault.vaultType === 'file' ? (
+                {/* Content Display */}
+                {currentVault.vaultType === 'file' ? (
                                 <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-8 mb-8 flex flex-col items-center text-center">
                                     <span className="material-symbols-outlined text-primary text-6xl mb-4">description</span>
                                     <h3 className="text-lg font-bold text-white mb-2 font-display">{currentVault.fileName || 'Unknown File'}</h3>
-                                    {decryptedFileBuffer ? (
-                                        <>
+                        {decryptedFileBuffer ? (
+                            <>
                                             <p className="text-sm text-white/50 mb-6 font-display">
-                                                File decrypted successfully ({decryptedFileBuffer.byteLength} bytes). Ready for download.
-                                            </p>
+                                    File decrypted successfully ({decryptedFileBuffer.byteLength} bytes). Ready for download.
+                                </p>
                                             <button 
                                                 onClick={downloadFile}
                                                 className="flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-black transition-opacity hover:opacity-90"
@@ -480,31 +548,31 @@ const UnlockHeirPage = () => {
                                                 <span className="material-symbols-outlined text-lg">download</span>
                                                 <span>Download Decrypted File</span>
                                             </button>
-                                        </>
-                                    ) : (
+                            </>
+                        ) : (
                                         <p className="text-sm text-yellow-500 mb-6 font-display">File data not available</p>
-                                    )}
-                                </div>
-                            ) : (
-                                (() => {
-                                    // Check if this is a txt file or plain text (not mnemonic)
-                                    const isTxtFile = currentVault.vaultType === 'file' && (
-                                        currentVault.fileName?.toLowerCase().endsWith('.txt') || 
-                                        currentVault.mimeType === 'text/plain'
-                                    );
-                                    
-                                    // Check if text content looks like a mnemonic (12 or 24 words, typically 3-8 chars each)
-                                    const words = decryptedData ? decryptedData.trim().split(/\s+/) : [];
-                                    const isMnemonic = words.length === 12 || words.length === 24 || words.length === 18;
-                                    const hasMnemonicPattern = isMnemonic && words.every(w => w.length >= 3 && w.length <= 8 && /^[a-z]+$/.test(w.toLowerCase()));
-                                    
-                                    const shouldShowAsPlainText = isTxtFile || !hasMnemonicPattern;
-                                    
-                                    return shouldShowAsPlainText ? (
+                        )}
+                    </div>
+                ) : (
+                    (() => {
+                        // Check if this is a txt file or plain text (not mnemonic)
+                        const isTxtFile = currentVault.vaultType === 'file' && (
+                            currentVault.fileName?.toLowerCase().endsWith('.txt') || 
+                            currentVault.mimeType === 'text/plain'
+                        );
+                        
+                        // Check if text content looks like a mnemonic (12 or 24 words, typically 3-8 chars each)
+                        const words = decryptedData ? decryptedData.trim().split(/\s+/) : [];
+                        const isMnemonic = words.length === 12 || words.length === 24 || words.length === 18;
+                        const hasMnemonicPattern = isMnemonic && words.every(w => w.length >= 3 && w.length <= 8 && /^[a-z]+$/.test(w.toLowerCase()));
+                        
+                        const shouldShowAsPlainText = isTxtFile || !hasMnemonicPattern;
+                        
+                        return shouldShowAsPlainText ? (
                                         <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6 mb-8">
-                                            <div className="flex justify-between items-center mb-4">
+                                <div className="flex justify-between items-center mb-4">
                                                 <h3 className="text-sm font-bold uppercase text-white/50 font-display">Decrypted Text</h3>
-                                                <div className="flex gap-2">
+                                    <div className="flex gap-2">
                                                     <button 
                                                         onClick={downloadFile}
                                                         className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
@@ -512,19 +580,19 @@ const UnlockHeirPage = () => {
                                                         <span className="material-symbols-outlined text-lg">download</span>
                                                         <span>Download Text</span>
                                                     </button>
-                                                </div>
-                                            </div>
+                                    </div>
+                                </div>
                                             <div className="bg-zinc-900 border border-white/10 rounded-lg p-4">
                                                 <pre className="whitespace-pre-wrap break-words font-mono text-sm text-white max-h-96 overflow-y-auto">
-                                                    {hideMnemonic ? '••••••••••••••••••••••••••••••••••••••••' : decryptedData}
-                                                </pre>
-                                            </div>
-                                        </div>
-                                    ) : (
+                                        {hideMnemonic ? '••••••••••••••••••••••••••••••••••••••••' : decryptedData}
+                                    </pre>
+                                </div>
+                    </div>
+                ) : (
                                         <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6 mb-8">
-                                            <div className="flex justify-between items-center mb-4">
+                        <div className="flex justify-between items-center mb-4">
                                                 <h3 className="text-sm font-bold uppercase text-white/50 font-display">Decrypted Mnemonic</h3>
-                                                <div className="flex gap-2">
+                            <div className="flex gap-2">
                                                     <button 
                                                         onClick={downloadFile}
                                                         className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
@@ -532,37 +600,37 @@ const UnlockHeirPage = () => {
                                                         <span className="material-symbols-outlined text-lg">download</span>
                                                         <span>Download Text</span>
                                                     </button>
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                                {words.map((word, index) => (
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                    {words.map((word, index) => (
                                                     <div key={index} className="bg-zinc-900 border border-white/10 rounded px-3 py-2 flex items-center gap-3">
                                                         <span className="text-xs font-mono text-white/50 select-none">{index + 1}</span>
                                                         <span className={`font-mono font-medium text-white ${hideMnemonic ? 'blur-sm select-none' : ''}`}>
-                                                            {hideMnemonic ? '•••••' : word}
-                                                        </span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    );
-                                })()
-                            )}
+                                        {hideMnemonic ? '•••••' : word}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                        );
+                    })()
+                )}
 
-                            {/* Warning Banner */}
+                {/* Warning Banner */}
                             <div className="border border-yellow-500/50 bg-yellow-500/5 rounded-xl p-4 flex items-start gap-4 mb-8">
                                 <span className="material-symbols-outlined text-yellow-500 shrink-0 mt-0.5">warning</span>
-                                <div>
+                     <div>
                                     <h3 className="font-bold text-yellow-500 mb-1 font-display">Security Warning</h3>
                                     <p className="text-sm text-white/70 font-display">
-                                        {currentVault.vaultType === 'file' 
-                                            ? 'Ensure you download this file to a secure location. Once this window is closed, you will need to decrypt it again.' 
-                                            : 'Keep this recovery phrase secure. Never share it with anyone. Anyone with access to these words can control your assets.'}
-                                    </p>
-                                </div>
-                            </div>
+                             {currentVault.vaultType === 'file' 
+                                ? 'Ensure you download this file to a secure location. Once this window is closed, you will need to decrypt it again.' 
+                                : 'Keep this recovery phrase secure. Never share it with anyone. Anyone with access to these words can control your assets.'}
+                         </p>
+                     </div>
+                </div>
 
-                            <div className="text-center pb-8">
+                <div className="text-center pb-8">
                                 <button 
                                     onClick={clearData}
                                     className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-6 text-sm font-bold text-white transition-colors hover:bg-white/5 mx-auto"
@@ -584,14 +652,14 @@ const UnlockHeirPage = () => {
                 <div className="flex h-full grow flex-col">
                     <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-8 lg:px-12">
                         <div className="flex w-full max-w-xl flex-col">
-                            <div className="text-center mb-10">
+                <div className="text-center mb-10">
                                 <h1 className="text-3xl font-bold mb-2 text-white font-display">Unlock as Heir</h1>
                                 <p className="text-white/50 font-display">Connect your wallet to access vaults you've been granted access to.</p>
-                            </div>
+                </div>
                             <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-10 text-center">
                                 <p className="text-white/50 mb-6 font-display">You need to connect your wallet to unlock vaults.</p>
-                                <ConnectButton.Custom>
-                                    {({ openConnectModal }) => (
+                    <ConnectButton.Custom>
+                        {({ openConnectModal }) => (
                                         <button 
                                             onClick={openConnectModal}
                                             className="flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-black transition-opacity hover:opacity-90 mx-auto"
@@ -599,8 +667,8 @@ const UnlockHeirPage = () => {
                                             <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
                                             <span>Connect Wallet</span>
                                         </button>
-                                    )}
-                                </ConnectButton.Custom>
+                        )}
+                    </ConnectButton.Custom>
                             </div>
                         </div>
                     </div>
@@ -614,12 +682,12 @@ const UnlockHeirPage = () => {
             <div className="flex h-full grow flex-col">
                 <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-8 lg:px-12">
                     <div className="flex w-full max-w-xl flex-col">
-                        <div className="text-center mb-10">
+            <div className="text-center mb-10">
                             <h1 className="text-3xl font-bold mb-2 text-white font-display">Unlock as Heir</h1>
                             <p className="text-white/50 font-display">Claim access to a designated vault using your heir key.</p>
-                        </div>
+            </div>
                         <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6 mb-8">
-                            <form onSubmit={handleSubmit(onSubmit)}>
+                <form onSubmit={handleSubmit(onSubmit)}>
                                 <div className="mb-4">
                                     <label className="block text-sm font-bold text-white/50 mb-2 uppercase tracking-wider font-display">Vault ID</label>
                                     <input 
@@ -634,7 +702,7 @@ const UnlockHeirPage = () => {
                                         <p className="text-xs text-red-500 mt-1 font-display">{errors.vaultId.message as string}</p>
                                     )}
                                 </div>
-                                {vaultStatus !== 'idle' && (
+                    {vaultStatus !== 'idle' && (
                                     <div className={`mb-6 p-4 rounded-lg border flex items-center gap-4 ${
                                         vaultStatus === 'available' ? 'bg-[#16a34a]/10 border-[#22c55e]/30' : 
                                         vaultStatus === 'locked' ? 'bg-primary/10 border-primary/30' : 
@@ -643,14 +711,14 @@ const UnlockHeirPage = () => {
                                         {vaultStatus === 'available' && <span className="material-symbols-outlined text-[#22c55e]">schedule</span>}
                                         {vaultStatus === 'locked' && <span className="material-symbols-outlined text-primary">lock</span>}
                                         {(vaultStatus === 'not-found' || vaultStatus === 'unauthorized') && <span className="material-symbols-outlined text-red-500">warning</span>}
-                                        <div className="flex-1">
+                            <div className="flex-1">
                                             <div className="text-xs font-bold uppercase mb-1 text-white/50 font-display">Status</div>
                                             <div className="font-bold text-white font-display">
-                                                {vaultStatus === 'available' && "Ready to Unlock"}
-                                                {vaultStatus === 'locked' && "Time Locked"}
-                                                {vaultStatus === 'not-found' && "Vault Not Found"}
-                                                {vaultStatus === 'unauthorized' && "Not Authorized"}
-                                            </div>
+                                    {vaultStatus === 'available' && "Ready to Unlock"}
+                                    {vaultStatus === 'locked' && "Time Locked"}
+                                    {vaultStatus === 'not-found' && "Vault Not Found"}
+                                    {vaultStatus === 'unauthorized' && "Not Authorized"}
+                                </div>
                                             {releaseDate && <div className="text-sm font-mono mt-1 text-white/70">Release: {releaseDate.toLocaleDateString()}</div>}
                                             {vaultStatus === 'unauthorized' && <div className="text-sm mt-1 text-white/70 font-display">The owner must grant you access to this vault.</div>}
                                         </div>
@@ -658,10 +726,10 @@ const UnlockHeirPage = () => {
                                             <div className="text-right">
                                                 <div className="text-xs font-bold uppercase mb-1 text-white/50 font-display">Opens In</div>
                                                 <div className="font-mono text-lg font-bold text-primary">{releaseDate.toLocaleDateString()}</div>
-                                            </div>
+                            </div>
                                         )}
-                                    </div>
-                                )}
+                        </div>
+                    )}
                                 <button 
                                     type="submit" 
                                     disabled={isLoading || vaultStatus !== 'available'} 
@@ -675,12 +743,12 @@ const UnlockHeirPage = () => {
                                     <span>
                                         {isLoading ? 'Unlocking...' :
                                          vaultStatus === 'locked' ? 'Vault Locked' : 
-                                         vaultStatus === 'unauthorized' ? 'Not Authorized' :
-                                         vaultStatus === 'not-found' ? 'Vault Not Found' :
-                                         'Unlock Vault'}
+                         vaultStatus === 'unauthorized' ? 'Not Authorized' :
+                         vaultStatus === 'not-found' ? 'Vault Not Found' :
+                         'Unlock Vault'}
                                     </span>
                                 </button>
-                            </form>
+                </form>
                         </div>
                     </div>
                 </div>

@@ -275,10 +275,12 @@ const Navbar = () => {
 const Footer = () => (
     <footer className="bg-background-dark border-t border-white/10 mt-auto py-8 font-display">
         <div className="max-w-7xl mx-auto px-4 text-center">
-            <div className="flex justify-center gap-6 mb-4">
-                <span className="material-symbols-outlined text-white/50 hover:text-primary cursor-pointer transition-colors text-2xl">shield</span>
-                <span className="material-symbols-outlined text-white/50 hover:text-primary cursor-pointer transition-colors text-2xl">vpn_key</span>
-                <span className="material-symbols-outlined text-white/50 hover:text-primary cursor-pointer transition-colors text-2xl">lock</span>
+            <div className="flex justify-center mb-4">
+                <img 
+                    src="/logo.png" 
+                    alt="LegacyVault Logo" 
+                    className="h-10 w-auto"
+                />
             </div>
             <p className="text-white/50 text-sm font-display">© 2025 LegacyVault. Secure Your Digital Legacy.</p>
         </div>
