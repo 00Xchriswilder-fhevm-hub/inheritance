@@ -1,0 +1,21 @@
+{
+  "name": "legacy-vault-indexer",
+  "version": "1.0.0",
+  "description": "Railway indexer service for Legacy Vault",
+  "main": "indexer.js",
+  "type": "module",
+  "scripts": {
+    "start": "node indexer.js",
+    "check-vaults": "node checkVaultIds.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^16.6.1",
+    "ethers": "^6.13.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.8.3"
+  }
+}
