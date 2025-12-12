@@ -50,7 +50,6 @@ const UnlockOwnerPage = () => {
             if (location.state.vault) {
                 const vault = location.state.vault as Vault;
                 setCurrentVault(vault);
-                console.log('✅ Using vault data from navigation state:', vault);
             }
         }
     }, [location.state, setValue]);
@@ -108,7 +107,6 @@ const UnlockOwnerPage = () => {
                                 }
                             }
                         } catch (error) {
-                            console.warn('Could not fetch IPFS metadata, defaulting to text type:', error);
                         }
                         
                         // Create vault object from blockchain data
@@ -134,7 +132,6 @@ const UnlockOwnerPage = () => {
                 const currentVaultObj = vault;
                 
                     } catch (error) {
-                        console.error('Error fetching vault from blockchain:', error);
                 toast.error("Vault not found or error fetching from blockchain. Please check the Vault ID.");
                 setIsLoading(false);
                 return;
@@ -213,7 +210,6 @@ const UnlockOwnerPage = () => {
                             setDecryptedData(null); // Clear text data
                         } else {
                             // Fallback: if it's a string, try to convert (shouldn't happen)
-                            console.warn('File vault returned string, converting to ArrayBuffer');
                             const buffer = new TextEncoder().encode(decrypted).buffer;
                             setDecryptedFileBuffer(buffer);
                             setDecryptedData(null);
@@ -240,7 +236,6 @@ const UnlockOwnerPage = () => {
                     setIsLoading(false);
                     return;
                 } catch (error: any) {
-                    console.error('Error unlocking FHE vault:', error);
                     toast.error(getTransactionErrorMessage(error));
                     setIsLoading(false);
                     return;
@@ -252,7 +247,6 @@ const UnlockOwnerPage = () => {
             setIsLoading(false);
             return;
         } catch (error: any) {
-            console.error('Error unlocking vault:', error);
             toast.error(getTransactionErrorMessage(error));
         } finally {
             setIsLoading(false);
@@ -336,13 +330,11 @@ const UnlockOwnerPage = () => {
                         verifiedHeirs.push(heirAddress);
                     }
                 } catch (error) {
-                    console.error(`Error checking authorization for ${heirAddress}:`, error);
                 }
             }
             
             setAuthorizedHeirs(verifiedHeirs);
         } catch (error) {
-            console.error('Error fetching authorized heirs:', error);
         } finally {
             setIsLoadingHeirs(false);
         }
@@ -401,7 +393,6 @@ const UnlockOwnerPage = () => {
                 toast.error("No file data available to download");
             }
         } catch (error) {
-            console.error('Error downloading file:', error);
             toast.error("Failed to download file");
         }
     };
@@ -438,118 +429,69 @@ const UnlockOwnerPage = () => {
             const contract = new ethers.Contract(CONTRACT_ADDRESS, [...VAULT_ABI] as any[], signer);
             const encryptedKeyHandle = await contract.getEncryptedKeyAsOwner(currentVault.id);
 
-            // Download encrypted data from IPFS
-            const { downloadFromIPFSAsText } = await import('../services/ipfsService');
-            const encryptedData = await downloadFromIPFSAsText(metadata.cid);
-
-            // Create comprehensive backup file
+            // Create simple, user-friendly backup file
             const backupContent = `
 ═══════════════════════════════════════════════════════════════════════════════
-                    FHE VAULT - ENCRYPTED BACKUP FILE
+                    LEGACY VAULT - BACKUP FILE
 ═══════════════════════════════════════════════════════════════════════════════
 
-⚠️  CRITICAL SECURITY WARNING ⚠️
-───────────────────────────────────────────────────────────────────────────────
-ALL DATA IN THIS FILE IS ENCRYPTED AND CANNOT BE DECRYPTED WITHOUT:
-1. FHEVM Access Control List (ACL) authorization
-2. The FHE-encrypted AES decryption key (256-bit) stored on-chain
-3. Proper FHEVM decryption capabilities
-
-WITHOUT FHEVM ACL ACCESS, THIS ENCRYPTED DATA CANNOT BE USED TO DECRYPT
-THE VAULT CONTENTS. The FHE-encrypted AES key requires FHEVM's homomorphic
-decryption capabilities and proper authorization to decrypt.
-
-This backup is for archival purposes only. To decrypt, you must:
-- Have FHEVM ACL access (owner or authorized heir)
-- Use the FHEVM SDK with proper decryption permissions
-- Access the contract's encrypted key through authorized methods
+This file contains the information needed to access your vault.
+Keep this file safe, but remember: only you (or authorized heirs) can unlock it.
 
 ═══════════════════════════════════════════════════════════════════════════════
-                            VAULT METADATA
+                            YOUR VAULT INFORMATION
 ═══════════════════════════════════════════════════════════════════════════════
 
 Vault ID:              ${currentVault.id}
-Owner Address:         ${currentVault.ownerAddress}
+Your Wallet:           ${currentVault.ownerAddress}
 Created:               ${new Date(currentVault.createdAt).toLocaleString()}
 Release Date:          ${new Date(currentVault.releaseTime).toLocaleString()}
-Vault Type:            ${currentVault.vaultType || 'Unknown'}
-Status:                ${Date.now() < currentVault.releaseTime ? 'LOCKED' : 'RELEASED'}
-Contract Address:      ${CONTRACT_ADDRESS}
-Network:               Sepolia Testnet
+Vault Type:            ${currentVault.vaultType === 'file' ? 'File' : 'Text'}
+Status:                ${Date.now() < currentVault.releaseTime ? 'Locked' : 'Available'}
 
 ═══════════════════════════════════════════════════════════════════════════════
-                        ENCRYPTED DATA (IPFS)
+                    WHERE YOUR DATA IS STORED
 ═══════════════════════════════════════════════════════════════════════════════
 
-IPFS CID:              ${metadata.cid}
-IPFS Gateway URL:      https://gateway.pinata.cloud/ipfs/${metadata.cid}
+Your encrypted data is stored securely online at this address:
 
-Encrypted Data (Base64):
-───────────────────────────────────────────────────────────────────────────────
-${encryptedData.substring(0, 2000)}${encryptedData.length > 2000 ? '\n... (truncated, full data in IPFS)' : ''}
+${metadata.cid}
 
-Full encrypted data is stored on IPFS at the CID above.
-This data is encrypted with AES-256-GCM and requires the decryption key
-(which is FHE-encrypted on-chain) to decrypt.
+You can view this address in your browser:
+https://gateway.pinata.cloud/ipfs/${metadata.cid}
 
-═══════════════════════════════════════════════════════════════════════════════
-              FHE-ENCRYPTED AES DECRYPTION KEY (ON-CHAIN)
-═══════════════════════════════════════════════════════════════════════════════
-
-Encrypted Key Handle:  ${encryptedKeyHandle}
-
-⚠️  IMPORTANT: This is the FHE-encrypted AES decryption key (256-bit).
-    It is stored on-chain in the FHELegacyVault contract.
-    
-    To decrypt this key, you need:
-    - FHEVM Access Control List (ACL) authorization
-    - The FHEVM SDK with proper decryption capabilities
-    - Access through authorized contract methods:
-      * getEncryptedKeyAsOwner() - for vault owner
-      * getEncryptedKey() - for authorized heirs (after release time)
-    
-    Without FHEVM ACL access, this encrypted key handle cannot be decrypted,
-    and therefore the IPFS data cannot be decrypted.
+Note: The data at this address is encrypted and cannot be read without
+the decryption key stored on the blockchain.
 
 ═══════════════════════════════════════════════════════════════════════════════
-                            DECRYPTION PROCESS
+                    HOW TO UNLOCK YOUR VAULT
 ═══════════════════════════════════════════════════════════════════════════════
 
-To decrypt this vault:
+To unlock this vault and see your data:
 
-1. Get the encrypted key handle from the contract (requires ACL access)
-   - Owner: Use getEncryptedKeyAsOwner(vaultId)
-   - Heir: Use getEncryptedKey(vaultId) after release time
+1. Open the LegacyVault app
+2. Connect your wallet (the same one that created this vault)
+3. Go to "My Vaults" or enter your Vault ID: ${currentVault.id}
+4. Click "Manage Vault" or "Unlock"
+5. Your wallet will ask for permission to unlock - approve it
+6. Your data will be decrypted and displayed
 
-2. Decrypt the FHE-encrypted key using FHEVM SDK
-   - This requires FHEVM ACL authorization
-   - Use decryptValue(encryptedKeyHandle, contractAddress, signer)
-
-3. Convert the decrypted key number to AES key (32 bytes)
-   - Use numberToKey() utility function
-
-4. Download encrypted data from IPFS using the CID
-
-5. Decrypt the IPFS data using AES-256-GCM with the decrypted key
-   - Use decryptFromIPFS() utility function
+That's it! The app handles all the technical details automatically.
 
 ═══════════════════════════════════════════════════════════════════════════════
-                            SECURITY NOTES
+                            IMPORTANT NOTES
 ═══════════════════════════════════════════════════════════════════════════════
 
-- The encrypted data on IPFS is safe to share (it's encrypted)
-- The encrypted key handle is safe to share (it's FHE-encrypted)
-- However, without FHEVM ACL access, neither can be decrypted
-- Keep this backup file secure, but understand it cannot be used
-  to decrypt the vault without proper FHEVM authorization
-
-- The vault owner can always decrypt (has ACL access)
-- Authorized heirs can decrypt after the release timestamp
-- Unauthorized parties cannot decrypt even with this backup
+✓ Only you (the vault owner) can unlock this vault anytime
+✓ Authorized heirs can unlock after the release date shown above
+✓ This backup file is safe to keep - it cannot unlock the vault without
+  your wallet connection
+✓ If you lose access to your wallet, you cannot unlock this vault
+✓ Keep this file in a safe place along with your wallet recovery phrase
 
 ═══════════════════════════════════════════════════════════════════════════════
-Generated: ${new Date().toLocaleString()}
-LegacyVault App - FHE-Encrypted Vault System
+Backup created: ${new Date().toLocaleString()}
+LegacyVault - Secure Your Digital Legacy
 ═══════════════════════════════════════════════════════════════════════════════
 `;
 
@@ -558,7 +500,7 @@ LegacyVault App - FHE-Encrypted Vault System
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `FHE-Vault-Backup-${currentVault.id}-${Date.now()}.txt`;
+            link.download = `Vault-Backup-${currentVault.id}-${Date.now()}.txt`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -566,7 +508,6 @@ LegacyVault App - FHE-Encrypted Vault System
 
             toast.success("Encrypted backup downloaded successfully");
            } catch (error: any) {
-               console.error('Error creating encrypted backup:', error);
                toast.error(getTransactionErrorMessage(error));
            } finally {
             setIsLoading(false);
@@ -658,7 +599,6 @@ LegacyVault App - FHE-Encrypted Vault System
                     </div>
                 );
                } catch (error: any) {
-                   console.error('Error updating release time:', error);
                    toast.error(getTransactionErrorMessage(error));
                } finally {
                 setIsLoading(false);
@@ -774,17 +714,17 @@ LegacyVault App - FHE-Encrypted Vault System
                                             <p className="text-sm text-white/50 mb-6 font-display">
                                                 File decrypted successfully ({decryptedFileBuffer.byteLength} bytes). Ready for download.
                                             </p>
-                                            <div className="flex flex-col sm:flex-row gap-3 w-full">
+                                            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center w-full">
                                                     <button 
                                                     onClick={downloadFile}
-                                                    className="flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-4 sm:px-6 text-sm font-bold text-black transition-opacity hover:opacity-90 w-full sm:w-auto"
+                                                    className="flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-black transition-opacity hover:opacity-90 w-full sm:w-auto"
                                                 >
                                                     <span className="material-symbols-outlined text-lg shrink-0">download</span>
                                                     <span className="whitespace-nowrap">Download Decrypted File</span>
                                                 </button>
                                                 <button 
                                                     onClick={downloadEncryptedBackup}
-                                                    className="flex h-12 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 sm:px-6 text-sm font-bold text-white transition-colors hover:bg-white/5 w-full sm:w-auto"
+                                                    className="flex h-12 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-6 text-sm font-bold text-white transition-colors hover:bg-white/5 w-full sm:w-auto"
                                                     >
                                                     <span className="material-symbols-outlined text-lg shrink-0">save</span>
                                                     <span className="whitespace-nowrap">Download Encrypted Backup</span>
@@ -927,7 +867,6 @@ LegacyVault App - FHE-Encrypted Vault System
                                                          await fetchAuthorizedHeirs();
                                                          toast.success("Access revoked successfully");
                                                              } catch (error: any) {
-                                                                 console.error('Error revoking access:', error);
                                                                  toast.error(getTransactionErrorMessage(error));
                                                              } finally {
                                                                  setIsRevokingAccess(null);
@@ -1026,7 +965,6 @@ LegacyVault App - FHE-Encrypted Vault System
                                                                 setIsManagingHeirs(false);
                                                                 toast.success("Access granted successfully");
                                                             } catch (error: any) {
-                                                                console.error('Error granting access:', error);
                                                                 toast.error(getTransactionErrorMessage(error));
                                                             } finally {
                                                                 setIsGrantingAccess(false);

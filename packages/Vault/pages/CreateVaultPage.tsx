@@ -167,7 +167,6 @@ const CreateVaultPage = () => {
                 throw new Error("Failed to get write contract");
             }
 
-            console.log(`Granting access to ${pendingHeirs.length} heirs:`, pendingHeirs);
             const grantTx = await writeContract.grantAccessToMultiple(createdVaultId, pendingHeirs);
             toast.info("Waiting for transaction confirmation...");
             const receipt = await grantTx.wait();
@@ -185,7 +184,6 @@ const CreateVaultPage = () => {
             setPendingHeirs([]);
             navigate('/my-vaults');
         } catch (error: any) {
-            console.error("Failed to grant access to heirs:", error);
             toast.error(getTransactionErrorMessage(error));
         } finally {
             setIsGrantingAccess(false);
@@ -209,7 +207,6 @@ const CreateVaultPage = () => {
         
         // If global instance exists, FHEVM is ready regardless of hook status
         if (globalFheInstance) {
-            console.log('✅ FHEVM is ready (global instance exists)');
             // Continue with vault creation
         } else if (fhevmStatus === 'loading') {
             toast.info("FHEVM is initializing. Please wait a moment...");
@@ -219,7 +216,6 @@ const CreateVaultPage = () => {
             return;
         } else if (fhevmStatus !== 'ready') {
             // If global instance doesn't exist and status isn't ready, show error
-            console.warn('⚠️ FHEVM not ready - global instance:', globalFheInstance, 'status:', fhevmStatus);
             toast.error("FHEVM is not ready. Please wait for initialization to complete...");
             return;
         }
@@ -265,7 +261,6 @@ const CreateVaultPage = () => {
             // Create vault using FHE service
             // The flow is: Encrypt with AES → Upload to IPFS → Encrypt AES key with FHE → Create on-chain
             toast.info("Step 1/4: Encrypting data with AES...");
-            console.log('🚀 Starting vault creation process...');
             
             let result;
             try {
@@ -279,7 +274,6 @@ const CreateVaultPage = () => {
                     encryptFn: async (contractAddr, value) => {
                         // This is called after IPFS upload
                         toast.info("Step 3/4: Encrypting AES key with FHE...");
-                        console.log('🔐 Encrypting AES key with FHEVM...');
                         return await encryptValue(contractAddr, value);
                     },
                     metadata: {
@@ -288,7 +282,6 @@ const CreateVaultPage = () => {
                     },
                 });
             } catch (error: any) {
-                console.error('❌ Vault creation failed:', error);
                 // Check if it's an IPFS error
                 if (error?.message?.includes('IPFS') || error?.message?.includes('Pinata')) {
                     toast.error(`IPFS upload failed: ${error.message}`);
@@ -302,7 +295,6 @@ const CreateVaultPage = () => {
 
             // Vault creation successful - now show option to grant access to heirs
             // User can approve this transaction separately
-            console.log("Vault created successfully. Heir access can be granted separately.");
             
             // Log vault to Supabase
             if (address && result) {
@@ -337,9 +329,7 @@ const CreateVaultPage = () => {
                         transactionHash: transactionHash,
                     });
                     
-                    console.log('✅ Vault logged to Supabase successfully');
-                } catch (dbError) {
-                    console.error('Error logging vault to Supabase:', dbError);
+                    } catch (dbError) {
                     // Don't fail vault creation if DB logging fails
                 }
             }
@@ -348,11 +338,9 @@ const CreateVaultPage = () => {
             const filteredHeirs = validHeirs.filter(heirAddr => {
                 const addr = heirAddr.trim();
                 if (addr === ethers.ZeroAddress) {
-                    console.warn("Skipping zero address");
                     return false;
                 }
                 if (addr.toLowerCase() === address?.toLowerCase()) {
-                    console.warn("Skipping owner address (cannot grant access to yourself)");
                     return false;
                 }
                 return true;
@@ -390,7 +378,6 @@ const CreateVaultPage = () => {
                 navigate('/my-vaults');
             }
         } catch (error: any) {
-            console.error(error);
             toast.error(error?.message || "Failed to create vault");
         } finally {
             setIsLoading(false);

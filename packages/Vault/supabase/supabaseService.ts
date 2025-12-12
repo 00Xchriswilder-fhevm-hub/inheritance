@@ -182,26 +182,13 @@ export const vaultService = {
         
         const normalizedAddress = ownerAddress.toLowerCase();
         
-        // Debug: Check what addresses exist in the database
-        const { data: allVaults, error: debugError } = await supabase
-            .from('vaults')
-            .select('owner_address')
-            .limit(10);
-        console.log(`🔍 Sample owner_addresses in DB:`, allVaults?.map(v => v.owner_address));
-        console.log(`🔍 Querying for normalized address: "${normalizedAddress}"`);
-        
         const { data, error } = await supabase
             .from('vaults')
             .select('*')
             .eq('owner_address', normalizedAddress);
             
         if (error) {
-            console.error('❌ Supabase getVaultsByOwner error:', error);
             throw error;
-        }
-        console.log(`✅ Supabase getVaultsByOwner: Found ${data?.length || 0} vaults for ${normalizedAddress}`);
-        if (data && data.length > 0) {
-            console.log(`📋 Sample vault IDs found:`, data.slice(0, 3).map(v => v.vault_id));
         }
         return data || [];
     },
@@ -317,11 +304,8 @@ export const heirService = {
             .eq('is_active', true); // Only active heirs
             
         if (error) {
-            console.error('❌ Supabase getVaultsByHeir error:', error);
             throw error;
         }
-        
-        console.log(`✅ Supabase getVaultsByHeir: Found ${data?.length || 0} heir records for ${normalizedAddress}`);
         
         // Extract vault data from the joined result
         const result = (data || [])
@@ -331,8 +315,6 @@ export const heirService = {
                 _isHeir: true,
                 _heirGrantedAt: item.granted_at,
             }));
-        
-        console.log(`✅ Supabase getVaultsByHeir: Returning ${result.length} vaults after filtering`);
         return result;
     },
 

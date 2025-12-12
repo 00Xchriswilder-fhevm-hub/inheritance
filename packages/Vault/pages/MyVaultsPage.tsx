@@ -121,13 +121,10 @@ const MyVaultsPage = () => {
                 if (isSupabaseConfigured()) {
                     try {
                         // Fetch owner and heir vaults in parallel for better performance
-                        console.log(`🔍 Querying Supabase for address: ${address.toLowerCase()}`);
                         const [ownerVaults, heirVaults] = await Promise.all([
                             vaultService.getVaultsByOwner(address),
                             heirService.getVaultsByHeir(address)
                         ]);
-                        console.log(`📊 Supabase raw results - Owner vaults:`, ownerVaults);
-                        console.log(`📊 Supabase raw results - Heir vaults:`, heirVaults);
                         
                         const ownerVaultsMapped = ownerVaults.map((v: any) => {
                             const releaseTimestamp = Math.floor(new Date(v.release_timestamp).getTime() / 1000);
@@ -191,7 +188,6 @@ const MyVaultsPage = () => {
                             }
                         }
 
-                        console.log(`✅ Found ${ownerVaultsMapped.length} owner vaults and ${heirVaultsMapped.length} heir vaults in Supabase (${supabaseVaults.length} total)`);
                         
                         // If we found vaults in Supabase, use them and skip blockchain (unless user forces refresh)
                         if (supabaseVaults.length > 0) {
@@ -206,7 +202,6 @@ const MyVaultsPage = () => {
                         }
                         // If Supabase returned 0 vaults, continue to check blockchain (don't return early)
                     } catch (dbError) {
-                        console.warn('⚠️  Error fetching from Supabase, falling back to blockchain:', dbError);
                     }
                 }
                 
@@ -215,7 +210,6 @@ const MyVaultsPage = () => {
                 
                 if (CONTRACT_ADDRESS && isReady) {
                     try {
-                        console.log('Fetching vaults from blockchain for address:', address);
                         // Get provider from window.ethereum
                         if (!window.ethereum) {
                             throw new Error('No ethereum provider found');
@@ -224,20 +218,16 @@ const MyVaultsPage = () => {
                         
                         // Get vaults where user is owner
                         const ownerVaultIds = await getUserVaults(CONTRACT_ADDRESS, provider, address);
-                        console.log(`Found ${ownerVaultIds.length} owner vaults on blockchain:`, ownerVaultIds);
                         
                         // Get vaults where user is an authorized heir
                         const heirVaultIds = await getHeirVaults(CONTRACT_ADDRESS, provider, address);
-                        console.log(`Found ${heirVaultIds.length} heir vaults on blockchain:`, heirVaultIds);
                         
                         // Combine both lists (remove duplicates)
                         const allVaultIds = [...new Set([...ownerVaultIds, ...heirVaultIds])];
-                        console.log(`Total unique vaults from blockchain: ${allVaultIds.length}`);
                         
                         // Merge Supabase vaults with blockchain vaults (blockchain takes precedence)
                         const supabaseVaultIds = new Set(supabaseVaults.map(v => v.id));
                         const missingVaultIds = allVaultIds.filter(id => !supabaseVaultIds.has(id));
-                        console.log(`Missing ${missingVaultIds.length} vaults in Supabase, fetching from blockchain`);
 
                         // Fetch metadata for missing vaults from blockchain
                         const vaultPromises = missingVaultIds.map(async (vaultId: string) => {
@@ -255,7 +245,6 @@ const MyVaultsPage = () => {
                                     }
                                 } catch (error) {
                                     // If we can't fetch metadata, default to text
-                                    console.warn(`Could not fetch IPFS metadata for vault ${vaultId}:`, error);
                                 }
                                 
                                 // If user is an heir for this vault, create heir record in Supabase
@@ -277,10 +266,8 @@ const MyVaultsPage = () => {
                                                 heirAddress: address,
                                                 grantedAt: new Date(),
                                             });
-                                            console.log(`✅ Created heir record in Supabase: vault ${vaultId} -> heir ${address}`);
                                         }
                                     } catch (heirError) {
-                                        console.warn(`⚠️  Could not create heir record in Supabase for vault ${vaultId}:`, heirError);
                                         // Continue anyway - we'll still show the vault
                                     }
                                 }
@@ -300,7 +287,6 @@ const MyVaultsPage = () => {
                                     _isHeir: isHeir,
                                 } as Vault & { _isOwner?: boolean; _isHeir?: boolean };
                             } catch (error) {
-                                console.error(`Error fetching metadata for vault ${vaultId}:`, error);
                                 return null;
                             }
                         });
@@ -308,9 +294,7 @@ const MyVaultsPage = () => {
                         const fetchedVaults = await Promise.all(vaultPromises);
                         const missingVaults = fetchedVaults.filter((v): v is Vault => v !== null);
                         blockchainVaults = missingVaults;
-                        console.log(`Successfully fetched ${blockchainVaults.length} missing vaults from blockchain`);
                     } catch (error) {
-                        console.error('Error fetching vaults from blockchain:', error);
                         toast.error('Failed to fetch vaults from blockchain');
                     }
                 }
@@ -320,12 +304,8 @@ const MyVaultsPage = () => {
                 supabaseVaults.forEach(vault => vaultMap.set(String(vault.id), vault));
                 blockchainVaults.forEach(vault => vaultMap.set(String(vault.id), vault));
                 const allVaults = Array.from(vaultMap.values());
-                console.log(`Total vaults after merge: ${allVaults.length} (${supabaseVaults.length} from Supabase, ${blockchainVaults.length} from blockchain)`);
-                
                 setVaults(allVaults);
-                console.log(`Total vaults to display: ${allVaults.length}`);
             } catch (error) {
-                console.error('Error fetching vaults:', error);
                 toast.error('Failed to load vaults from blockchain');
                 setVaults([]);
             } finally {

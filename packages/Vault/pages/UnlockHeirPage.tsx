@@ -50,7 +50,6 @@ const UnlockHeirPage = () => {
                 } else {
                     setVaultStatus('locked');
                 }
-                console.log('✅ Using vault data from navigation state:', vault);
             }
         }
     }, [location.state, setValue]);
@@ -119,7 +118,6 @@ const UnlockHeirPage = () => {
                                     description: `Vault ${dbVault.vault_id}`,
                                 };
                                 setCurrentVault(vault);
-                                console.log('✅ Fetched vault from Supabase');
                                 return; // Exit early - use Supabase data
                             } else {
                                 setVaultStatus('unauthorized');
@@ -127,7 +125,6 @@ const UnlockHeirPage = () => {
                             }
                         }
                     } catch (supabaseError) {
-                        console.warn('⚠️  Could not fetch from Supabase, falling back to blockchain:', supabaseError);
                     }
                 }
                 
@@ -158,7 +155,6 @@ const UnlockHeirPage = () => {
                     setVaultStatus('unauthorized');
                 }
             } catch (error) {
-                console.error('Error checking vault status:', error);
                 setVaultStatus('not-found');
                 setReleaseDate(null);
             }
@@ -249,7 +245,6 @@ const UnlockHeirPage = () => {
                                 }
                             }
                         } catch (error) {
-                            console.warn('Could not fetch IPFS metadata, defaulting to text type:', error);
                         }
                         
                         // Create vault object from blockchain data
@@ -268,7 +263,6 @@ const UnlockHeirPage = () => {
                             description: `Vault ${vaultId}`,
                         };
                     } catch (error) {
-                        console.error('Error fetching vault from blockchain:', error);
                 toast.error("Vault not found or error fetching from blockchain. Please check the Vault ID.");
                 setIsLoading(false);
                 return;
@@ -340,7 +334,6 @@ const UnlockHeirPage = () => {
                             setDecryptedData(null); // Clear text data
                         } else {
                             // Fallback: if it's a string, try to convert (shouldn't happen)
-                            console.warn('File vault returned string, converting to ArrayBuffer');
                             const buffer = new TextEncoder().encode(decrypted).buffer;
                             setDecryptedFileBuffer(buffer);
                     setDecryptedData(null);
@@ -362,7 +355,6 @@ const UnlockHeirPage = () => {
                     setIsLoading(false);
                     return;
                 } catch (error: any) {
-                    console.error('Error unlocking FHE vault:', error);
                     if (error?.message?.includes('not authorized') || error?.message?.includes('Access denied')) {
                         toast.error("You are not authorized to access this vault. The owner must grant you access first.");
                     } else if (error?.message?.includes('release time')) {
@@ -380,7 +372,6 @@ const UnlockHeirPage = () => {
             setIsLoading(false);
             return;
         } catch (error: any) {
-            console.error('Error unlocking vault:', error);
             if (error?.message?.includes('not authorized') || error?.message?.includes('Access denied')) {
                 toast.error("You are not authorized to access this vault. The owner must grant you access first.");
             } else if (error?.message?.includes('release time')) {
@@ -441,7 +432,6 @@ const UnlockHeirPage = () => {
                 toast.error("No file data available to download");
             }
         } catch (error) {
-            console.error('Error downloading file:', error);
             toast.error("Failed to download file");
         }
     };
