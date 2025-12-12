@@ -774,20 +774,20 @@ LegacyVault App - FHE-Encrypted Vault System
                                             <p className="text-sm text-white/50 mb-6 font-display">
                                                 File decrypted successfully ({decryptedFileBuffer.byteLength} bytes). Ready for download.
                                             </p>
-                                            <div className="flex gap-3">
+                                            <div className="flex flex-col sm:flex-row gap-3 w-full">
                                                     <button 
                                                     onClick={downloadFile}
-                                                    className="flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-black transition-opacity hover:opacity-90"
+                                                    className="flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-4 sm:px-6 text-sm font-bold text-black transition-opacity hover:opacity-90 w-full sm:w-auto"
                                                 >
-                                                    <span className="material-symbols-outlined text-lg">download</span>
-                                                    <span>Download Decrypted File</span>
+                                                    <span className="material-symbols-outlined text-lg shrink-0">download</span>
+                                                    <span className="whitespace-nowrap">Download Decrypted File</span>
                                                 </button>
                                                 <button 
                                                     onClick={downloadEncryptedBackup}
-                                                    className="flex h-12 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-6 text-sm font-bold text-white transition-colors hover:bg-white/5"
+                                                    className="flex h-12 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 sm:px-6 text-sm font-bold text-white transition-colors hover:bg-white/5 w-full sm:w-auto"
                                                     >
-                                                    <span className="material-symbols-outlined text-lg">save</span>
-                                                    <span>Download Encrypted Backup</span>
+                                                    <span className="material-symbols-outlined text-lg shrink-0">save</span>
+                                                    <span className="whitespace-nowrap">Download Encrypted Backup</span>
                                                     </button>
                                                 </div>
                                         </>
@@ -814,20 +814,20 @@ LegacyVault App - FHE-Encrypted Vault System
                             <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6 mb-8">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="text-sm font-bold uppercase text-white/50 font-display">Decrypted Text</h3>
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-col sm:flex-row gap-2">
                                                     <button 
                                                         onClick={downloadFile}
-                                            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-3 sm:px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5 w-full sm:w-auto"
                                         >
-                                            <span className="material-symbols-outlined text-lg">download</span>
-                                            <span>Download Text</span>
+                                            <span className="material-symbols-outlined text-lg shrink-0">download</span>
+                                            <span className="whitespace-nowrap">Download Text</span>
                                         </button>
                                         <button 
                                             onClick={downloadEncryptedBackup}
-                                            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-3 sm:px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5 w-full sm:w-auto"
                                                     >
-                                            <span className="material-symbols-outlined text-lg">save</span>
-                                            <span>Encrypted Backup</span>
+                                            <span className="material-symbols-outlined text-lg shrink-0">save</span>
+                                            <span className="whitespace-nowrap">Encrypted Backup</span>
                                                     </button>
                                                 </div>
                                 </div>
@@ -841,20 +841,20 @@ LegacyVault App - FHE-Encrypted Vault System
                             <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-6 mb-8">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="text-sm font-bold uppercase text-white/50 font-display">Decrypted Mnemonic</h3>
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-col sm:flex-row gap-2">
                                                     <button 
                                                         onClick={downloadFile}
-                                            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-3 sm:px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5 w-full sm:w-auto"
                                         >
-                                            <span className="material-symbols-outlined text-lg">download</span>
-                                            <span>Download Text</span>
+                                            <span className="material-symbols-outlined text-lg shrink-0">download</span>
+                                            <span className="whitespace-nowrap">Download Text</span>
                                         </button>
                                         <button 
                                             onClick={downloadEncryptedBackup}
-                                            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5"
+                                            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent px-3 sm:px-4 text-sm font-bold text-white/70 transition-colors hover:bg-white/5 w-full sm:w-auto"
                                                     >
-                                            <span className="material-symbols-outlined text-lg">save</span>
-                                            <span>Encrypted Backup</span>
+                                            <span className="material-symbols-outlined text-lg shrink-0">save</span>
+                                            <span className="whitespace-nowrap">Encrypted Backup</span>
                                                     </button>
                                                 </div>
                                         </div>

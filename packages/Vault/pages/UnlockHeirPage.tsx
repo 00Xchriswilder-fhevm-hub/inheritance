@@ -559,10 +559,10 @@ const UnlockHeirPage = () => {
                                 </p>
                                             <button 
                                                 onClick={downloadFile}
-                                                className="flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-black transition-opacity hover:opacity-90"
+                                                className="flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-4 sm:px-6 text-sm font-bold text-black transition-opacity hover:opacity-90 w-full sm:w-auto"
                                             >
-                                                <span className="material-symbols-outlined text-lg">download</span>
-                                                <span>Download Decrypted File</span>
+                                                <span className="material-symbols-outlined text-lg shrink-0">download</span>
+                                                <span className="whitespace-nowrap">Download Decrypted File</span>
                                             </button>
                             </>
                         ) : (
