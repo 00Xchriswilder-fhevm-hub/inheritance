@@ -63,7 +63,16 @@ const UnlockOwnerPage = () => {
             
             // Fetch vault from blockchain only
                 const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
-            if (!CONTRACT_ADDRESS || !(window as any).ethereum) {
+            if (!CONTRACT_ADDRESS) {
+                toast.error('Blockchain connection required. Please configure contract address.');
+                setIsLoading(false);
+                return;
+            }
+            
+            // Mobile-friendly ethereum provider detection
+            const { getEthereumProvider } = await import('../utils/ethereumProvider');
+            const ethereum = getEthereumProvider();
+            if (!ethereum) {
                 toast.error('Blockchain connection required. Please connect your wallet.');
                 setIsLoading(false);
                 return;
@@ -72,7 +81,12 @@ const UnlockOwnerPage = () => {
                     try {
                         const { getVaultMetadata } = await import('../services/vaultContractService');
                         const { getIPFSMetadata } = await import('../services/ipfsService');
-                        const provider = new (await import('ethers')).BrowserProvider((window as any).ethereum);
+                        const { getEthereumProvider } = await import('../utils/ethereumProvider');
+                        const ethereumProvider = getEthereumProvider();
+                        if (!ethereumProvider) {
+                            throw new Error('Ethereum provider not found');
+                        }
+                        const provider = new (await import('ethers')).BrowserProvider(ethereumProvider);
                         const metadata = await getVaultMetadata(CONTRACT_ADDRESS, provider, vaultId);
                         
                         // Try to get IPFS metadata to determine vault type, filename, and mime type
@@ -172,7 +186,12 @@ const UnlockOwnerPage = () => {
                         throw new Error("Failed to get signer");
                     }
                     
-                    const provider = signer.provider || new ethers.BrowserProvider((window as any).ethereum);
+                    const { getEthereumProvider } = await import('../utils/ethereumProvider');
+                    const ethereumProvider = getEthereumProvider();
+                    if (!ethereumProvider) {
+                        throw new Error('Ethereum provider not found');
+                    }
+                    const provider = signer.provider || new ethers.BrowserProvider(ethereumProvider);
                     
                     // Use FHE unlock service
                     const decrypted = await unlockVault({
@@ -266,7 +285,9 @@ const UnlockOwnerPage = () => {
         if (!currentVault || !address || !isConnected) return;
         
         const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
-        if (!CONTRACT_ADDRESS || !(window as any).ethereum) return;
+        const { getEthereumProvider } = await import('../utils/ethereumProvider');
+        const ethereumProvider = getEthereumProvider();
+        if (!CONTRACT_ADDRESS || !ethereumProvider) return;
         
         const looksLikeIPFSCID = (str: string) => {
             return str.startsWith('Qm') || str.startsWith('baf') || 
@@ -281,7 +302,7 @@ const UnlockOwnerPage = () => {
         
         setIsLoadingHeirs(true);
         try {
-            const provider = new ethers.BrowserProvider((window as any).ethereum);
+            const provider = new ethers.BrowserProvider(ethereumProvider);
             const contract = new ethers.Contract(CONTRACT_ADDRESS, [
                 'event AccessGranted(string indexed vaultId, address indexed heir)',
                 'event AccessRevoked(string indexed vaultId, address indexed heir)',
@@ -401,10 +422,12 @@ const UnlockOwnerPage = () => {
             }
 
             // Get provider and signer
-            if (!(window as any).ethereum) {
+            const { getEthereumProvider } = await import('../utils/ethereumProvider');
+            const ethereumProvider = getEthereumProvider();
+            if (!ethereumProvider) {
                 throw new Error("No ethereum provider found");
             }
-            const provider = new ethers.BrowserProvider((window as any).ethereum);
+            const provider = new ethers.BrowserProvider(ethereumProvider);
             const signer = await provider.getSigner();
 
             // Get vault metadata and encrypted key handle
@@ -599,7 +622,12 @@ LegacyVault App - FHE-Encrypted Vault System
                     throw new Error("Failed to get signer");
                 }
 
-                const provider = signer.provider || new ethers.BrowserProvider((window as any).ethereum);
+                const { getEthereumProvider } = await import('../utils/ethereumProvider');
+                const ethereumProvider = getEthereumProvider();
+                if (!ethereumProvider) {
+                    throw new Error('Ethereum provider not found');
+                }
+                const provider = signer.provider || new ethers.BrowserProvider(ethereumProvider);
                 
                 const newTimestamp = Math.floor(combined.getTime() / 1000);
                 

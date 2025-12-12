@@ -1,8 +1,8 @@
 /**
- * Universal FHEVM SDK - Consolidated Instance
- * Complete FHEVM functionality in a single file for NPX packages
- * Includes: FHEVM instance, encryption, and decryption
- * Updated for FHEVM 0.9 with RelayerSDK 0.3.0-6
+ * Universal FHEVM SDK - Browser Only
+ * FHEVM functionality for browser environments
+ * Supports user decryption only (EIP-712 signed decryption)
+ * Updated for FHEVM 0.9 with RelayerSDK 0.3.0-5
  */
 
 import { ethers } from 'ethers';
@@ -11,42 +11,117 @@ let fheInstance: any = null;
 
 /**
  * Initialize FHEVM instance
- * Uses CDN for browser environments to avoid bundling issues
- * Updated for RelayerSDK 0.3.0-6 (FHEVM 0.9)
+ * Browser-only implementation using CDN for RelayerSDK
+ * Updated for RelayerSDK 0.3.0-5 (FHEVM 0.9)
  */
-export async function initializeFheInstance(options?: { rpcUrl?: string }) {
-  // Detect environment
-  if (typeof window !== 'undefined' && window.ethereum) {
-    // Browser environment
-    return initializeBrowserFheInstance();
-  } else {
-    // Node.js environment - use new functionality
-    return initializeNodeFheInstance(options?.rpcUrl);
+export async function initializeFheInstance() {
+  // Only browser environment is supported (vault uses user decryption only)
+  if (typeof window === 'undefined') {
+    throw new Error('Browser environment required. This SDK only supports browser-based FHEVM operations.');
   }
+  
+  // Check for ethereum provider (mobile-friendly)
+  const win = window as any;
+  const hasEthereum = win.ethereum || 
+                     win.web3?.currentProvider || 
+                     win.web3 ||
+                     win.ethereum?.providers?.[0] ||
+                     win.ethereum?.providers?.find((p: any) => p.isMetaMask);
+  
+  if (!hasEthereum) {
+    throw new Error('Ethereum provider not found. Please install MetaMask or connect a wallet.');
+  }
+  
+  return initializeBrowserFheInstance();
 }
 
 /**
  * Initialize FHEVM instance for browser environment
+ * Enhanced for mobile browser compatibility
  */
 async function initializeBrowserFheInstance() {
-  if (typeof window === 'undefined' || !window.ethereum) {
-    throw new Error('Ethereum provider not found. Please install MetaMask or connect a wallet.');
+  if (typeof window === 'undefined') {
+    throw new Error('Window object not available. This code must run in a browser.');
   }
 
-  // Check for both uppercase and lowercase versions of RelayerSDK
-  let sdk = (window as any).RelayerSDK || (window as any).relayerSDK;
+  // Enhanced mobile browser ethereum provider detection
+  let ethereum = (window as any).ethereum;
   
+  // Check for various ethereum provider patterns on mobile
+  if (!ethereum) {
+    const possibleProviders = [
+      (window as any).ethereum,
+      (window as any).web3?.currentProvider,
+      (window as any).web3,
+      (window as any).ethereum?.providers?.[0],
+      (window as any).ethereum?.providers?.find((p: any) => p.isMetaMask),
+      // Check for mobile wallet providers
+      (window as any).trust,
+      (window as any).coinbase,
+      (window as any).phantom,
+    ].filter(Boolean);
+    
+    if (possibleProviders.length > 0) {
+      ethereum = possibleProviders[0];
+  }
+  }
+  
+  if (!ethereum) {
+    // Wait up to 10 seconds for ethereum provider to load (mobile browsers may need time)
+    await new Promise((resolve, reject) => {
+      let attempts = 0;
+      const checkEthereum = () => {
+        const foundProvider = (window as any).ethereum || 
+                            (window as any).web3?.currentProvider || 
+                            (window as any).web3 ||
+                            (window as any).ethereum?.providers?.[0] ||
+                            (window as any).ethereum?.providers?.find((p: any) => p.isMetaMask);
+        
+        if (foundProvider) {
+          ethereum = foundProvider;
+          resolve(undefined);
+        } else if (attempts < 100) {
+          attempts++;
+          setTimeout(checkEthereum, 100);
+        } else {
+          if (navigator.userAgent.includes('Mobile') || navigator.userAgent.includes('Android') || navigator.userAgent.includes('iPhone')) {
+            reject(new Error('Mobile browser detected. Please ensure MetaMask is installed and the page is refreshed after connecting your wallet.'));
+          } else {
+            reject(new Error('Ethereum provider not found. Please install MetaMask or connect a wallet.'));
+          }
+        }
+      };
+      checkEthereum();
+    });
+  }
+
+  // Wait for RelayerSDK to be available (mobile browsers may need time)
+  let sdk = (window as any).RelayerSDK || (window as any).relayerSDK;
   if (!sdk) {
-    throw new Error('RelayerSDK not loaded. Please include the script tag in your HTML:\n<script src="https://cdn.zama.org/relayer-sdk-js/0.3.0-6/relayer-sdk-js.umd.cjs"></script>');
+    await new Promise((resolve, reject) => {
+      let attempts = 0;
+      const checkSDK = () => {
+        const foundSDK = (window as any).RelayerSDK || (window as any).relayerSDK;
+        if (foundSDK) {
+          sdk = foundSDK;
+          resolve(undefined);
+        } else if (attempts < 100) {
+          attempts++;
+          setTimeout(checkSDK, 100);
+        } else {
+          reject(new Error('RelayerSDK not loaded. Please include the script tag in your HTML:\n<script src="https://cdn.zama.org/relayer-sdk-js/0.3.0-5/relayer-sdk-js.umd.cjs"></script>'));
+        }
+      };
+      checkSDK();
+    });
   }
 
   const { initSDK, createInstance, SepoliaConfig } = sdk;
 
   // Initialize SDK with CDN
   await initSDK();
-    console.log('✅ FHEVM SDK initialized with CDN');
   
-  const config = { ...SepoliaConfig, network: window.ethereum };
+  const config = { ...SepoliaConfig, network: ethereum };
   
   try {
     fheInstance = await createInstance(config);
@@ -57,61 +132,22 @@ async function initializeBrowserFheInstance() {
   }
 }
 
-/**
- * Initialize FHEVM instance for Node.js environment
- * REAL FUNCTIONALITY - uses actual RelayerSDK
- */
-async function initializeNodeFheInstance(rpcUrl?: string) {
-  try {
-    console.log('🚀 Initializing REAL FHEVM Node.js instance...');
-    
-    // Use eval to prevent webpack from analyzing these imports
-    const relayerSDKModule = await eval('import("@zama-fhe/relayer-sdk/node")');
-    const { createInstance, SepoliaConfig, generateKeypair } = relayerSDKModule;
-    
-    // Create an EIP-1193 compatible provider for Node.js
-    const ethersModule = await eval('import("ethers")');
-    const provider = new ethersModule.ethers.JsonRpcProvider(rpcUrl || 'https://sepolia.infura.io/v3/YOUR_INFURA_KEY');
-    
-    // Create EIP-1193 provider wrapper
-    const eip1193Provider = {
-      request: async ({ method, params }: { method: string; params: any[] }) => {
-        switch (method) {
-          case 'eth_chainId':
-            return '0xaa36a7'; // Sepolia chain ID
-          case 'eth_accounts':
-            return ['---YOUR-ADDRESS-HERE---'];
-          case 'eth_requestAccounts':
-            return ['---YOUR-ADDRESS-HERE---'];
-          case 'eth_call':
-            // Use the real provider for blockchain calls
-            return await provider.call(params[0]);
-          case 'eth_sendTransaction':
-            // Use the real provider for transactions
-            return await provider.broadcastTransaction(params[0]);
-          default:
-            throw new Error(`Unsupported method: ${method}`);
-        }
-      },
-      on: () => {},
-      removeListener: () => {}
-    };
-    
-    const config = { 
-      ...SepoliaConfig, 
-      network: eip1193Provider 
-    };
-    
-    fheInstance = await createInstance(config);
-    console.log('✅ REAL FHEVM Node.js instance created successfully!');
-    return fheInstance;
-  } catch (err) {
-    console.error('FHEVM Node.js instance creation failed:', err);
-    throw err;
-  }
-}
 
 export function getFheInstance() {
+  // If instance doesn't exist but we're in browser with ethereum, try to initialize
+  if (!fheInstance && typeof window !== 'undefined') {
+    const win = window as any;
+    const hasEthereum = win.ethereum || 
+                       win.web3?.currentProvider || 
+                       win.web3 ||
+                       win.ethereum?.providers?.[0] ||
+                       win.ethereum?.providers?.find((p: any) => p.isMetaMask);
+    
+    if (hasEthereum) {
+      // Instance should be initialized by the hook, but if it's not, log a warning
+      console.warn('⚠️ FHE instance not initialized. Make sure to call initializeFheInstance() first.');
+    }
+  }
   return fheInstance;
 }
 
@@ -119,7 +155,28 @@ export function getFheInstance() {
  * Decrypt a single encrypted value using EIP-712 user decryption (matches showcase API)
  */
 export async function decryptValue(encryptedBytes: string, contractAddress: string, signer: any): Promise<number | bigint> {
-  const fhe = getFheInstance();
+  let fhe = getFheInstance();
+  
+  // Auto-initialize if not initialized but ethereum provider is available
+  if (!fhe && typeof window !== 'undefined') {
+    const win = window as any;
+    const hasEthereum = win.ethereum || 
+                       win.web3?.currentProvider || 
+                       win.web3 ||
+                       win.ethereum?.providers?.[0] ||
+                       win.ethereum?.providers?.find((p: any) => p.isMetaMask);
+    
+    if (hasEthereum) {
+      console.log('🔄 FHE instance not found, auto-initializing...');
+      try {
+        fhe = await initializeFheInstance();
+      } catch (error) {
+        console.error('❌ Auto-initialization failed:', error);
+        throw new Error('FHE instance not initialized. Please wait for initialization to complete or refresh the page.');
+      }
+    }
+  }
+  
   if (!fhe) throw new Error('FHE instance not initialized. Call initializeFheInstance() first.');
 
   try {
@@ -464,83 +521,6 @@ export async function createEncryptedInput(
   throw new Error('Invalid encrypted result format');
 }
 
-/**
- * Public decryption for a single handle
- * Returns the decrypted number value
- * @param {string} encryptedBytes - Single handle to decrypt
- * @returns {Promise<number>} Decrypted number value
- */
-export async function publicDecrypt(encryptedBytes: string): Promise<number> {
-  const fhe = getFheInstance();
-  if (!fhe) throw new Error('FHE instance not initialized. Call initializeFheInstance() first.');
-
-  try {
-    let handle = encryptedBytes;
-    if (typeof handle === "string" && handle.startsWith("0x") && handle.length === 66) {
-      console.log('🔓 Calling publicDecrypt with handle:', handle);
-      const result = await fhe.publicDecrypt([handle]);
-      console.log('🔓 publicDecrypt returned:', result);
-      
-      // SDK 0.3.0-5 returns: {clearValues: {...}, abiEncodedClearValues: '...', decryptionProof: '...'}
-      let decryptedValue;
-      
-      if (result && typeof result === 'object') {
-        // Check for SDK 0.3.0-5 format with clearValues
-        if (result.clearValues && typeof result.clearValues === 'object') {
-          // The decrypted value is in clearValues[handle] as a BigInt
-          decryptedValue = result.clearValues[handle];
-          console.log('🔓 Extracted from clearValues:', decryptedValue);
-          console.log('🔓 Value type:', typeof decryptedValue);
-          console.log('🔓 Is BigInt?', typeof decryptedValue === 'bigint');
-        } else if (Array.isArray(result)) {
-          // Legacy array format
-          decryptedValue = result[0];
-          console.log('🔓 Extracted from array:', decryptedValue);
-        } else {
-          // Try direct handle lookup (legacy format)
-          decryptedValue = result[handle] || Object.values(result)[0];
-          console.log('🔓 Extracted from object:', decryptedValue);
-        }
-      } else {
-        // Direct value
-        decryptedValue = result;
-        console.log('🔓 Direct value:', decryptedValue);
-      }
-      
-      // Convert BigInt or number to regular number
-      let numberValue;
-      if (typeof decryptedValue === 'bigint') {
-        numberValue = Number(decryptedValue);
-        console.log('🔓 Converted BigInt to number:', numberValue);
-      } else {
-        numberValue = Number(decryptedValue);
-        console.log('🔓 Converted to number:', numberValue);
-      }
-      
-      if (isNaN(numberValue)) {
-        console.error('❌ Decryption returned NaN. Raw value:', decryptedValue);
-        console.error('❌ Full response structure:', {
-          hasClearValues: !!result?.clearValues,
-          hasAbiEncoded: !!result?.abiEncodedClearValues,
-          hasProof: !!result?.decryptionProof,
-          clearValuesKeys: result?.clearValues ? Object.keys(result.clearValues) : []
-        });
-        throw new Error(`Decryption returned invalid value: ${decryptedValue}`);
-      }
-      
-      console.log('🔓 Final number value:', numberValue);
-      return numberValue;
-    } else {
-      throw new Error('Invalid ciphertext handle for decryption');
-    }
-  } catch (error: any) {
-    console.error('❌ Decryption error:', error);
-    if (error?.message?.includes('Failed to fetch') || error?.message?.includes('NetworkError')) {
-      throw new Error('Decryption service is temporarily unavailable. Please try again later.');
-    }
-    throw error;
-  }
-}
 
 /**
  * Request user decryption with EIP-712 signature
@@ -584,125 +564,3 @@ export async function requestUserDecryption(
   return Number(result[ciphertextHandle]);
 }
 
-/**
- * Public decryption for multiple handles with proof (for contract callbacks)
- * Returns cleartexts (ABI-encoded), decryption proof, and values array
- * Note: Handles must be made publicly decryptable (via makePubliclyDecryptable) before calling this
- * @param {string} contractAddress - The contract address (kept for compatibility, not used)
- * @param {Object} signer - Ethers signer object (kept for compatibility, not used)
- * @param {string[]} handles - Array of handles to decrypt
- * @returns {Object} { cleartexts: string, decryptionProof: string, values: number[] }
- */
-export async function decryptMultipleHandles(
-  contractAddress: string,
-  signer: any,
-  handles: string[]
-): Promise<{ cleartexts: string; decryptionProof: string; values: number[] }> {
-  const relayer = getFheInstance();
-  if (!relayer) throw new Error("FHEVM not initialized");
-
-  if (!handles || handles.length === 0) {
-    throw new Error("Handles array cannot be empty");
-  }
-
-  // Use publicDecrypt for multiple handles (requires handles to be publicly decryptable)
-  // This is called after requestTallyReveal() makes handles publicly decryptable
-  console.log('🔐 Calling publicDecrypt with handles:', handles);
-  const result = await relayer.publicDecrypt(handles);
-
-  console.log('🔐 publicDecrypt result structure:', {
-    hasClearValues: !!result?.clearValues,
-    hasAbiEncoded: !!result?.abiEncodedClearValues,
-    hasProof: !!result?.decryptionProof,
-    clearValuesKeys: result?.clearValues ? Object.keys(result.clearValues) : [],
-    resultKeys: Object.keys(result || {})
-  });
-
-  // Extract decrypted values in order
-  // publicDecrypt returns: { clearValues: { handle1: value1, handle2: value2 }, abiEncodedClearValues: '...', decryptionProof: '...' }
-  const values = handles.map(handle => {
-    let decrypted;
-
-    // Check for SDK 0.3.0-5 format with clearValues (BigInt values)
-    if (result?.clearValues && typeof result.clearValues === 'object') {
-      decrypted = result.clearValues[handle];
-      console.log(`🔐 Extracted ${handle} from clearValues:`, decrypted, 'Type:', typeof decrypted);
-    } else if (result && typeof result === 'object') {
-      // Try direct handle lookup (legacy format)
-      decrypted = result[handle];
-      console.log(`🔐 Extracted ${handle} from result:`, decrypted);
-    } else {
-      throw new Error(`Failed to decrypt handle: ${handle} - result format not recognized`);
-    }
-
-    if (decrypted === undefined || decrypted === null) {
-      throw new Error(`Failed to decrypt handle: ${handle} - value not found`);
-    }
-
-    // Convert BigInt or number to regular number
-    let numberValue: number;
-    if (typeof decrypted === 'bigint') {
-      numberValue = Number(decrypted);
-      console.log(`🔐 Converted BigInt to number for ${handle}:`, numberValue);
-    } else {
-      numberValue = Number(decrypted);
-    }
-
-    if (isNaN(numberValue)) {
-      throw new Error(`Decryption returned invalid value for handle ${handle}: ${decrypted}`);
-    }
-
-    return numberValue;
-  });
-
-  // Get the proof and encoded values
-  const abiEncodedClearValues = result?.abiEncodedClearValues;
-  const decryptionProof = result?.decryptionProof;
-
-  console.log('🔐 Proof check:', {
-    hasAbiEncoded: !!abiEncodedClearValues,
-    hasProof: !!decryptionProof,
-    proofType: typeof decryptionProof
-  });
-
-  if (!decryptionProof) {
-    console.error('❌ Decryption proof not found. Full result:', result);
-    throw new Error("Decryption proof not found in result. Result structure: " + JSON.stringify(Object.keys(result || {})));
-  }
-
-  // If abiEncodedClearValues is not provided, encode it ourselves
-  let cleartexts: string;
-  if (abiEncodedClearValues) {
-    cleartexts = abiEncodedClearValues;
-    console.log('🔐 Using abiEncodedClearValues from result');
-  } else {
-    // Encode as tuple (uint32, uint32, ...) for multiple values
-    const { ethers } = await import('ethers');
-    const abiCoder = ethers.AbiCoder.defaultAbiCoder();
-    const types = handles.map(() => 'uint32');
-    cleartexts = abiCoder.encode(types, values);
-    console.log('🔐 Encoded cleartexts manually:', cleartexts);
-  }
-
-  console.log('🔐 Final values:', values);
-  console.log('🔐 Cleartexts length:', cleartexts?.length);
-  console.log('🔐 Proof length:', decryptionProof?.length);
-
-  return {
-    cleartexts,
-    decryptionProof,
-    values
-  };
-}
-
-/**
- * Public decryption for multiple handles (raw result)
- * Returns the raw result from relayer.publicDecrypt()
- * @param {string[]} handles - Array of handles to decrypt
- * @returns {Promise<Object>} Raw result with clearValues, abiEncodedClearValues, decryptionProof
- */
-export async function fetchPublicDecryption(handles: string[]): Promise<any> {
-  const relayer = getFheInstance();
-  if (!relayer) throw new Error("FHEVM not initialized");
-  return relayer.publicDecrypt(handles);
-}

@@ -1,0 +1,27 @@
+What is the primary purpose of Legacy Vault?,"To secure digital legacy with time-locked encryption, ensuring assets are passed down safely at the designated time."
+"What is the core problem that solutions for digital legacy currently face, leading to permanent asset loss?","Existing solutions are fragmented, insecure, and often lead to permanent asset loss."
+"What happens to crypto assets if private keys are lost or forgotten, a problem categorized as 'Lost Access'?",The wallets become mathematically inaccessible forever.
+Why is 'No Inheritance' a major problem for digital assets?,"Traditional legal frameworks struggle with digital assets, and courts cannot force a blockchain to transfer funds without automated processes."
+"What security hole is created by sharing keys with lawyers or family members, a problem referred to as 'Trust Issues'?",It creates a massive security hole with a high risk of theft or misuse before death.
+What is the 'Time Pressure' problem in digital asset inheritance?,Delays in probate can lead to missed market opportunities or permanent loss of assets that need to be accessed at a precise moment.
+Why do traditional password-based methods for digital inheritance often fail?,"They are susceptible to phishing, memory loss, and brute force attacks; if you forget it, it's gone forever."
+What is the main drawback of using multi-sig wallets for digital inheritance?,They are extremely complex for non-technical heirs and require coordination between multiple parties who may not be available.
+"According to the presentation, why is relying on trusted 3rd parties for digital inheritance a liability?","They are vulnerable to legal seizure, bankruptcy of the provider, or internal corruption."
+What is the key failure of 'Plain Encryption' as a solution for digital inheritance?,"It offers static security with no mechanism for automatic release over time (like a dead man's switch), requiring manual intervention."
+What core technology does Legacy Vault use to secure a user's digital afterlife?,Fully Homomorphic Encryption (FHE).
+The Legacy Vault solution is powered by what underlying protocol?,The ZAMA PROTOCOL.
+What key security feature of Legacy Vault ensures maximum protection through two layers of cryptographic security?,"Double Encryption: AES-256-GCM and FHE (Fully Homomorphic Encryption)."
+Legacy Vault's _____ feature ensures data is revealed only when specific temporal conditions are met.,Time-locked Access
+What is the benefit of Legacy Vault's 'Confidential Keys' feature?,Keys remain hidden even during active computation.
+How does Legacy Vault ensure verifiable access control?,"ZAMA ACL (Access Control List) and a blockchain-based immutable ledger."
+What technology does Legacy Vault use for decentralized and redundant storage?,IPFS Storage.
+What is the first step in the 3-step process of securing your legacy with LegacyLock?,"Create Vault: Upload files securely or enter text, and choose time-lock conditions. AES-256-GCM encryption is automatically applied."
+"What is the second step in the 3-step LegacyLock process, which involves beneficiaries?","Grant Access: Designate beneficiary wallet addresses and grant them cryptographic access permissions via the blockchain."
+"What key feature of Legacy Vault ensures that data remains encrypted even during processing, preventing any leaks?",FHE Encryption (Fully Homomorphic Encryption).
+The ability to set specific future dates or trigger conditions for when data becomes accessible to heirs is called _____.,Time-Locked Release
+"What feature allows for the secure distribution of access keys to multiple beneficiaries, executors, or family members?",Multi-Heir Support.
+What does the 'Owner Control' feature in Legacy Vault allow the owner to do?,Retain the full ability to revoke or modify access rights anytime before the release condition is met.
+What principle ensures that the Legacy Vault platform operators never have access to your unencrypted data or keys?,Zero Trust.
+"Besides crypto assets, what other types of information can be stored in Legacy Vault, according to the 'File & Text Support' feature?","Varied assets including legal documents, passwords, and personal notes."
+What is the specified encryption standard mentioned in the slides for encrypting vault contents?,AES-256-GCM.
+"Under the 'Unlock as owner or heir' demo feature, when do heirs gain access to the vault's contents?","Heirs gain access only after maturity (i.e., the release conditions are met)."

@@ -1,9 +1,10 @@
 /**
  * Wagmi-like hook for decryption operations
+ * User decryption only (EIP-712 signed decryption)
  */
 
 import { useState, useCallback } from 'react';
-import { decryptValue, publicDecrypt, decryptMultipleHandles } from '../core/index.js';
+import { decryptValue, batchDecryptValues } from '../core/index.js';
 
 export function useDecrypt() {
   const [isDecrypting, setIsDecrypting] = useState(false);
@@ -24,27 +25,12 @@ export function useDecrypt() {
     }
   }, []);
 
-  const publicDecryptValue = useCallback(async (handle: string) => {
-    setIsDecrypting(true);
-    setError('');
-    
-    try {
-      const result = await publicDecrypt(handle);
-      return result;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Public decryption failed');
-      throw err;
-    } finally {
-      setIsDecrypting(false);
-    }
-  }, []);
-
   const decryptMultiple = useCallback(async (contractAddress: string, signer: any, handles: string[]) => {
     setIsDecrypting(true);
     setError('');
     
     try {
-      const result = await decryptMultipleHandles(contractAddress, signer, handles);
+      const result = await batchDecryptValues(handles, contractAddress, signer);
       return result;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Multiple decryption failed');
@@ -56,7 +42,6 @@ export function useDecrypt() {
 
   return {
     decrypt,
-    publicDecrypt: publicDecryptValue,
     decryptMultiple,
     isDecrypting,
     error,

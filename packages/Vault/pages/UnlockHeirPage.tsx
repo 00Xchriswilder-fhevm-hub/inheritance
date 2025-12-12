@@ -132,12 +132,14 @@ const UnlockHeirPage = () => {
                 }
                 
                 // Fallback to blockchain
-                if (!(window as any).ethereum) {
+                const { getEthereumProvider } = await import('../utils/ethereumProvider');
+                const ethereumProvider = getEthereumProvider();
+                if (!ethereumProvider) {
                     setVaultStatus('not-found');
                     return;
                 }
 
-                const provider = new ethers.BrowserProvider((window as any).ethereum);
+                const provider = new ethers.BrowserProvider(ethereumProvider);
                 const metadata = await getVaultMetadata(CONTRACT_ADDRESS, provider, vaultId);
                 const releaseTimestamp = Number(metadata.releaseTimestamp) * 1000;
                 setReleaseDate(new Date(releaseTimestamp));
@@ -208,7 +210,16 @@ const UnlockHeirPage = () => {
             
             // Fetch vault from blockchain only
                 const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
-            if (!CONTRACT_ADDRESS || !(window as any).ethereum) {
+            if (!CONTRACT_ADDRESS) {
+                toast.error('Blockchain connection required. Please configure contract address.');
+                setIsLoading(false);
+                return;
+            }
+            
+            // Mobile-friendly ethereum provider detection
+            const { getEthereumProvider } = await import('../utils/ethereumProvider');
+            const ethereumProvider = getEthereumProvider();
+            if (!ethereumProvider) {
                 toast.error('Blockchain connection required. Please connect your wallet.');
                 setIsLoading(false);
                 return;
@@ -216,7 +227,7 @@ const UnlockHeirPage = () => {
 
             let vault;
                     try {
-                        const provider = new ethers.BrowserProvider((window as any).ethereum);
+                        const provider = new ethers.BrowserProvider(ethereumProvider);
                         const metadata = await getVaultMetadata(CONTRACT_ADDRESS, provider, vaultId);
                         
                         // Try to get IPFS metadata to determine vault type, filename, and mime type
@@ -298,7 +309,12 @@ const UnlockHeirPage = () => {
                 
                 try {
                     toast.info("Unlocking FHE vault...");
-            const provider = new ethers.BrowserProvider((window as any).ethereum);
+                    const { getEthereumProvider } = await import('../utils/ethereumProvider');
+                    const ethereumProvider = getEthereumProvider();
+                    if (!ethereumProvider) {
+                        throw new Error('Ethereum provider not found');
+                    }
+                    const provider = new ethers.BrowserProvider(ethereumProvider);
             const signer = await provider.getSigner();
                     if (!signer) {
                         throw new Error("Failed to get signer");

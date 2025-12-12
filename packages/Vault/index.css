@@ -78,3 +78,19 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   }
 }
 
+/* Flashcard Flash Animation */
+@keyframes flash {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+

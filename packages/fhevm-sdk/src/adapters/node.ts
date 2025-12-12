@@ -8,8 +8,7 @@ import {
   getFheInstance, 
   decryptValue,
   createEncryptedInput,
-  publicDecrypt,
-  decryptMultipleHandles
+  batchDecryptValues
 } from '../core/index.js';
 import { ethers } from 'ethers';
 
@@ -40,24 +39,10 @@ export class FhevmNode {
   async initialize() {
     try {
       console.log('🚀 Initializing FHEVM Node.js instance...');
+      console.warn('⚠️ Note: FHEVM SDK now only supports browser environments. Node.js initialization will fail.');
       
-      // Initialize FHEVM with RPC URL
-      this.instance = await initializeFheInstance({ 
-        rpcUrl: this.options.rpcUrl 
-      });
-      
-      // Setup provider and wallet for server-side operations
-      this.provider = new ethers.JsonRpcProvider(this.options.rpcUrl);
-      
-      if (this.options.privateKey) {
-        this.wallet = new ethers.Wallet(this.options.privateKey, this.provider);
-        console.log(`✅ Wallet connected: ${await this.wallet.getAddress()}`);
-      } else {
-        console.log('⚠️ No private key provided - wallet operations disabled');
-      }
-      
-      this.isReady = true;
-      console.log('✅ FHEVM Node instance ready');
+      // Browser-only SDK - Node.js is not supported
+      throw new Error('FHEVM SDK only supports browser environments. Node.js initialization is not available. Use browser-based initialization instead.');
     } catch (error) {
       console.error('❌ FHEVM Node initialization failed:', error);
       throw error;
@@ -83,12 +68,6 @@ export class FhevmNode {
     return decryptValue(handle, contractAddress, signerToUse);
   }
 
-  async publicDecrypt(handle: string) {
-    if (!this.isReady) throw new Error('FHEVM not initialized');
-    console.log(`🔓 Public decrypting handle ${handle}`);
-    return publicDecrypt(handle);
-  }
-
   async decryptMultiple(contractAddress: string, handles: string[], signer?: any) {
     if (!this.isReady) throw new Error('FHEVM not initialized');
     
@@ -99,7 +78,7 @@ export class FhevmNode {
     }
     
     console.log(`🔓 Decrypting ${handles.length} handles for contract ${contractAddress}`);
-    return decryptMultipleHandles(contractAddress, signerToUse, handles);
+    return batchDecryptValues(handles, contractAddress, signerToUse);
   }
 
   /**

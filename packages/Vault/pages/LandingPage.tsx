@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import FlashcardFAQ from '../components/FlashcardFAQ';
 
 const LandingPage = () => {
     const navigate = useNavigate();
+    const [showFAQ, setShowFAQ] = useState(false);
 
     return (
         <div className="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-x-hidden">
@@ -19,11 +21,20 @@ const LandingPage = () => {
                                 />
                                 <h2 className="text-white text-lg font-bold leading-tight tracking-[-0.015em]">LegacyVault</h2>
                             </div>
-                            <div className="hidden sm:flex flex-1 justify-end gap-8">
-                                <div className="flex items-center gap-9"></div>
+                            <div className="flex flex-1 justify-end gap-4 sm:gap-8">
+                                {/* FAQ Button - Mobile & Desktop */}
+                                <button 
+                                    onClick={() => setShowFAQ(true)}
+                                    className="flex items-center justify-center rounded-lg h-10 px-4 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-colors"
+                                >
+                                    <span className="material-symbols-outlined mr-2">help</span>
+                                    <span className="hidden sm:inline">FAQ</span>
+                                </button>
+                                
+                                {/* Secure Legacy Button - Desktop Only */}
                                 <button 
                                     onClick={() => navigate('/create')}
-                                    className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-black text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors"
+                                    className="hidden sm:flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-black text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors"
                                 >
                                     <span className="truncate">Secure Legacy</span>
                                 </button>
@@ -302,6 +313,9 @@ const LandingPage = () => {
                     </div>
                 </div>
             </div>
+            
+            {/* Flashcard FAQ Modal */}
+            <FlashcardFAQ isOpen={showFAQ} onClose={() => setShowFAQ(false)} />
         </div>
     );
 };
