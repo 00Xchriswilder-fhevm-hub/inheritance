@@ -117,7 +117,7 @@ const LandingPage = () => {
                                     <div 
                                         className="flex min-h-[480px] flex-col gap-6 bg-cover bg-center bg-no-repeat md:gap-8 md:rounded-lg items-start justify-end px-4 pb-10 md:px-10" 
                                         style={{
-                                            backgroundImage: 'linear-gradient(rgba(18, 18, 18, 0.1) 0%, rgba(18, 18, 18, 0.8) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuCvkHy9S8lV1UMwWS1nAgKXYds7Etv6n4lGsMIxOoJzOsdyzWsuBk5LBpJPXAwmz1JVh-f-rYk4_jfPsii7hSnmIMGj249aRTFBOGqGnjpQ_VBY0-ZqCL1lCuyWC_XtENx11n3bBuO1EoAzcYArdDWC10TXFRYkFaeLCvgNRRqPK7N4G084mALtL3Jm9QAm8UcIDdPOQwgBrePSqzwDfqNC7SV7cUROif_DPsarL33Zn3M2mWBGo0k2EAJKCxO0z_LKaXcVGzsD5g")'
+                                            backgroundImage: 'linear-gradient(rgba(18, 18, 18, 0.1) 0%, rgba(18, 18, 18, 0.8) 100%), url("/bg.png")'
                                         }}
                                     >
                                         <div className="flex flex-col gap-4 text-left max-w-3xl">
