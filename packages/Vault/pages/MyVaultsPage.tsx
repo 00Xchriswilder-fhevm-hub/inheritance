@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Loader2, Wallet } from 'lucide-react';
+import { Box, Loader2, Wallet, AlertTriangle } from 'lucide-react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { WalletContext } from '../contexts/WalletContext';
 import type { Vault } from '../types';
@@ -10,6 +10,8 @@ import { useVaultContract } from '../hooks/useVaultContract';
 import { ethers } from 'ethers';
 import { getIPFSMetadata } from '../services/ipfsService';
 import { vaultService, heirService, userService, isSupabaseConfigured } from '../supabase/supabaseService';
+import Button from '../components/Button';
+import Card from '../components/Card';
 
 // Mini Countdown Component for Cards
 const VaultCountdown = ({ releaseTime }: { releaseTime: number }) => {
@@ -333,32 +335,20 @@ const MyVaultsPage = () => {
 
     if (!isConnected) {
         return (
-            <div className="relative flex min-h-screen w-full flex-col bg-background-dark">
-                <div className="flex h-full grow flex-col">
-                    <div className="flex flex-1 items-center justify-center px-4 py-20">
-                        <div className="flex flex-col items-center justify-center text-center max-w-md">
-                            <div className="relative mb-8">
-                                <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full"></div>
-                                <div className="relative bg-[#1A1A1A] border border-white/10 rounded-2xl p-8">
-                                    <span className="material-symbols-outlined text-6xl text-primary">account_balance_wallet</span>
-                                </div>
-                            </div>
-                            <h2 className="text-3xl font-bold mb-3 text-white">Connect Your Wallet</h2>
-                            <p className="text-white/60 mb-8 leading-relaxed">Connect your wallet to view your created vaults and manage your digital legacy securely.</p>
-                            <ConnectButton.Custom>
-                                {({ openConnectModal }) => (
-                                    <button 
-                                        onClick={openConnectModal}
-                                        className="flex h-12 min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg bg-primary px-6 text-sm font-bold text-black transition-all hover:opacity-90 hover:scale-105 shadow-lg shadow-primary/20"
-                                    >
-                                        <Wallet size={18} className="text-black" />
-                                        <span className="text-black">Connect Wallet</span>
-                                    </button>
-                                )}
-                            </ConnectButton.Custom>
-                        </div>
-                    </div>
-                </div>
+            <div className="max-w-md mx-auto mt-20 text-center px-4">
+                <Card className="py-10 !bg-black">
+                    <AlertTriangle className="w-16 h-16 text-warning mx-auto mb-6" />
+                    <h2 className="text-2xl font-bold mb-4">Wallet Not Connected</h2>
+                    <p className="text-muted mb-4">You need to connect your wallet to view your created vaults and manage your digital legacy securely.</p>
+                    <p className="font-bold text-yellow-400 mb-8">Please ensure your wallet is connected to SEPOLIA TESTNET.</p>
+                    <ConnectButton.Custom>
+                        {({ openConnectModal }) => (
+                            <Button onClick={openConnectModal} icon={<Wallet size={18} />}>
+                                Connect Wallet
+                            </Button>
+                        )}
+                    </ConnectButton.Custom>
+                </Card>
             </div>
         );
     }

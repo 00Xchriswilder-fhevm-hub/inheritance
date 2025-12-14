@@ -387,10 +387,11 @@ const CreateVaultPage = () => {
     if (!isConnected) {
         return (
             <div className="max-w-md mx-auto mt-20 text-center px-4">
-                <Card className="py-10">
+                <Card className="py-10 !bg-black">
                     <AlertTriangle className="w-16 h-16 text-warning mx-auto mb-6" />
                     <h2 className="text-2xl font-bold mb-4">Wallet Not Connected</h2>
-                    <p className="text-muted mb-8">You need to connect your wallet to verify ownership and create a vault.</p>
+                    <p className="text-muted mb-4">You need to connect your wallet to verify ownership and create a vault.</p>
+                    <p className="font-bold text-yellow-400 mb-8">Please ensure your wallet is connected to SEPOLIA TESTNET.</p>
                     <ConnectButton.Custom>
                         {({ openConnectModal }) => (
                             <Button onClick={openConnectModal} icon={<Wallet size={18} />}>

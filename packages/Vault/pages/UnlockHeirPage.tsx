@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useLocation } from 'react-router-dom';
 // Material Symbols icons are used via className="material-symbols-outlined"
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { AlertTriangle, Wallet } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import { WalletContext } from '../contexts/WalletContext';
 import { getVaultMetadata, isAuthorized } from '../services/vaultContractService';
@@ -13,6 +14,8 @@ import { useFheVault } from '../hooks/useFheVault';
 import { getTransactionErrorMessage } from '../utils/errorHandler';
 import { ethers } from 'ethers';
 import type { Vault } from '../types';
+import Button from '../components/Button';
+import Card from '../components/Card';
 
 const UnlockHeirPage = () => {
     const location = useLocation();
@@ -654,31 +657,20 @@ const UnlockHeirPage = () => {
 
     if (!isConnected) {
         return (
-            <div className="relative flex min-h-screen w-full flex-col bg-background-dark font-display">
-                <div className="flex h-full grow flex-col">
-                    <div className="flex flex-1 justify-center px-4 py-8 sm:px-6 md:px-8 lg:px-12">
-                        <div className="flex w-full max-w-xl flex-col">
-                <div className="text-center mb-10">
-                                <h1 className="text-3xl font-bold mb-2 text-white font-display">Unlock as Heir</h1>
-                                <p className="text-white/50 font-display">Connect your wallet to access vaults you've been granted access to.</p>
-                </div>
-                            <div className="rounded-xl border border-white/10 bg-[#1A1A1A] p-10 text-center">
-                                <p className="text-white/50 mb-6 font-display">You need to connect your wallet to unlock vaults.</p>
+            <div className="max-w-md mx-auto mt-20 text-center px-4">
+                <Card className="py-10 !bg-black">
+                    <AlertTriangle className="w-16 h-16 text-warning mx-auto mb-6" />
+                    <h2 className="text-2xl font-bold mb-4">Wallet Not Connected</h2>
+                    <p className="text-muted mb-4">You need to connect your wallet to access vaults you've been granted access to.</p>
+                    <p className="font-bold text-yellow-400 mb-8">Please ensure your wallet is connected to SEPOLIA TESTNET.</p>
                     <ConnectButton.Custom>
                         {({ openConnectModal }) => (
-                                        <button 
-                                            onClick={openConnectModal}
-                                            className="flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-black transition-opacity hover:opacity-90 mx-auto"
-                                        >
-                                            <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
-                                            <span>Connect Wallet</span>
-                                        </button>
+                            <Button onClick={openConnectModal} icon={<Wallet size={18} />}>
+                                Connect Wallet
+                            </Button>
                         )}
                     </ConnectButton.Custom>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                </Card>
             </div>
         );
     }

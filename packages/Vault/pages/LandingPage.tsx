@@ -1,10 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FlashcardFAQ from '../components/FlashcardFAQ';
+import HowItWorks from '../components/HowItWorks';
 
 const LandingPage = () => {
     const navigate = useNavigate();
     const [showFAQ, setShowFAQ] = useState(false);
+    const [showHowItWorks, setShowHowItWorks] = useState(false);
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    // Close mobile menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setShowMobileMenu(false);
+            }
+        };
+
+        if (showMobileMenu) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showMobileMenu]);
 
     return (
         <div className="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-x-hidden">
@@ -22,14 +43,62 @@ const LandingPage = () => {
                                 <h2 className="text-white text-lg font-bold leading-tight tracking-[-0.015em]">LegacyVault</h2>
                             </div>
                             <div className="flex flex-1 justify-end gap-4 sm:gap-8">
-                                {/* FAQ Button - Mobile & Desktop */}
-                                <button 
-                                    onClick={() => setShowFAQ(true)}
-                                    className="flex items-center justify-center rounded-lg h-10 px-4 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-colors"
-                                >
-                                    <span className="material-symbols-outlined mr-2">help</span>
-                                    <span className="hidden sm:inline">FAQ</span>
-                                </button>
+                                {/* Mobile Menu Button - Only on Mobile */}
+                                <div className="relative sm:hidden" ref={menuRef}>
+                                    <button 
+                                        onClick={() => setShowMobileMenu(!showMobileMenu)}
+                                        className="flex items-center justify-center rounded-lg h-10 px-4 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined">menu</span>
+                                    </button>
+                                    
+                                    {/* Mobile Dropdown Menu */}
+                                    {showMobileMenu && (
+                                        <div className="absolute right-0 top-12 mt-2 w-48 bg-black border-2 border-white/10 rounded-lg shadow-lg z-50 overflow-hidden">
+                                            <button
+                                                onClick={() => {
+                                                    setShowHowItWorks(true);
+                                                    setShowMobileMenu(false);
+                                                }}
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-white text-sm font-semibold hover:bg-white/10 transition-colors text-left"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">info</span>
+                                                <span>How It Works</span>
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setShowFAQ(true);
+                                                    setShowMobileMenu(false);
+                                                }}
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-white text-sm font-semibold hover:bg-white/10 transition-colors text-left border-t border-white/10"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">help</span>
+                                                <span>FAQ</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                {/* Desktop Buttons - Hidden on Mobile */}
+                                <div className="hidden sm:flex gap-4 sm:gap-8">
+                                    {/* How It Works Button - Desktop Only */}
+                                    <button 
+                                        onClick={() => setShowHowItWorks(true)}
+                                        className="flex items-center justify-center rounded-lg h-10 px-4 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined mr-2">info</span>
+                                        <span>How It Works</span>
+                                    </button>
+                                    
+                                    {/* FAQ Button - Desktop Only */}
+                                    <button 
+                                        onClick={() => setShowFAQ(true)}
+                                        className="flex items-center justify-center rounded-lg h-10 px-4 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined mr-2">help</span>
+                                        <span>FAQ</span>
+                                    </button>
+                                </div>
                                 
                                 {/* Secure Legacy Button - Desktop Only */}
                                 <button 
@@ -316,6 +385,9 @@ const LandingPage = () => {
             
             {/* Flashcard FAQ Modal */}
             <FlashcardFAQ isOpen={showFAQ} onClose={() => setShowFAQ(false)} />
+            
+            {/* How It Works Modal */}
+            <HowItWorks isOpen={showHowItWorks} onClose={() => setShowHowItWorks(false)} />
         </div>
     );
 };

@@ -12,6 +12,10 @@ import { unlockVault, extendVaultReleaseTime } from '../services/fheVaultService
 import { getVaultMetadata, grantAccess, grantAccessToMultiple, revokeAccess } from '../services/vaultContractService';
 import { ethers } from 'ethers';
 import { getTransactionErrorMessage } from '../utils/errorHandler';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { AlertTriangle, Wallet } from 'lucide-react';
+import Button from '../components/Button';
+import Card from '../components/Card';
 
 const UnlockOwnerPage = () => {
     const [decryptedData, setDecryptedData] = useState<string | null>(null);
@@ -609,6 +613,26 @@ LegacyVault - Secure Your Digital Legacy
             setIsEditingSchedule(false);
         }
     };
+
+    if (!isConnected) {
+        return (
+            <div className="max-w-md mx-auto mt-20 text-center px-4">
+                <Card className="py-10 !bg-black">
+                    <AlertTriangle className="w-16 h-16 text-warning mx-auto mb-6" />
+                    <h2 className="text-2xl font-bold mb-4">Wallet Not Connected</h2>
+                    <p className="text-muted mb-4">You need to connect your wallet to verify ownership and unlock vaults.</p>
+                    <p className="font-bold text-yellow-400 mb-8">Please ensure your wallet is connected to SEPOLIA TESTNET.</p>
+                    <ConnectButton.Custom>
+                        {({ openConnectModal }) => (
+                            <Button onClick={openConnectModal} icon={<Wallet size={18} />}>
+                                Connect Wallet
+                            </Button>
+                        )}
+                    </ConnectButton.Custom>
+                </Card>
+            </div>
+        );
+    }
 
     if ((decryptedData || decryptedFileBuffer) && currentVault && countdown) {
         return (
