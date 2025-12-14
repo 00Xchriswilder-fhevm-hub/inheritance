@@ -15,7 +15,7 @@ import Card from '../components/Card';
 
 // Mini Countdown Component for Cards
 const VaultCountdown = ({ releaseTime }: { releaseTime: number }) => {
-    const [timeLeft, setTimeLeft] = useState<{d: number, h: number, m: number, s: number} | null>(null);
+    const [timeLeft, setTimeLeft] = useState<{y?: number, mo?: number, d: number, h: number, m: number, s: number} | null>(null);
     const [isExpired, setIsExpired] = useState(false);
 
     useEffect(() => {
@@ -29,11 +29,23 @@ const VaultCountdown = ({ releaseTime }: { releaseTime: number }) => {
                 return;
             }
 
-            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const totalDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const years = Math.floor(totalDays / 365);
+            const daysAfterYears = totalDays % 365;
+            const months = Math.floor(daysAfterYears / 30);
+            const daysAfterMonths = daysAfterYears % 30;
             const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             const s = Math.floor((diff % (1000 * 60)) / 1000);
-            setTimeLeft({ d, h, m, s });
+            
+            // Show years if > 1 year, months if > 1 month, otherwise days
+            if (years > 0) {
+                setTimeLeft({ y: years, d: daysAfterYears, h, m, s });
+            } else if (months > 0) {
+                setTimeLeft({ mo: months, d: daysAfterMonths, h, m, s });
+            } else {
+                setTimeLeft({ d: totalDays, h, m, s });
+            }
         };
 
         const timer = setInterval(calculateTime, 1000);
@@ -61,34 +73,114 @@ const VaultCountdown = ({ releaseTime }: { releaseTime: number }) => {
         </div>
     );
 
-    return (
-        <div className="grid grid-cols-7 items-center justify-items-center font-mono">
-            <div className="flex flex-col items-center">
+    // Check if we need scrolling (when months or years are shown)
+    const showYears = timeLeft.y !== undefined;
+    const showMonths = timeLeft.mo !== undefined;
+    const needsScrolling = showYears || showMonths;
+
+    // Standard countdown (no scrolling needed)
+    if (!needsScrolling) {
+        return (
+            <div className="grid grid-cols-7 items-center justify-items-center font-mono">
+                <div className="flex flex-col items-center">
+                    <span className="text-4xl sm:text-5xl font-bold text-primary drop-shadow-[0_0_8px_rgba(255,215,0,0.4)]">
+                        {timeLeft.d}
+                    </span>
+                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Days</span>
+                </div>
+                <span className="text-2xl text-gray-600 pb-4">:</span>
+                <div className="flex flex-col items-center">
+                    <span className="text-4xl sm:text-5xl font-bold text-primary drop-shadow-[0_0_8px_rgba(255,215,0,0.4)]">
+                        {String(timeLeft.h).padStart(2, '0')}
+                    </span>
+                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Hours</span>
+                </div>
+                <span className="text-2xl text-gray-600 pb-4">:</span>
+                <div className="flex flex-col items-center">
+                    <span className="text-4xl sm:text-5xl font-bold text-primary drop-shadow-[0_0_8px_rgba(255,215,0,0.4)]">
+                        {String(timeLeft.m).padStart(2, '0')}
+                    </span>
+                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Mins</span>
+                </div>
+                <span className="text-2xl text-gray-600 pb-4">:</span>
+                <div className="flex flex-col items-center">
+                    <span className="text-4xl sm:text-5xl font-bold text-primary drop-shadow-[0_0_8px_rgba(255,215,0,0.4)]">
+                        {String(timeLeft.s).padStart(2, '0')}
+                    </span>
+                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Secs</span>
+                </div>
+            </div>
+        );
+    }
+
+    // Scrolling countdown (for months/years) - horizontal layout with auto-scroll
+    // Create duplicate content for seamless loop
+    const countdownContent = (
+        <>
+            {showYears && (
+                <>
+                    <div className="flex flex-col items-center whitespace-nowrap">
+                        <span className="text-4xl sm:text-5xl font-bold text-primary drop-shadow-[0_0_8px_rgba(255,215,0,0.4)]">
+                            {timeLeft.y}
+                        </span>
+                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Years</span>
+                    </div>
+                    <span className="text-2xl text-gray-600">:</span>
+                </>
+            )}
+            {showMonths && timeLeft.mo !== undefined && (
+                <>
+                    <div className="flex flex-col items-center whitespace-nowrap">
+                        <span className="text-4xl sm:text-5xl font-bold text-primary drop-shadow-[0_0_8px_rgba(255,215,0,0.4)]">
+                            {timeLeft.mo}
+                        </span>
+                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Months</span>
+                    </div>
+                    <span className="text-2xl text-gray-600">:</span>
+                </>
+            )}
+            <div className="flex flex-col items-center whitespace-nowrap">
                 <span className="text-4xl sm:text-5xl font-bold text-primary drop-shadow-[0_0_8px_rgba(255,215,0,0.4)]">
                     {timeLeft.d}
                 </span>
                 <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Days</span>
             </div>
-            <span className="text-2xl text-gray-600 pb-4">:</span>
-            <div className="flex flex-col items-center">
+            <span className="text-2xl text-gray-600">:</span>
+            <div className="flex flex-col items-center whitespace-nowrap">
                 <span className="text-4xl sm:text-5xl font-bold text-primary drop-shadow-[0_0_8px_rgba(255,215,0,0.4)]">
                     {String(timeLeft.h).padStart(2, '0')}
                 </span>
                 <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Hours</span>
             </div>
-            <span className="text-2xl text-gray-600 pb-4">:</span>
-            <div className="flex flex-col items-center">
+            <span className="text-2xl text-gray-600">:</span>
+            <div className="flex flex-col items-center whitespace-nowrap">
                 <span className="text-4xl sm:text-5xl font-bold text-primary drop-shadow-[0_0_8px_rgba(255,215,0,0.4)]">
                     {String(timeLeft.m).padStart(2, '0')}
                 </span>
                 <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Mins</span>
             </div>
-            <span className="text-2xl text-gray-600 pb-4">:</span>
-            <div className="flex flex-col items-center">
+            <span className="text-2xl text-gray-600">:</span>
+            <div className="flex flex-col items-center whitespace-nowrap">
                 <span className="text-4xl sm:text-5xl font-bold text-primary drop-shadow-[0_0_8px_rgba(255,215,0,0.4)]">
                     {String(timeLeft.s).padStart(2, '0')}
                 </span>
                 <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Secs</span>
+            </div>
+        </>
+    );
+    
+    return (
+        <div className="relative overflow-hidden">
+            <div 
+                className="flex items-center gap-2 font-mono countdown-scroll"
+                style={{
+                    animation: 'scroll-countdown 25s linear infinite',
+                    width: 'max-content'
+                }}
+            >
+                {countdownContent}
+                <span className="text-2xl text-gray-600 mx-2">|</span>
+                {countdownContent}
             </div>
         </div>
     );

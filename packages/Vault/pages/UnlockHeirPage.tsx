@@ -380,7 +380,7 @@ const UnlockHeirPage = () => {
             } else if (error?.message?.includes('release time')) {
                 toast.error("This vault is still locked. Please wait until the release time.");
             } else {
-                toast.error(error?.message || "Failed to unlock vault");
+                toast.error(getTransactionErrorMessage(error));
             }
         } finally {
             setIsLoading(false);

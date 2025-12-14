@@ -94,3 +94,17 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   }
 }
 
+/* Countdown Auto-Scroll Animation - scrolls from right to left */
+@keyframes scroll-countdown {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.countdown-scroll {
+  will-change: transform;
+}
+

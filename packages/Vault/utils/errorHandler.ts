@@ -23,14 +23,18 @@ export function getTransactionErrorMessage(error: any): string {
     const errorReason = error?.reason || error?.error?.reason || '';
     const errorData = error?.data || error?.error?.data;
 
-    // User rejected transaction
+    // User rejected transaction - check multiple patterns including technical error messages
     if (
         errorMessage.toLowerCase().includes('user rejected') ||
         errorMessage.toLowerCase().includes('user denied') ||
         errorMessage.toLowerCase().includes('rejected') ||
+        errorMessage.toLowerCase().includes('action="sendtransaction"') ||
+        errorMessage.toLowerCase().includes('reason="reje') ||
+        errorMessage.includes('0x') && errorMessage.toLowerCase().includes('rejected') ||
         errorCode === 4001 ||
         errorCode === 'ACTION_REJECTED' ||
-        errorReason === 'rejected'
+        errorReason === 'rejected' ||
+        (errorReason && errorReason.toLowerCase().includes('reje'))
     ) {
         return 'Transaction was cancelled. Please approve the transaction in your wallet to continue.';
     }
@@ -133,8 +137,14 @@ export function getTransactionErrorMessage(error: any): string {
         return 'Wallet connection error. Please refresh the page and reconnect your wallet.';
     }
 
-    // Return original message if it's already user-friendly, otherwise generic message
-    if (errorMessage.length < 200 && !errorMessage.includes('0x')) {
+    // Filter out technical error messages with hex addresses, action details, etc.
+    if (errorMessage.includes('0x') && errorMessage.length > 100) {
+        // This is likely a technical error with transaction data - return generic message
+        return 'Transaction failed. Please try again or contact support if the problem persists.';
+    }
+
+    // Return original message if it's already user-friendly (short and no technical details)
+    if (errorMessage.length < 200 && !errorMessage.includes('0x') && !errorMessage.includes('action=') && !errorMessage.includes('from":')) {
         return errorMessage;
     }
 

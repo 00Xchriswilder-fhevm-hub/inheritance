@@ -282,6 +282,7 @@ const CreateVaultPage = () => {
                     },
                 });
             } catch (error: any) {
+                // Show error and return early to prevent duplicate error messages
                 // Check if it's an IPFS error
                 if (error?.message?.includes('IPFS') || error?.message?.includes('Pinata')) {
                     toast.error(`IPFS upload failed: ${error.message}`);
@@ -290,7 +291,8 @@ const CreateVaultPage = () => {
                 } else {
                     toast.error(getTransactionErrorMessage(error));
                 }
-                throw error;
+                setIsLoading(false);
+                return; // Return early instead of re-throwing to avoid duplicate errors
             }
 
             // Vault creation successful - now show option to grant access to heirs
@@ -378,7 +380,7 @@ const CreateVaultPage = () => {
                 navigate('/my-vaults');
             }
         } catch (error: any) {
-            toast.error(error?.message || "Failed to create vault");
+            toast.error(getTransactionErrorMessage(error));
         } finally {
             setIsLoading(false);
         }
