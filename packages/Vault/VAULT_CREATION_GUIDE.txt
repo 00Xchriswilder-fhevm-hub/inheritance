@@ -1,0 +1,114 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    HOW TO CREATE A LEGACYVAULT
+                    Simple Step-by-Step Guide
+═══════════════════════════════════════════════════════════════════════════════
+
+STEP 1: CONNECT YOUR WALLET
+───────────────────────────────────────────────────────────────────────────────
+• Click "Connect Wallet" button
+• Select your wallet (MetaMask, WalletConnect, etc.)
+• Approve the connection
+• Make sure you're on Sepolia Testnet (required for FHEVM)
+
+STEP 2: CHOOSE CONTENT TYPE
+───────────────────────────────────────────────────────────────────────────────
+• Select "Secret Text" for recovery phrases, mnemonics, or text
+• OR select "File" to upload documents, images, or any file
+
+STEP 3: ENTER YOUR CONTENT
+───────────────────────────────────────────────────────────────────────────────
+• If Text: Type or paste your secret (like a 12-word recovery phrase)
+• If File: Click to upload your file (max 5MB)
+
+STEP 4: ADD HEIRS
+───────────────────────────────────────────────────────────────────────────────
+• Enter Ethereum wallet addresses of people who should access the vault
+• You can add multiple heirs
+• They will only be able to unlock after the release date
+
+STEP 5: SET RELEASE DATE
+───────────────────────────────────────────────────────────────────────────────
+• Choose a date and time when the vault should unlock
+• This is when your heirs can access the content
+• You (the owner) can unlock anytime before this date
+
+STEP 6: REVIEW & CREATE
+───────────────────────────────────────────────────────────────────────────────
+• Review all your information
+• Click "Create Vault"
+• Approve the transaction in your wallet
+• Wait for confirmation (this encrypts and stores your vault)
+
+STEP 7: GRANT ACCESS (OPTIONAL)
+───────────────────────────────────────────────────────────────────────────────
+• If you added heirs, approve the "Grant Access" transaction
+• This gives them permission to unlock after the release date
+
+═══════════════════════════════════════════════════════════════════════════════
+                              THAT'S IT!
+═══════════════════════════════════════════════════════════════════════════════
+
+Your vault is now:
+✓ Encrypted with AES-256-GCM
+✓ Stored on IPFS (decentralized storage)
+✓ Keys encrypted with FHE and stored on blockchain
+✓ Time-locked until your chosen release date
+✓ Accessible by you anytime, or by heirs after release date
+
+═══════════════════════════════════════════════════════════════════════════════
+                           IMPORTANT NOTES
+═══════════════════════════════════════════════════════════════════════════════
+
+• Keep your vault ID safe (you'll need it to unlock)
+• Only you can unlock before the release date
+• Heirs can only unlock after the release date
+• All data is encrypted - even we can't see it
+• Works on Sepolia Testnet only
+
+═══════════════════════════════════════════════════════════════════════════════
+                            BRANDING GUIDE
+═══════════════════════════════════════════════════════════════════════════════
+
+PRIMARY COLOR:
+#F9CE10 (Golden Yellow)
+RGB: 249, 206, 16
+Used for: Primary buttons, highlights, accents, countdown timers
+
+SECONDARY COLORS:
+#FFD208 (Bright Yellow)
+RGB: 255, 210, 8
+Used for: Hover states, shadows, glow effects
+
+BACKGROUND:
+#000000 (Pure Black)
+RGB: 0, 0, 0
+Used for: Main background, card backgrounds
+
+SURFACE:
+#121212 (Dark Gray)
+RGB: 18, 18, 18
+Used for: Card surfaces, elevated elements
+
+TEXT:
+#FFFFFF (White)
+RGB: 255, 255, 255
+Used for: Primary text, headings
+
+MUTED TEXT:
+#A3A3A3 (Light Gray)
+RGB: 163, 163, 163
+Used for: Secondary text, labels
+
+FONT FAMILY:
+Space Grotesk (Sans-serif)
+Used for: All UI text, headings, body text
+
+MONOSPACE FONT:
+Space Mono
+Used for: Vault IDs, addresses, code, technical data
+
+═══════════════════════════════════════════════════════════════════════════════
+                        LegacyVault - Secure Your Digital Legacy
+═══════════════════════════════════════════════════════════════════════════════
+
+

@@ -7,6 +7,7 @@ import type { Vault } from '../types';
 import { useToast } from '../contexts/ToastContext';
 import { getUserVaults, getHeirVaults, getVaultMetadata } from '../services/vaultContractService';
 import { useVaultContract } from '../hooks/useVaultContract';
+import { useWalletClient, usePublicClient } from 'wagmi';
 import { ethers } from 'ethers';
 import { getIPFSMetadata } from '../services/ipfsService';
 import { vaultService, heirService, userService, isSupabaseConfigured } from '../supabase/supabaseService';
@@ -196,6 +197,8 @@ const MyVaultsPage = () => {
     
     const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
     const { readContract, isReady } = useVaultContract(CONTRACT_ADDRESS);
+    const { data: walletClient } = useWalletClient();
+    const publicClient = usePublicClient();
 
     const fetchVaults = useCallback(async () => {
             if (!isConnected || !address) {
@@ -304,11 +307,17 @@ const MyVaultsPage = () => {
                 
                 if (CONTRACT_ADDRESS && isReady) {
                     try {
-                        // Get provider from window.ethereum
-                        if (!window.ethereum) {
-                            throw new Error('No ethereum provider found');
+                        // Get provider from wagmi (works with any connected wallet including Porto)
+                        const walletClientData = walletClient;
+                        const publicClientData = publicClient;
+                        
+                        if (!walletClientData && !publicClientData) {
+                            throw new Error('No wallet provider found. Please connect your wallet.');
                         }
-                        const provider = new ethers.BrowserProvider(window.ethereum);
+                        
+                        // Use walletClient if available (for signing), otherwise use publicClient (read-only)
+                        const client = walletClientData || publicClientData;
+                        const provider = new ethers.BrowserProvider(client as any);
                         
                         // Get vaults where user is owner
                         const ownerVaultIds = await getUserVaults(CONTRACT_ADDRESS, provider, address);

@@ -10,6 +10,7 @@ import { WalletContext } from '../contexts/WalletContext';
 import { useFheVault } from '../hooks/useFheVault';
 import { unlockVault, extendVaultReleaseTime } from '../services/fheVaultService';
 import { getVaultMetadata, grantAccess, grantAccessToMultiple, revokeAccess } from '../services/vaultContractService';
+import { useWalletClient, usePublicClient } from 'wagmi';
 import { ethers } from 'ethers';
 import { getTransactionErrorMessage } from '../utils/errorHandler';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
@@ -43,6 +44,8 @@ const UnlockOwnerPage = () => {
     const { register, handleSubmit, setValue, formState: { errors } } = useForm();
     const { isConnected, address } = useContext(WalletContext);
     const { decryptValue, getSigner } = useFheVault();
+    const { data: walletClient } = useWalletClient();
+    const publicClient = usePublicClient();
 
     // Auto-fill Vault ID and set vault data if passed from navigation state
     useEffect(() => {
@@ -182,17 +185,19 @@ const UnlockOwnerPage = () => {
                 
                 try {
                     toast.info("Unlocking FHE vault...");
-                    const signer = await getSigner();
+                    
+                    // Get provider from wagmi (works with any connected wallet including Porto)
+                    if (!walletClient && !publicClient) {
+                        throw new Error('No wallet provider found. Please connect your wallet.');
+                    }
+                    
+                    const client = walletClient || publicClient;
+                    const provider = new ethers.BrowserProvider(client as any);
+                    const signer = await provider.getSigner();
+                    
                     if (!signer) {
                         throw new Error("Failed to get signer");
                     }
-                    
-                    const { getEthereumProvider } = await import('../utils/ethereumProvider');
-                    const ethereumProvider = getEthereumProvider();
-                    if (!ethereumProvider) {
-                        throw new Error('Ethereum provider not found');
-                    }
-                    const provider = signer.provider || new ethers.BrowserProvider(ethereumProvider);
                     
                     // Use FHE unlock service
                     const decrypted = await unlockVault({

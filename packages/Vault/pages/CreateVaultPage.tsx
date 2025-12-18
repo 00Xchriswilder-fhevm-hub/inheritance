@@ -1,5 +1,5 @@
 
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Eye, EyeOff, Calendar, AlertTriangle, CheckCircle, Lock, ArrowLeft, ArrowRight, Shield, Key, Clock, Check, FileText, Upload, X, UserPlus, Trash2, Wallet } from 'lucide-react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
@@ -35,6 +35,8 @@ const CreateVaultPage = () => {
     const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
     const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
     const [filePreview, setFilePreview] = useState<string | null>(null);
+    const [hourInput, setHourInput] = useState<string | undefined>(undefined);
+    const [minuteInput, setMinuteInput] = useState<string | undefined>(undefined);
     
     const [showMnemonic, setShowMnemonic] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -43,6 +45,7 @@ const CreateVaultPage = () => {
     const [createdVaultId, setCreatedVaultId] = useState<string | null>(null);
     const [pendingHeirs, setPendingHeirs] = useState<string[]>([]);
     const [heirAddresses, setHeirAddresses] = useState<string[]>(['']);
+    const [previewVaultId, setPreviewVaultId] = useState<string | null>(null);
     const navigate = useNavigate();
     const toast = useToast();
     
@@ -77,6 +80,39 @@ const CreateVaultPage = () => {
             setCalendarYear(date.getFullYear());
         }
     }, [watchReleaseDate]);
+
+    // Initialize time inputs when entering step 3 and sync AMPM
+    const watchReleaseTime = watch('releaseTime');
+    const prevStepRef = useRef(step);
+    useEffect(() => {
+        if (step === 3) {
+            // Only initialize when first entering step 3
+            if (prevStepRef.current !== 3 && watchReleaseTime) {
+                const [hours, minutes] = watchReleaseTime.split(':');
+                if (hours) {
+                    const hour12 = (parseInt(hours) % 12 || 12).toString();
+                    setHourInput(hour12);
+                    // Sync AMPM based on 24-hour format only when entering step
+                    const currentAMPM = parseInt(hours) >= 12 ? 'PM' : 'AM';
+                    setSelectedAMPM(currentAMPM);
+                }
+                if (minutes) {
+                    setMinuteInput(minutes);
+                }
+            }
+            prevStepRef.current = 3;
+        } else {
+            prevStepRef.current = step;
+        }
+    }, [step, watchReleaseTime]);
+
+    // Generate vault ID once when entering step 4 (Review)
+    useEffect(() => {
+        if (step === 4 && !previewVaultId) {
+            const vaultId = generateVaultId();
+            setPreviewVaultId(vaultId);
+        }
+    }, [step, previewVaultId]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -145,7 +181,16 @@ const CreateVaultPage = () => {
         setStep(prev => prev + 1);
     };
 
-    const prevStep = () => setStep(prev => prev - 1);
+    const prevStep = () => {
+        setStep(prev => {
+            const newStep = prev - 1;
+            // Reset preview vault ID if going back to step 1
+            if (newStep === 1) {
+                setPreviewVaultId(null);
+            }
+            return newStep;
+        });
+    };
 
     // Separate function to grant access to heirs (called after vault creation)
     const handleGrantAccess = async () => {
@@ -182,6 +227,7 @@ const CreateVaultPage = () => {
             setVaultCreated(false);
             setCreatedVaultId(null);
             setPendingHeirs([]);
+            setPreviewVaultId(null); // Reset for next vault creation
             navigate('/my-vaults');
         } catch (error: any) {
             toast.error(getTransactionErrorMessage(error));
@@ -255,8 +301,8 @@ const CreateVaultPage = () => {
                 throw new Error("Failed to get signer");
             }
 
-            // Generate random vault ID
-            const vaultId = generateVaultId();
+            // Use the preview vault ID (generated in step 4) or generate one if not available
+            const vaultId = previewVaultId || generateVaultId();
             
             // Create vault using FHE service
             // The flow is: Encrypt with AES → Upload to IPFS → Encrypt AES key with FHE → Create on-chain
@@ -377,6 +423,7 @@ const CreateVaultPage = () => {
                         <span className="text-xs text-muted">Remember to grant access to heirs later</span>
                     </div>
                 );
+                setPreviewVaultId(null); // Reset for next vault creation
                 navigate('/my-vaults');
             }
         } catch (error: any) {
@@ -689,47 +736,129 @@ const CreateVaultPage = () => {
                 {/* Step 3: Schedule */}
                 {step === 3 && (() => {
                     const releaseDate = watch('releaseDate') || '';
-                    const releaseTime = watch('releaseTime') || '10:30';
+                    const releaseTime = watch('releaseTime') || '12:00';
                     const [hours, minutes] = releaseTime.split(':');
-                    const hour12 = hours ? (parseInt(hours) % 12 || 12).toString().padStart(2, '0') : '10';
-                    const minute12 = minutes || '30';
-                    const currentAMPM = hours ? (parseInt(hours) >= 12 ? 'PM' : 'AM') : 'AM';
-                    
-                    // Sync selectedAMPM with current time
-                    if (selectedAMPM !== currentAMPM && releaseTime) {
-                        setSelectedAMPM(currentAMPM);
-                    }
                     
                     const handleHourChange = (value: string) => {
-                        const hour = parseInt(value) || 0;
-                        if (hour < 1 || hour > 12) return;
-                        let newHour = hour;
-                        if (selectedAMPM === 'PM' && hour < 12) {
-                            newHour = hour + 12;
-                        } else if (selectedAMPM === 'AM' && hour === 12) {
-                            newHour = 0;
+                        // Allow empty value for clearing - set to empty string to show it's been cleared
+                        if (value === '') {
+                            setHourInput('');
+                            return;
                         }
-                        const newTime = `${newHour.toString().padStart(2, '0')}:${minute12}`;
-                        setValue('releaseTime', newTime);
+                        
+                        // Only allow digits, max 2 characters
+                        const numericValue = value.replace(/\D/g, '').slice(0, 2);
+                        setHourInput(numericValue);
+                        
+                        // Only update form if valid hour
+                        const hour = parseInt(numericValue);
+                        if (hour >= 1 && hour <= 12) {
+                            let newHour = hour;
+                            if (selectedAMPM === 'PM' && hour < 12) {
+                                newHour = hour + 12;
+                            } else if (selectedAMPM === 'AM' && hour === 12) {
+                                newHour = 0;
+                            }
+                            const currentMinutes = minuteInput !== undefined ? minuteInput : (minutes || '00');
+                            const newTime = `${newHour.toString().padStart(2, '0')}:${currentMinutes.padStart(2, '0')}`;
+                            setValue('releaseTime', newTime);
+                        }
+                    };
+                    
+                    const handleHourBlur = () => {
+                        // If empty on blur, restore from form value (don't force default)
+                        if (hourInput === '') {
+                            // Restore from form value if available
+                            const hour12 = hours ? (parseInt(hours) % 12 || 12).toString() : '12';
+                            setHourInput(hour12);
+                        } else if (hourInput !== undefined) {
+                            // Validate and pad if needed
+                            const hour = parseInt(hourInput);
+                            if (hour >= 1 && hour <= 12) {
+                                setHourInput(hour.toString());
+                                let newHour = hour;
+                                if (selectedAMPM === 'PM' && hour < 12) {
+                                    newHour = hour + 12;
+                                } else if (selectedAMPM === 'AM' && hour === 12) {
+                                    newHour = 0;
+                                }
+                                const currentMinutes = minuteInput !== undefined ? minuteInput : (minutes || '00');
+                                const newTime = `${newHour.toString().padStart(2, '0')}:${currentMinutes.padStart(2, '0')}`;
+                                setValue('releaseTime', newTime);
+                            } else {
+                                // Invalid, reset to current form value
+                                const hour12 = hours ? (parseInt(hours) % 12 || 12).toString() : '12';
+                                setHourInput(hour12);
+                            }
+                        }
                     };
                     
                     const handleMinuteChange = (value: string) => {
-                        const minute = parseInt(value) || 0;
-                        if (minute < 0 || minute > 59) return;
-                        const newTime = `${hours || '10'}:${minute.toString().padStart(2, '0')}`;
-                        setValue('releaseTime', newTime);
+                        // Allow empty value for clearing - set to empty string to show it's been cleared
+                        if (value === '') {
+                            setMinuteInput('');
+                            return;
+                        }
+                        
+                        // Only allow digits, max 2 characters
+                        const numericValue = value.replace(/\D/g, '').slice(0, 2);
+                        setMinuteInput(numericValue);
+                        
+                        // Only update form if valid minute
+                        const minute = parseInt(numericValue);
+                        if (minute >= 0 && minute <= 59) {
+                            const currentHours = hourInput !== undefined ? hourInput : (hours ? (parseInt(hours) % 12 || 12).toString() : '12');
+                            const hour = parseInt(currentHours);
+                            let newHour = hour;
+                            if (selectedAMPM === 'PM' && hour < 12) {
+                                newHour = hour + 12;
+                            } else if (selectedAMPM === 'AM' && hour === 12) {
+                                newHour = 0;
+                            }
+                            const newTime = `${newHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                            setValue('releaseTime', newTime);
+                        }
+                    };
+                    
+                    const handleMinuteBlur = () => {
+                        // If empty on blur, restore from form value (don't force default)
+                        if (minuteInput === '') {
+                            // Restore from form value if available
+                            setMinuteInput(minutes || '00');
+                        } else if (minuteInput !== undefined) {
+                            // Validate and pad if needed
+                            const minute = parseInt(minuteInput);
+                            if (minute >= 0 && minute <= 59) {
+                                setMinuteInput(minute.toString().padStart(2, '0'));
+                                const currentHours = hourInput !== undefined ? hourInput : (hours ? (parseInt(hours) % 12 || 12).toString() : '12');
+                                const hour = parseInt(currentHours);
+                                let newHour = hour;
+                                if (selectedAMPM === 'PM' && hour < 12) {
+                                    newHour = hour + 12;
+                                } else if (selectedAMPM === 'AM' && hour === 12) {
+                                    newHour = 0;
+                                }
+                                const newTime = `${newHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                                setValue('releaseTime', newTime);
+                            } else {
+                                // Invalid, reset to current form value
+                                setMinuteInput(minutes || '00');
+                            }
+                        }
                     };
                     
                     const handleAMPMChange = (value: 'AM' | 'PM') => {
                         setSelectedAMPM(value);
-                        const currentHour = parseInt(hours) || 10;
-                        let newHour = currentHour;
-                        if (value === 'PM' && currentHour < 12) {
-                            newHour = currentHour + 12;
-                        } else if (value === 'AM' && currentHour >= 12) {
-                            newHour = currentHour - 12;
+                        const currentHours = hourInput !== undefined ? hourInput : (hours ? (parseInt(hours) % 12 || 12).toString() : '12');
+                        const hour = parseInt(currentHours);
+                        let newHour = hour;
+                        if (value === 'PM' && hour < 12) {
+                            newHour = hour + 12;
+                        } else if (value === 'AM' && hour >= 12) {
+                            newHour = hour === 12 ? 0 : hour - 12;
                         }
-                        const newTime = `${newHour.toString().padStart(2, '0')}:${minute12}`;
+                        const currentMinutes = minuteInput !== undefined ? minuteInput : (minutes || '00');
+                        const newTime = `${newHour.toString().padStart(2, '0')}:${currentMinutes.padStart(2, '0')}`;
                         setValue('releaseTime', newTime);
                     };
                     
@@ -908,34 +1037,22 @@ const CreateVaultPage = () => {
                                                 <div className="flex items-center">
                                 <input 
                                                         type="text"
-                                                        value={hour12}
-                                                        onChange={(e) => {
-                                                            const value = e.target.value.replace(/\D/g, '').slice(0, 2);
-                                                            if (value) {
-                                                                const num = parseInt(value);
-                                                                if (num >= 1 && num <= 12) {
-                                                                    handleHourChange(value);
-                                                                }
-                                                            }
-                                                        }}
-                                                        className="h-20 w-20 rounded-md border-zinc-200 bg-zinc-100 text-center text-5xl font-bold text-zinc-900 focus:border-primary focus:ring-primary dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-primary"
+                                                        value={hourInput !== undefined ? hourInput : (hours ? (parseInt(hours) % 12 || 12).toString() : '12')}
+                                                        onChange={(e) => handleHourChange(e.target.value)}
+                                                        onBlur={handleHourBlur}
+                                                        placeholder="12"
+                                                        className="h-20 w-20 rounded-md border-zinc-200 bg-zinc-100 text-center text-5xl font-bold text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:ring-primary dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-600 dark:focus:border-primary"
                                 />
                             </div>
                                                 <span className="pb-1 text-5xl font-bold text-zinc-400 dark:text-zinc-600">:</span>
                                                 <div className="flex items-center">
                                 <input 
                                                         type="text"
-                                                        value={minute12}
-                                                        onChange={(e) => {
-                                                            const value = e.target.value.replace(/\D/g, '').slice(0, 2);
-                                                            if (value) {
-                                                                const num = parseInt(value);
-                                                                if (num >= 0 && num <= 59) {
-                                                                    handleMinuteChange(value);
-                                                                }
-                                                            }
-                                                        }}
-                                                        className="h-20 w-20 rounded-md border-zinc-200 bg-zinc-100 text-center text-5xl font-bold text-zinc-900 focus:border-primary focus:ring-primary dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-primary"
+                                                        value={minuteInput !== undefined ? minuteInput : (minutes || '00')}
+                                                        onChange={(e) => handleMinuteChange(e.target.value)}
+                                                        onBlur={handleMinuteBlur}
+                                                        placeholder="00"
+                                                        className="h-20 w-20 rounded-md border-zinc-200 bg-zinc-100 text-center text-5xl font-bold text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:ring-primary dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-600 dark:focus:border-primary"
                                 />
                             </div>
                                                 <div className="flex flex-col gap-2 pl-2">
@@ -1011,7 +1128,6 @@ const CreateVaultPage = () => {
 
                 {/* Step 4: Review */}
                 {step === 4 && (() => {
-                    const previewVaultId = generateVaultId();
                     const validHeirsPreview = heirAddresses.filter(addr => 
                         addr.trim() !== '' && 
                         ethers.isAddress(addr)
@@ -1050,7 +1166,7 @@ const CreateVaultPage = () => {
                                         <div className="flex flex-col gap-4">
                                             <div className="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-800">
                                                 <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Vault ID</span>
-                                                <span className="font-mono text-sm font-bold text-zinc-900 dark:text-primary">{previewVaultId}</span>
+                                                <span className="font-mono text-sm font-bold text-zinc-900 dark:text-primary">{previewVaultId || 'Generating...'}</span>
                                             </div>
                                             
                                             <div className="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-800">

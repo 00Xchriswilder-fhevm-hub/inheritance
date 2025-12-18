@@ -44,6 +44,9 @@ const CONTRACT_ABI = [
     "function vaultExists(string calldata _vaultId) external view returns (bool)",
     "function authorizedHeirs(string calldata _vaultId, address _heir) external view returns (bool)",
     "function getUserVaults(address _user) external view returns (string[] memory)",
+    "function grantAccess(string calldata _vaultId, address _heir) external",
+    "function grantAccessToMultiple(string calldata _vaultId, address[] calldata _heirs) external",
+    "function revokeAccess(string calldata _vaultId, address _heir) external",
 ];
 
 const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
@@ -904,47 +907,83 @@ async function indexEvents() {
                     let vaultId = event.args.vaultId || event.args[0];
                     const heir = extractStringArg(event.args.heir || event.args[1]);
                     
-                    // Handle indexed vaultId - try to recover from transaction
+                    // Handle indexed vaultId - try to recover from transaction input
                     if (vaultId && typeof vaultId === 'object' && vaultId._isIndexed === true) {
-                        console.log(`🔍 [AccessGranted] vaultId is indexed, attempting recovery from transaction...`);
+                        console.log(`🔍 [AccessGranted] vaultId is indexed, attempting recovery from transaction input...`);
                         try {
-                            // Get the transaction to find the vault owner
+                            // Get the transaction to decode the input data
                             const tx = await provider.getTransaction(event.transactionHash);
-                            const owner = tx.from;
                             
-                            if (!owner) {
-                                console.warn(`⚠️  [AccessGranted] Could not get transaction sender. Skipping.`);
+                            if (!tx || !tx.data) {
+                                console.warn(`⚠️  [AccessGranted] Could not get transaction data. Skipping.`);
                                 continue;
                             }
                             
-                            // Query all vaults for this owner
-                            console.log(`🔍 [AccessGranted] Querying vaults for owner ${owner}...`);
-                            const userVaults = await contract.getUserVaults(owner);
+                            // Try to decode the transaction input to get the vaultId parameter
+                            let decodedVaultId = null;
                             
-                            // For AccessGranted events, we can check which vaults have this heir authorized
-                            // Query the contract to see which vault has this heir authorized
-                            let foundVaultId = null;
+                            try {
+                                // Try grantAccessToMultiple first (most common)
+                                const iface = contract.interface || new ethers.Interface(CONTRACT_ABI);
+                                const decoded = iface.parseTransaction({ data: tx.data });
+                                
+                                if (decoded && decoded.name === 'grantAccessToMultiple') {
+                                    decodedVaultId = decoded.args[0]; // First parameter is vaultId
+                                    console.log(`✅ [AccessGranted] Decoded vaultId from grantAccessToMultiple: ${decodedVaultId}`);
+                                } else if (decoded && decoded.name === 'grantAccess') {
+                                    decodedVaultId = decoded.args[0]; // First parameter is vaultId
+                                    console.log(`✅ [AccessGranted] Decoded vaultId from grantAccess: ${decodedVaultId}`);
+                                }
+                            } catch (decodeError) {
+                                console.warn(`⚠️  [AccessGranted] Could not decode transaction input:`, decodeError.message);
+                            }
                             
-                            for (const candidateVaultId of userVaults) {
-                                try {
-                                    const vaultIdStr = String(candidateVaultId);
-                                    const isAuthorized = await contract.authorizedHeirs(vaultIdStr, heir);
-                                    if (isAuthorized) {
-                                        foundVaultId = vaultIdStr;
-                                        break; // Found the matching vault
-                                    }
-                                } catch (err) {
-                                    // Continue checking other vaults
+                            if (decodedVaultId) {
+                                vaultId = String(decodedVaultId);
+                                console.log(`✅ [AccessGranted] Recovered vaultId from transaction: ${vaultId}`);
+                            } else {
+                                // Fallback: Try to find by checking which vault was granted access in this transaction
+                                // by checking the block number and transaction hash against recent events
+                                console.log(`🔍 [AccessGranted] Fallback: Checking vaults for transaction sender...`);
+                                const owner = tx.from;
+                                
+                                if (!owner) {
+                                    console.warn(`⚠️  [AccessGranted] Could not get transaction sender. Skipping.`);
                                     continue;
                                 }
-                            }
-                            
-                            if (foundVaultId) {
-                                vaultId = foundVaultId;
-                                console.log(`✅ [AccessGranted] Recovered vaultId: ${foundVaultId} (matched by authorized heir)`);
-                            } else {
-                                console.warn(`⚠️  [AccessGranted] Could not recover vaultId from indexed parameter. Skipping event.`);
-                                continue;
+                                
+                                // Get all vaults for this owner
+                                const userVaults = await contract.getUserVaults(owner);
+                                
+                                // Check which vault has this heir authorized AND was created before this block
+                                // This helps narrow down to the correct vault
+                                let foundVaultId = null;
+                                
+                                for (const candidateVaultId of userVaults) {
+                                    try {
+                                        const vaultIdStr = String(candidateVaultId);
+                                        const isAuthorized = await contract.authorizedHeirs(vaultIdStr, heir);
+                                        
+                                        // Additional check: verify this vault exists and was created before this event
+                                        const vaultExists = await contract.vaultExists(vaultIdStr);
+                                        if (isAuthorized && vaultExists) {
+                                            // Prefer the most recently created vault that matches
+                                            // (This is still imperfect but better than first match)
+                                            foundVaultId = vaultIdStr;
+                                        }
+                                    } catch (err) {
+                                        // Continue checking other vaults
+                                        continue;
+                                    }
+                                }
+                                
+                                if (foundVaultId) {
+                                    vaultId = foundVaultId;
+                                    console.log(`✅ [AccessGranted] Recovered vaultId: ${foundVaultId} (fallback match)`);
+                                } else {
+                                    console.warn(`⚠️  [AccessGranted] Could not recover vaultId from indexed parameter. Skipping event.`);
+                                    continue;
+                                }
                             }
                         } catch (recoveryError) {
                             console.error(`❌ [AccessGranted] Error recovering vaultId:`, recoveryError);
@@ -983,71 +1022,94 @@ async function indexEvents() {
                     let vaultId = event.args.vaultId || event.args[0];
                     const heir = extractStringArg(event.args.heir || event.args[1]);
                     
-                    // Handle indexed vaultId - try to recover from transaction
+                    // Handle indexed vaultId - try to recover from transaction input
                     if (vaultId && typeof vaultId === 'object' && vaultId._isIndexed === true) {
-                        console.log(`🔍 [AccessRevoked] vaultId is indexed, attempting recovery from transaction...`);
+                        console.log(`🔍 [AccessRevoked] vaultId is indexed, attempting recovery from transaction input...`);
                         try {
-                            // Get the transaction to find the vault owner
+                            // Get the transaction to decode the input data
                             const tx = await provider.getTransaction(event.transactionHash);
-                            const owner = tx.from;
                             
-                            if (!owner) {
-                                console.warn(`⚠️  [AccessRevoked] Could not get transaction sender. Skipping.`);
+                            if (!tx || !tx.data) {
+                                console.warn(`⚠️  [AccessRevoked] Could not get transaction data. Skipping.`);
                                 continue;
                             }
                             
-                            // Query all vaults for this owner
-                            // Note: For revoked events, we can't easily check if heir was authorized
-                            // So we'll check all vaults and see which ones had this heir at some point
-                            console.log(`🔍 [AccessRevoked] Querying vaults for owner ${owner}...`);
-                            const userVaults = await contract.getUserVaults(owner);
+                            // Try to decode the transaction input to get the vaultId parameter
+                            let decodedVaultId = null;
                             
-                            // For revoked events, we need to check the database or query historical state
-                            // For now, we'll try to match by checking if the heir was ever authorized
-                            // This is less reliable, but better than skipping
-                            let foundVaultId = null;
-                            
-                            // Check database first - see if we have any vaults with this heir
-                            const { data: heirRecords } = await supabase
-                                .from('heirs')
-                                .select('vault_id')
-                                .eq('heir_address', heir.toLowerCase())
-                                .eq('is_active', false) // Recently revoked
-                                .order('revoked_at', { ascending: false })
-                                .limit(1);
-                            
-                            if (heirRecords && heirRecords.length > 0) {
-                                // Check if this vault belongs to the owner
-                                const candidateVaultId = heirRecords[0].vault_id;
-                                const { data: vault } = await supabase
-                                    .from('vaults')
-                                    .select('owner_address')
-                                    .eq('vault_id', candidateVaultId)
-                                    .single();
+                            try {
+                                // Try revokeAccess
+                                const iface = contract.interface || new ethers.Interface(CONTRACT_ABI);
+                                const decoded = iface.parseTransaction({ data: tx.data });
                                 
-                                if (vault && vault.owner_address.toLowerCase() === owner.toLowerCase()) {
-                                    foundVaultId = candidateVaultId;
+                                if (decoded && decoded.name === 'revokeAccess') {
+                                    decodedVaultId = decoded.args[0]; // First parameter is vaultId
+                                    console.log(`✅ [AccessRevoked] Decoded vaultId from revokeAccess: ${decodedVaultId}`);
                                 }
+                            } catch (decodeError) {
+                                console.warn(`⚠️  [AccessRevoked] Could not decode transaction input:`, decodeError.message);
                             }
                             
-                            // If not found in DB, try querying contract (less reliable for revoked)
-                            if (!foundVaultId) {
-                                // Check recent vaults - if a vault had this heir and it was revoked recently
-                                // This is a best-effort approach
-                                for (const vid of userVaults.slice(0, 10)) { // Check first 10 vaults
-                                    // We can't check if heir was revoked, but we can check if vault exists
-                                    // and belongs to owner (already verified by getUserVaults)
-                                    foundVaultId = vid; // Use first vault as fallback (not ideal)
-                                    break;
-                                }
-                            }
-                            
-                            if (foundVaultId) {
-                                vaultId = foundVaultId;
-                                console.log(`✅ [AccessRevoked] Recovered vaultId: ${vaultId} (best-effort match)`);
+                            if (decodedVaultId) {
+                                vaultId = String(decodedVaultId);
+                                console.log(`✅ [AccessRevoked] Recovered vaultId from transaction: ${vaultId}`);
                             } else {
-                                console.warn(`⚠️  [AccessRevoked] Could not recover vaultId for owner ${owner} with heir ${heir}. Skipping.`);
-                                continue;
+                                // Fallback: Check database for recently revoked heirs
+                                console.log(`🔍 [AccessRevoked] Fallback: Checking database for recently revoked heirs...`);
+                                const owner = tx.from;
+                                
+                                if (!owner) {
+                                    console.warn(`⚠️  [AccessRevoked] Could not get transaction sender. Skipping.`);
+                                    continue;
+                                }
+                                
+                                // Check database first - see if we have any vaults with this heir that were recently revoked
+                                let foundVaultId = null;
+                                
+                                const { data: heirRecords } = await supabase
+                                    .from('heirs')
+                                    .select('vault_id')
+                                    .eq('heir_address', heir.toLowerCase())
+                                    .eq('is_active', false) // Recently revoked
+                                    .order('revoked_at', { ascending: false })
+                                    .limit(1);
+                                
+                                if (heirRecords && heirRecords.length > 0) {
+                                    // Check if this vault belongs to the owner
+                                    const candidateVaultId = heirRecords[0].vault_id;
+                                    const { data: vault } = await supabase
+                                        .from('vaults')
+                                        .select('owner_address')
+                                        .eq('vault_id', candidateVaultId)
+                                        .single();
+                                    
+                                    if (vault && vault.owner_address.toLowerCase() === owner.toLowerCase()) {
+                                        foundVaultId = candidateVaultId;
+                                    }
+                                }
+                                
+                                // If not found in DB, try querying contract (less reliable for revoked)
+                                if (!foundVaultId) {
+                                    // Query all vaults for this owner
+                                    const userVaults = await contract.getUserVaults(owner);
+                                    
+                                    // Check recent vaults - if a vault had this heir and it was revoked recently
+                                    // This is a best-effort approach
+                                    for (const vid of userVaults.slice(0, 10)) { // Check first 10 vaults
+                                        // We can't check if heir was revoked, but we can check if vault exists
+                                        // and belongs to owner (already verified by getUserVaults)
+                                        foundVaultId = vid; // Use first vault as fallback (not ideal)
+                                        break;
+                                    }
+                                }
+                                
+                                if (foundVaultId) {
+                                    vaultId = foundVaultId;
+                                    console.log(`✅ [AccessRevoked] Recovered vaultId: ${vaultId} (fallback match)`);
+                                } else {
+                                    console.warn(`⚠️  [AccessRevoked] Could not recover vaultId for owner ${owner} with heir ${heir}. Skipping.`);
+                                    continue;
+                                }
                             }
                         } catch (recoveryError) {
                             console.error(`❌ [AccessRevoked] Error recovering vaultId:`, recoveryError.message);

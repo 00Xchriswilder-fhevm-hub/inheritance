@@ -1,0 +1,90 @@
+Legacy Vault – Branding Colors
+==============================
+
+Primary Palette
+---------------
+- Name: background
+  Hex: #000000
+  Use: Main app background / dark mode base.
+
+- Name: background-light
+  Hex: #f8f8f5
+  Use: Light / off-white background for light sections.
+
+- Name: background-dark
+  Hex: #000000
+  Use: Same as background – deep black for emphasis and contrast.
+
+- Name: card-dark
+  Hex: #1A1A1A
+  Use: Cards, panels, and surfaces on dark background.
+
+- Name: surface
+  Hex: #121212
+  Use: Base surface for containers, modals, and layout blocks.
+
+- Name: surface-hover
+  Hex: #1e1e1e
+  Use: Hover states on dark surfaces.
+
+- Name: foreground
+  Hex: #ffffff
+  Use: Primary text and icons on dark background.
+
+- Name: muted
+  Hex: #a3a3a3
+  Use: Secondary text, labels, helper text.
+
+
+Brand Accent (Gold)
+-------------------
+- Name: primary
+  Hex: #f9ce10
+  Use: Primary brand accent: CTAs, key highlights, important icons.
+
+- Name: primary-hover
+  Hex: #e6bd00
+  Use: Hover state for primary buttons and interactive elements.
+
+- Name: primary-dark
+  Hex: #b39200
+  Use: Focus/pressed state, borders, or deeper gold accents.
+
+- Name: border-hover
+  Hex: #ffd208
+  Use: Hover state for borders, card outlines, and emphasis strokes.
+
+
+Status Colors
+-------------
+- Name: border
+  Hex: #333333
+  Use: Standard borders, dividers, and outlines.
+
+- Name: success
+  Hex: #4ade80
+  Use: Success states, confirmations, “done” badges.
+
+- Name: warning
+  Hex: #fb923c
+  Use: Warnings, caution messages, non-critical alerts.
+
+- Name: error
+  Hex: #ef4444
+  Use: Errors, failed actions, critical alerts.
+
+- Name: info
+  Hex: #60a5fa
+  Use: Informational messages, neutral notifications.
+
+
+Typography
+----------
+- Font Family (Sans / Display):
+  - Space Grotesk, sans-serif
+
+- Font Family (Mono):
+  - Space Mono, monospace
+
+
+

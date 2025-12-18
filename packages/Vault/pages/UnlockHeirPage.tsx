@@ -11,6 +11,7 @@ import { getVaultMetadata, isAuthorized } from '../services/vaultContractService
 import { unlockVault } from '../services/fheVaultService';
 import { getIPFSMetadata } from '../services/ipfsService';
 import { useFheVault } from '../hooks/useFheVault';
+import { useWalletClient, usePublicClient } from 'wagmi';
 import { getTransactionErrorMessage } from '../utils/errorHandler';
 import { ethers } from 'ethers';
 import type { Vault } from '../types';
@@ -30,6 +31,8 @@ const UnlockHeirPage = () => {
     const [countdown, setCountdown] = useState<{days: string, hours: string, min: string, sec: string} | null>(null);
     const toast = useToast();
     const { decryptValue } = useFheVault();
+    const { data: walletClient } = useWalletClient();
+    const publicClient = usePublicClient();
 
     const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm();
     const watchVaultId = watch('vaultId');
@@ -306,13 +309,16 @@ const UnlockHeirPage = () => {
                 
                 try {
                     toast.info("Unlocking FHE vault...");
-                    const { getEthereumProvider } = await import('../utils/ethereumProvider');
-                    const ethereumProvider = getEthereumProvider();
-                    if (!ethereumProvider) {
-                        throw new Error('Ethereum provider not found');
+                    
+                    // Get provider from wagmi (works with any connected wallet including Porto)
+                    if (!walletClient && !publicClient) {
+                        throw new Error('No wallet provider found. Please connect your wallet.');
                     }
-                    const provider = new ethers.BrowserProvider(ethereumProvider);
-            const signer = await provider.getSigner();
+                    
+                    const client = walletClient || publicClient;
+                    const provider = new ethers.BrowserProvider(client as any);
+                    const signer = await provider.getSigner();
+                    
                     if (!signer) {
                         throw new Error("Failed to get signer");
                     }

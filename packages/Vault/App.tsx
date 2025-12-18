@@ -155,8 +155,8 @@ const Navbar = () => {
                                                         type="button"
                                                         className="text-xs font-mono bg-zinc-900 px-3 py-1 rounded border border-white/10 text-[#22c55e] hover:bg-zinc-800 transition-colors"
                                                     >
-                                                        {account.displayName}
-                                                        {account.displayBalance && 
+                                                        {account?.displayName || 'Unknown'}
+                                                        {account?.displayBalance && 
                                                          !account.displayBalance.includes('NaN') && 
                                                          account.displayBalance.trim() !== ''
                                                             ? ` (${account.displayBalance})`
@@ -252,7 +252,7 @@ const Navbar = () => {
                                     return (
                                         <div className="flex flex-col gap-2">
                                             <div className="text-xs font-mono text-center text-white/50">
-                                                Connected: {account.displayName}
+                                                Connected: {account?.displayName || 'Unknown'}
                                             </div>
                                             <button 
                                                 onClick={openAccountModal}

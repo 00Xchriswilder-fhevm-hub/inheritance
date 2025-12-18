@@ -1,0 +1,348 @@
+Legacy Vault – Demo Talk Track (Google Meet via Luma)
+====================================================
+
+[You can trim or rewrite anything in here. This is written as if you’re speaking live.]
+
+----------------------------------------------------
+1. Quick Personal Intro (30–60 seconds)
+----------------------------------------------------
+
+“Hey everyone, thanks so much for joining today.
+
+My name is [YOUR NAME], and I’m the creator of Legacy Vault.
+
+Today I want to talk about something we almost never enjoy talking about:
+what happens to our digital life and our wealth if something happens to us –
+and then I’ll show you how Legacy Vault helps solve that in a very practical way.”
+
+[Pause – let people settle.]
+
+----------------------------------------------------
+2. The Human Problem (2–3 minutes)
+----------------------------------------------------
+
+“Let me start with a simple, uncomfortable question:
+
+If you disappeared tomorrow – an accident, an illness, whatever – 
+would the people you love actually be able to access what you’ve built?
+
+Your crypto, your important files, your accounts, your instructions… 
+or would all of that die with you?”
+
+[Short pause.]
+
+“Most of us have the same pattern:
+- We have seed phrases written on paper somewhere.
+- Passwords saved in browsers, password managers, or just in our heads.
+- Maybe a will that’s out of date or hard to execute.
+
+And in crypto especially, there’s this harsh reality:
+if your private keys are gone, they’re gone. 
+There’s no ‘Forgot Password’ button for your wallet.
+
+So we end up in this weird tension:
+- On one hand, we want strong security. 
+  We don’t want anyone touching our assets while we’re alive.
+- On the other hand, we don’t want our family locked out forever if something happens.
+
+And because it’s uncomfortable, we procrastinate.
+We say, ‘I’ll write that down later. I’ll set up a plan later.’
+And later often never comes.”
+
+----------------------------------------------------
+3. Why Existing Solutions Are Broken (1–2 minutes)
+----------------------------------------------------
+
+“Let’s look quickly at what people usually do:
+
+- Password-based systems:
+  You write things down, you share a password or a seed with someone you trust.
+  That can get lost, stolen, copied, or misused.
+
+- Multi-sig wallets:
+  Great idea in theory, but they require multiple people to coordinate.
+  And they don’t really solve, ‘What if I’m gone and my family isn’t crypto-native?’
+
+- Trusted third parties:
+  Lawyers, custodians, centralized services.
+  You’re basically saying: ‘Here, hold my secrets and don’t screw this up.’
+  That’s a huge point of failure and a big trust assumption.
+
+- Plain encryption:
+  You can encrypt a backup, but at some point you have to reveal the key 
+  to the person you want to help – which means they can access it any time, 
+  not just when you’re gone.
+
+All of these approaches force you to choose between:
+security while you’re alive, and access for your loved ones when you’re not.
+
+Legacy Vault is about not having to choose.”
+
+----------------------------------------------------
+4. What Legacy Vault Is (High-Level) (1–2 minutes)
+----------------------------------------------------
+
+“So what is Legacy Vault?
+
+Legacy Vault is a time-locked, cryptographically enforced inheritance vault.
+
+You can think of it as:
+‘A secure digital vault where I can store secrets and wealth-related data,
+ choose exactly who can access it, 
+ and set a time or condition for when they can unlock it – 
+ all enforced by math and cryptography, not trust.’
+
+Concretely, it lets you:
+- Store encrypted data (like an AES key, seed phrase, or any critical secret).
+- Add one or more heirs – their wallet addresses.
+- Set a release timestamp in the future.
+- While you’re alive and before that time, only you can unlock it.
+- After that time, your authorized heirs can unlock – but only the people you chose.
+
+And you can always:
+- Update the release time.
+- Add or remove heirs.
+- Even revoke access before the release time if something changes.
+
+You stay in control, but you also give your loved ones a guaranteed path to access.”
+
+----------------------------------------------------
+5. The Core Magic – In Human Terms (2–3 minutes)
+----------------------------------------------------
+
+“Under the hood, Legacy Vault uses something called Fully Homomorphic Encryption – FHE –
+plus an access control system (ACL).
+
+Let me explain that in normal language.
+
+Imagine you put your secret – for example your AES key – into a vault.
+But instead of the app or the smart contract ever seeing that key in plain text,
+it’s stored as an encrypted number on-chain.
+
+With FHE, the smart contract can ‘work with’ that encrypted value
+without ever decrypting it.
+
+On top of that, we have an ACL – Access Control List.
+When you create a vault, the system says:
+‘This encrypted key can be decrypted by this specific address – yours.’
+
+When you add an heir, the system says:
+‘This encrypted key can also be decrypted by this heir’s address –
+ but only after the release time.’
+
+So instead of trusting a company or a lawyer, 
+you’re literally trusting math:
+- The ACL defines who can decrypt.
+- The time lock defines when they can decrypt.
+- The encrypted value itself never appears in plain text on-chain.
+
+Even the contract owner can’t just peek into your key.
+ACL plus FHE gives you:
+wallet-based access, time-locked release, and confidentiality in one system.”
+
+----------------------------------------------------
+6. Real-Life Scenarios (Storytelling) (3–4 minutes)
+----------------------------------------------------
+
+“Let me make this real with a few scenarios.
+
+Scenario 1: The Accident
+------------------------
+You might be thinking:
+‘What if I die in a car accident tomorrow?’
+
+With Legacy Vault, you’ve already created a vault.
+You’ve chosen your heirs – maybe your partner, your children, a sibling.
+You’ve set a release time, maybe a year out, maybe tied to a specific date.
+
+Until that release time, even though they’re authorized,
+they cannot decrypt that secret.
+They can’t front-run you, they can’t drain you while you’re alive.
+
+But if something happens to you and enough time passes,
+the system does what it’s designed to do:
+your heirs can unlock and recover what you left for them.
+No chasing lawyers, no guessing passwords, no reading your mind.”
+
+
+“Scenario 2: The Lost Phrase
+----------------------------
+Another very real scenario:
+‘What if I lose my recovery phrase?’
+
+With Legacy Vault, the vault itself becomes your backup.
+Your encrypted data – your AES key, your recovery material –
+is stored securely (for example backed by IPFS in the background).
+
+As the owner, you can always unlock your own vault.
+So you’re not just planning for death; 
+you’re also planning for very human mistakes we all make.”
+
+
+“Scenario 3: The Trust Issue
+----------------------------
+You might say:
+‘I want my family to have access if I’m gone,
+ but I’m afraid they’ll take everything while I’m alive.’
+
+Legacy Vault’s answer is simple:
+they can’t – because of the time lock.
+
+You can grant access to their addresses,
+but until the release timestamp you choose,
+the system will not allow them to decrypt.
+
+You get to say:
+‘Yes, you will have access… but not yet.’”
+
+
+“Scenario 4: The Multi-Heir Family
+----------------------------------
+Now imagine you have, say, three children.
+You don’t want drama, you don’t want one person being the gatekeeper.
+
+With Legacy Vault, you can simply grant access to all three addresses.
+Each one gets their own permission through the ACL.
+
+After the release time, they can each unlock independently.
+No one is stuck waiting on the other.
+It’s fair, it’s transparent, and the rules are enforced by code.”
+
+----------------------------------------------------
+7. Transition to Live Demo (30–60 seconds)
+----------------------------------------------------
+
+“Okay, that’s the big picture. 
+Now let me show you how this actually feels in the app.
+
+I’ll share my screen,
+walk you through creating a legacy vault,
+adding heirs, setting a release time,
+and then we’ll look at what the experience is like 
+for an heir trying to unlock after the release time.”
+
+[Now you share screen and switch to the app.]
+
+----------------------------------------------------
+8. Live Demo Flow (You Adapt to Your UI) (5–10 minutes)
+----------------------------------------------------
+
+[You can use this as a rough checklist while you click through.]
+
+1) Create a New Vault
+---------------------
+“Here on the main screen, I’m going to create a new Legacy Vault.
+
+I give it a name – for example ‘Family Crypto Backup’ –
+and here’s where I provide the secret: this could be an AES key,
+it could be a seed phrase, or any other data we want to protect.”
+
+[Type something realistic but safe for demo.]
+
+“Notice that I never store this in plain text on-chain.
+It’s encrypted and handled through FHE behind the scenes.”
+
+
+2) Add Heirs (Wallet Addresses)
+-------------------------------
+“Next, I’m going to add a couple of heirs.
+Let’s say I add two addresses – maybe representing two children.
+
+Each of these addresses is now authorized in the ACL
+to eventually decrypt this vault – but not yet.”
+
+
+3) Set the Release Time
+-----------------------
+“Now I choose a release time.
+For the demo, I might set something close in the future just to simulate,
+but in real life you might choose a date like:
+‘1 year from now’, or a specific date in the future.
+
+Until this timestamp is reached,
+only I, as the owner, can unlock this vault.
+
+After that timestamp,
+the heirs I’ve added will be able to unlock from their own wallets.”
+
+
+4) Show Owner Control (Update / Revoke)
+---------------------------------------
+“If I change my mind,
+I can come back and:
+- adjust the release time,
+- add a new heir,
+- or revoke an heir’s access before the release time.
+
+So you’re not locked into a decision you made years ago.
+Life changes, and your plan can change with it.”
+
+
+5) Simulate Heir Experience (Conceptually)
+------------------------------------------
+[Here, either actually connect with a test heir wallet or just explain it.]
+
+“Now let’s look at the heir’s side.
+
+From their wallet, they see that they’re an authorized heir on this vault.
+
+- If the release time has NOT passed:
+  they can try to unlock, but the system will reject it.
+  The time lock and ACL are doing their job.
+
+- Once the release time is reached:
+  their wallet can request decryption,
+  and the system will allow it – because the conditions are met.
+
+That’s the key idea:
+I don’t need to be alive to ‘approve’ anything.
+The rules were set in advance and are enforced automatically.”
+
+----------------------------------------------------
+9. Wrap-Up & Vision (1–2 minutes)
+----------------------------------------------------
+
+“To summarize:
+
+- We all have digital assets and secrets that matter.
+- The current ways we handle inheritance and backup are fragile:
+  papers, passwords, people we have to trust.
+- Legacy Vault lets you define:
+  *what* gets inherited,
+  *who* gets access,
+  and *when* they get it –
+  without exposing your keys while you’re alive.
+
+It combines:
+- wallet-based authentication,
+- time-locked release,
+- and strong encryption with FHE and ACLs,
+to give you a safer, more predictable way
+to pass on what you’ve built.”
+
+“My goal with Legacy Vault is simple:
+make it normal – and easy – 
+for crypto users and digital natives
+to have a serious, robust inheritance plan,
+without needing to become security experts or lawyers.”
+
+----------------------------------------------------
+10. Call to Action / Q&A (1–3 minutes)
+----------------------------------------------------
+
+“If this resonates with you,
+I’d love for you to:
+- Try out the app.
+- Think about who you would actually add as heirs.
+- And send me feedback on what you’d need 
+  for this to become part of your real-life planning.
+
+I’ll pause here for questions.
+Happy to go deeper into the tech, 
+talk about edge cases,
+or walk through specific scenarios you’re worried about.”
+
+[End.] 
+
+
+
