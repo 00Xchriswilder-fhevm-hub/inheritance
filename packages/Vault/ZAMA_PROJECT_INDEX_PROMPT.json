@@ -1,0 +1,334 @@
+{
+  "project": {
+    "name": "ZAMA Project Index",
+    "description": "A curated showcase website listing all projects built with ZAMA FHE (Fully Homomorphic Encryption) technology",
+    "company": "ZAMA",
+    "purpose": "Display and celebrate the ZAMA FHE ecosystem by showcasing community-built applications"
+  },
+  "design_theme": {
+    "primary_style": "Neo-Brutalism",
+    "secondary_theme": "Steampunk Chronicles",
+    "description": "Combine bold, geometric neo-brutalist design with steampunk-inspired mechanical elements, brass accents, and vintage typography. Think industrial meets digital, with chunky borders, high contrast, and mechanical UI elements.",
+    "visual_elements": [
+      "Chunky, bold borders (3-5px solid)",
+      "High contrast color combinations",
+      "Geometric shapes and sharp corners",
+      "Steampunk-inspired brass/gold accents",
+      "Mechanical gear/cog decorative elements",
+      "Vintage typography mixed with modern sans-serif",
+      "Shadow effects: neo-brutalist offset shadows (5px 5px 0px)",
+      "Industrial textures and subtle patterns"
+    ]
+  },
+  "color_palette": {
+    "backgrounds": {
+      "primary": "#000000",
+      "light": "#f8f8f5",
+      "dark": "#000000",
+      "card": "#1A1A1A",
+      "surface": "#121212",
+      "surface_hover": "#1e1e1e"
+    },
+    "text": {
+      "primary": "#ffffff",
+      "muted": "#a3a3a3"
+    },
+    "accent": {
+      "primary": "#f9ce10",
+      "primary_hover": "#e6bd00",
+      "primary_dark": "#b39200",
+      "border_hover": "#ffd208"
+    },
+    "status": {
+      "success": "#4ade80",
+      "warning": "#fb923c",
+      "error": "#ef4444",
+      "info": "#60a5fa"
+    },
+    "borders": {
+      "default": "#333333",
+      "hover": "#ffd208"
+    },
+    "steampunk_accents": {
+      "brass": "#b39200",
+      "copper": "#b87333",
+      "bronze": "#cd7f32",
+      "steel": "#71797E"
+    }
+  },
+  "typography": {
+    "primary_font": "Space Grotesk, sans-serif",
+    "mono_font": "Space Mono, monospace",
+    "steampunk_font": "Cinzel, serif (for headings and decorative text)",
+    "font_weights": {
+      "light": 300,
+      "regular": 400,
+      "medium": 500,
+      "bold": 700,
+      "black": 900
+    }
+  },
+  "pages": {
+    "home": {
+      "name": "Project Gallery",
+      "description": "Main page displaying all approved ZAMA FHE projects",
+      "layout": "Grid layout with project cards",
+      "features": [
+        "Filter by category/tags",
+        "Search functionality",
+        "Sort by: newest, most popular, alphabetical",
+        "Pagination or infinite scroll"
+      ]
+    },
+    "project_detail": {
+      "name": "Project Details",
+      "description": "Individual project page with full details",
+      "sections": [
+        "Hero section with preview image",
+        "Project description",
+        "Technology stack",
+        "Links (GitHub, Twitter, App)",
+        "Screenshots/gallery",
+        "Project tags/categories",
+        "Built by section"
+      ]
+    },
+    "submit_project": {
+      "name": "Submit Project",
+      "description": "Form for users to submit new projects for approval",
+      "required_fields": [
+        "Project name",
+        "Description",
+        "GitHub repository URL",
+        "Twitter/X handle ",
+        "App/Demo URL ",
+        "Preview image upload",
+        "Technology stack tags",
+        "Category/type",
+        "Built by (developer/team name)",
+        "Contact email"
+      ],
+      "features": [
+        "Image upload with preview",
+        "URL validation",
+        "Tag selection/autocomplete",
+        "Form validation",
+        "Success message after submission",
+        "Pending approval status display"
+      ]
+    },
+    "about": {
+      "name": "About ZAMA FHE",
+      "description": "Information about ZAMA and FHE technology"
+    }
+  },
+  "project_card": {
+    "description": "Card component displaying project preview",
+    "layout": "Vertical card with image on top",
+    "elements": [
+      {
+        "type": "preview_image",
+        "position": "top",
+        "aspect_ratio": "16:9",
+        "style": "Rounded corners with neo-brutalist border"
+      },
+      {
+        "type": "project_title",
+        "position": "below image",
+        "style": "Bold, large text in primary accent color"
+      },
+      {
+        "type": "short_description",
+        "position": "below title",
+        "style": "Muted text, 2-3 lines max"
+      },
+      {
+        "type": "tags",
+        "position": "below description",
+        "style": "Small badges with steampunk brass accents"
+      },
+      {
+        "type": "links_bar",
+        "position": "bottom",
+        "links": [
+          {
+            "type": "github",
+            "icon": "GitHub icon",
+            "style": "Brass/gold accent on hover"
+          },
+          {
+            "type": "twitter",
+            "icon": "Twitter/X icon",
+            "style": "Brass/gold accent on hover"
+          },
+          {
+            "type": "app_link",
+            "icon": "External link icon",
+            "style": "Brass/gold accent on hover"
+          }
+        ]
+      }
+    ],
+    "styling": {
+      "background": "#1A1A1A",
+      "border": "3px solid #f9ce10",
+      "border_radius": "8px",
+      "shadow": "5px 5px 0px 0px #f9ce10",
+      "hover_effect": "Lift animation, border color change to #ffd208",
+      "padding": "16px"
+    }
+  },
+  "ui_components": {
+    "buttons": {
+      "primary": {
+        "background": "#f9ce10",
+        "text_color": "#000000",
+        "border": "3px solid #000000",
+        "shadow": "5px 5px 0px 0px #000000",
+        "hover": {
+          "background": "#ffd208",
+          "transform": "translate(-2px, -2px)",
+          "shadow": "7px 7px 0px 0px #000000"
+        }
+      },
+      "secondary": {
+        "background": "transparent",
+        "text_color": "#f9ce10",
+        "border": "3px solid #f9ce10",
+        "hover": {
+          "background": "#f9ce10",
+          "text_color": "#000000"
+        }
+      }
+    },
+    "inputs": {
+      "style": "Neo-brutalist with chunky borders",
+      "border": "3px solid #333333",
+      "focus_border": "3px solid #f9ce10",
+      "background": "#1A1A1A",
+      "text_color": "#ffffff",
+      "placeholder_color": "#a3a3a3"
+    },
+    "cards": {
+      "background": "#1A1A1A",
+      "border": "3px solid #f9ce10",
+      "shadow": "5px 5px 0px 0px #f9ce10",
+      "border_radius": "8px"
+    },
+    "badges": {
+      "background": "#b39200",
+      "text_color": "#000000",
+      "border": "2px solid #000000",
+      "border_radius": "4px",
+      "font_size": "12px",
+      "font_weight": "bold"
+    }
+  },
+  "steampunk_elements": {
+    "decorative": [
+      "Gear/cog icons as decorative elements",
+      "Brass-colored accents on interactive elements",
+      "Mechanical-looking borders and dividers",
+      "Vintage-inspired typography for headings",
+      "Subtle industrial textures in backgrounds",
+      "Steam/particle effects on hover (optional)"
+    ],
+    "color_usage": {
+      "brass": "Primary accent for steampunk feel",
+      "copper": "Secondary accents",
+      "bronze": "Tertiary highlights"
+    }
+  },
+  "features": {
+    "project_management": [
+      "Admin approval system for submitted projects",
+      "Project status: pending, approved, rejected",
+      "Edit/update project information",
+      "Delete projects (admin only)"
+    ],
+    "user_experience": [
+      "Responsive design (mobile, tablet, desktop)",
+      "Smooth animations and transitions",
+      "Loading states",
+      "Error handling and messages",
+      "Accessibility (WCAG 2.1 AA)"
+    ],
+    "search_and_filter": [
+      "Search by project name or description",
+      "Filter by technology tags",
+      "Filter by category",
+      "Sort options",
+      "Clear filters button"
+    ]
+  },
+  "technical_requirements": {
+    "frontend": {
+      "framework": "React/Next.js or similar",
+      "styling": "Tailwind CSS with custom neo-brutalist utilities",
+      "state_management": "React Context or Zustand",
+      "form_handling": "React Hook Form",
+      "image_upload": "Cloudinary or similar service"
+    },
+    "backend": {
+      "database": "Supabase/PostgreSQL or similar",
+      "authentication": "Supabase Auth or similar",
+      "storage": "Supabase Storage for images",
+      "api": "REST or GraphQL"
+    },
+    "deployment": {
+      "hosting": "Vercel, Netlify, or Railway",
+      "cdn": "For image optimization",
+      "domain": "Custom domain recommended"
+    }
+  },
+  "data_structure": {
+    "project": {
+      "id": "uuid",
+      "name": "string",
+      "description": "text",
+      "short_description": "string (max 200 chars)",
+      "github_url": "string (url)",
+      "twitter_handle": "string",
+      "app_url": "string (url, optional)",
+      "preview_image_url": "string (url)",
+      "screenshots": "array of urls",
+      "tags": "array of strings",
+      "category": "string",
+      "built_by": "string",
+      "contact_email": "string",
+      "status": "enum: pending, approved, rejected",
+      "created_at": "timestamp",
+      "updated_at": "timestamp",
+      "approved_at": "timestamp",
+      "approved_by": "string (admin user id)"
+    }
+  },
+  "animations": {
+    "card_hover": "Lift effect with shadow increase",
+    "button_click": "Press down effect",
+    "page_transitions": "Smooth fade/slide",
+    "loading": "Steampunk-inspired spinner (gear animation)",
+    "success": "Confetti or steam effect"
+  },
+  "accessibility": {
+    "requirements": [
+      "Keyboard navigation support",
+      "Screen reader compatibility",
+      "High contrast mode support",
+      "Focus indicators on all interactive elements",
+      "Alt text for all images",
+      "ARIA labels where needed"
+    ]
+  },
+  "inspiration": {
+    "neo_brutalism": "Bold, unapologetic design with chunky borders and high contrast",
+    "steampunk": "Victorian-era industrial aesthetic with brass, gears, and mechanical elements",
+    "examples": [
+      "Brutalist Websites Gallery",
+      "Steampunk UI Design",
+      "ZAMA Protocol branding"
+    ]
+  }
+}
+
+

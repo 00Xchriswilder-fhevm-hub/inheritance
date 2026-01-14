@@ -11,6 +11,7 @@ import CreateVaultPage from './pages/CreateVaultPage';
 import UnlockOwnerPage from './pages/UnlockOwnerPage';
 import UnlockHeirPage from './pages/UnlockHeirPage';
 import MyVaultsPage from './pages/MyVaultsPage';
+import MaintenancePage from './pages/MaintenancePage';
 import { WalletProvider, WalletContext } from './contexts/WalletContext';
 import { ToastProvider } from './contexts/ToastContext';
 
@@ -290,6 +291,14 @@ const Footer = () => (
 const AppContent = () => {
     const location = useLocation();
     const isLandingPage = location.pathname === '/' || location.pathname === '';
+    
+    // Check for maintenance mode from environment variable
+    const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
+
+    // If maintenance mode is enabled, show only the maintenance page
+    if (isMaintenanceMode) {
+        return <MaintenancePage />;
+    }
 
     return (
         <div className="min-h-screen flex flex-col bg-background text-foreground">
