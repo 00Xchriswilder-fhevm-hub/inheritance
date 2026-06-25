@@ -17,6 +17,14 @@ import { grantAccessToMultiple } from '../services/vaultContractService';
 import { ethers } from 'ethers';
 import { generateVaultId } from '../utils/vaultIdGenerator';
 import { getTransactionErrorMessage } from '../utils/errorHandler';
+import {
+    formatReleaseDateUtc,
+    formatReleaseTimeUtc,
+    getUtcTodayParts,
+    isUtcDateBeforeToday,
+    parseUtcReleaseDateTime,
+    utcDateString,
+} from '../utils/releaseTime';
 import { vaultService, userService, heirService } from '../supabase/supabaseService';
 
 const STEPS = [
@@ -59,12 +67,20 @@ const CreateVaultPage = () => {
     // when wallet connects, so we just check the status here
 
     // Form Setup
+    const defaultRelease = (() => {
+        const d = new Date(Date.now() + 86400000 * 365);
+        return {
+            releaseDate: utcDateString(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
+            releaseTime: '12:00',
+        };
+    })();
+
     const { control, register, handleSubmit, watch, trigger, getValues, setValue, formState: { errors, isValid } } = useForm({
         mode: 'onChange',
         defaultValues: {
             mnemonic: '',
-            releaseDate: new Date(Date.now() + 86400000 * 365).toISOString().split('T')[0],
-            releaseTime: '12:00',
+            releaseDate: defaultRelease.releaseDate,
+            releaseTime: defaultRelease.releaseTime,
         }
     });
 
@@ -75,9 +91,9 @@ const CreateVaultPage = () => {
     // Sync calendar view with selected date
     useEffect(() => {
         if (watchReleaseDate) {
-            const date = new Date(watchReleaseDate);
-            setCalendarMonth(date.getMonth());
-            setCalendarYear(date.getFullYear());
+            const [year, month] = watchReleaseDate.split('-').map(Number);
+            setCalendarMonth(month - 1);
+            setCalendarYear(year);
         }
     }, [watchReleaseDate]);
 
@@ -267,7 +283,7 @@ const CreateVaultPage = () => {
         }
 
         const values = getValues();
-        const combinedDateTime = new Date(`${values.releaseDate}T${values.releaseTime}`);
+        const combinedDateTime = parseUtcReleaseDateTime(values.releaseDate, values.releaseTime);
         
         if (combinedDateTime.getTime() <= Date.now()) {
             toast.error("Release time must be in the future");
@@ -863,7 +879,7 @@ const CreateVaultPage = () => {
                     };
                     
                     const previewDate = releaseDate && releaseTime 
-                        ? new Date(`${releaseDate}T${releaseTime}`)
+                        ? parseUtcReleaseDateTime(releaseDate, releaseTime)
                         : null;
                     
                     return (
@@ -872,7 +888,7 @@ const CreateVaultPage = () => {
                                 <div className="flex flex-wrap items-start justify-between gap-4">
                                     <div className="flex min-w-72 flex-col gap-2">
                                         <p className="text-3xl font-bold leading-tight tracking-tighter text-zinc-900 dark:text-white sm:text-4xl">Set the Release Schedule</p>
-                                        <p className="text-base font-normal leading-normal text-zinc-600 dark:text-zinc-400">Choose the exact date and time your vault will become accessible to its recipient.</p>
+                                        <p className="text-base font-normal leading-normal text-zinc-600 dark:text-zinc-400">Choose the exact date and time (UTC) your vault will become accessible to its recipient.</p>
                                     </div>
                                 </div>
                                 <div className="flex flex-col gap-2 pt-2">
@@ -892,9 +908,12 @@ const CreateVaultPage = () => {
                                         <h2 className="px-4 pb-3 pt-5 text-[22px] font-bold leading-tight tracking-[-0.015em] text-zinc-900 dark:text-white">Release Date</h2>
                                         <div className="rounded-xl border border-zinc-200 bg-background-light p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
                                             {(() => {
-                                                const selectedDate = releaseDate ? new Date(releaseDate) : null;
+                                                const [selectedYear, selectedMonth, selectedDay] = releaseDate
+                                                    ? releaseDate.split('-').map(Number)
+                                                    : [null, null, null];
                                                 const currentMonth = calendarMonth;
                                                 const currentYear = calendarYear;
+                                                const utcToday = getUtcTodayParts();
                                                 
                                                 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
                                                 const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -923,35 +942,23 @@ const CreateVaultPage = () => {
                                                 };
                                                 
                                                 const handleDateSelect = (day: number) => {
-                                                    const selected = new Date(currentYear, currentMonth, day);
-                                                    const today = new Date();
-                                                    today.setHours(0, 0, 0, 0);
-                                                    if (selected >= today) {
-                                                        const dateStr = selected.toISOString().split('T')[0];
-                                                        setValue('releaseDate', dateStr);
+                                                    if (!isUtcDateBeforeToday(currentYear, currentMonth, day)) {
+                                                        setValue('releaseDate', utcDateString(currentYear, currentMonth, day));
                                                     }
                                                 };
                                                 
-                                                const today = new Date();
-                                                const isToday = (day: number) => {
-                                                    return today.getDate() === day && 
-                                                           today.getMonth() === currentMonth && 
-                                                           today.getFullYear() === currentYear;
-                                                };
+                                                const isToday = (day: number) =>
+                                                    utcToday.year === currentYear &&
+                                                    utcToday.month === currentMonth &&
+                                                    utcToday.day === day;
                                                 
-                                                const isSelected = (day: number) => {
-                                                    if (!selectedDate) return false;
-                                                    return selectedDate.getDate() === day && 
-                                                           selectedDate.getMonth() === currentMonth && 
-                                                           selectedDate.getFullYear() === currentYear;
-                                                };
+                                                const isSelected = (day: number) =>
+                                                    selectedYear === currentYear &&
+                                                    selectedMonth === currentMonth + 1 &&
+                                                    selectedDay === day;
                                                 
-                                                const isPast = (day: number) => {
-                                                    const date = new Date(currentYear, currentMonth, day);
-                                                    const today = new Date();
-                                                    today.setHours(0, 0, 0, 0);
-                                                    return date < today;
-                                                };
+                                                const isPast = (day: number) =>
+                                                    isUtcDateBeforeToday(currentYear, currentMonth, day);
                                                 
                                                 const days = [];
                                                 // Empty cells for days before the first day of the month
@@ -1031,7 +1038,7 @@ const CreateVaultPage = () => {
                                 <div className="flex flex-col gap-8">
                                     {/* Time Picker Section */}
                                     <div className="flex flex-col">
-                                        <h2 className="px-4 pb-3 pt-5 text-[22px] font-bold leading-tight tracking-[-0.015em] text-zinc-900 dark:text-white">Release Time</h2>
+                                        <h2 className="px-4 pb-3 pt-5 text-[22px] font-bold leading-tight tracking-[-0.015em] text-zinc-900 dark:text-white">Release Time (UTC)</h2>
                                         <div className="flex flex-col gap-4 rounded-xl border border-zinc-200 bg-background-light p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
                                             <div className="flex items-center justify-center gap-2">
                                                 <div className="flex items-center">
@@ -1081,18 +1088,10 @@ const CreateVaultPage = () => {
                         </div>
                             </div>
                                             <div>
-                                                <label className="sr-only" htmlFor="timezone">Timezone</label>
-                                                <select 
-                                                    id="timezone" 
-                                                    name="timezone"
-                                                    className="mt-1 block w-full rounded-md border-zinc-200 bg-zinc-100 py-2 pl-3 pr-10 text-base text-zinc-900 focus:border-primary focus:outline-none focus:ring-primary dark:border-zinc-700 dark:bg-zinc-800 dark:text-white sm:text-sm"
-                                                >
-                                                    <option>Pacific Standard Time (PST)</option>
-                                                    <option>Mountain Standard Time (MST)</option>
-                                                    <option>Central Standard Time (CST)</option>
-                                                    <option>Eastern Standard Time (EST)</option>
-                                                    <option>Coordinated Universal Time (UTC)</option>
-                                                </select>
+                                                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">Timezone</label>
+                                                <div className="mt-1 block w-full rounded-md border border-zinc-200 bg-zinc-100 py-2 px-3 text-base text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white sm:text-sm">
+                                                    UTC — Coordinated Universal Time
+                                                </div>
                         </div>
                                         </div>
                                     </div>
@@ -1104,14 +1103,11 @@ const CreateVaultPage = () => {
                                             {previewDate ? (
                                                 <>
                                                     <p className="text-xl font-medium leading-relaxed text-zinc-400">
-                                                        {previewDate.toLocaleDateString('en-US', { weekday: 'long' })}
-                                                    </p>
-                                                    <p className="font-display text-4xl font-bold tracking-tighter text-white sm:text-5xl">
-                                                        {previewDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                                                        {formatReleaseDateUtc(previewDate)}
                                                     </p>
                                                     <p className="mt-2 text-xl font-medium text-zinc-400">
                                                         at <span className="font-bold text-primary">
-                                                            {previewDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} PST
+                                                            {formatReleaseTimeUtc(previewDate)}
                                                         </span>
                                                     </p>
                                                 </>
@@ -1135,7 +1131,7 @@ const CreateVaultPage = () => {
                     const releaseDate = watch('releaseDate');
                     const releaseTime = watch('releaseTime');
                     const previewDate = releaseDate && releaseTime 
-                        ? new Date(`${releaseDate}T${releaseTime}`)
+                        ? parseUtcReleaseDateTime(releaseDate, releaseTime)
                         : null;
                     
                     return (
@@ -1212,14 +1208,14 @@ const CreateVaultPage = () => {
                                                     <div className="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-800">
                                                         <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Release Date</span>
                                                         <span className="text-sm font-bold text-zinc-900 dark:text-white">
-                                                            {previewDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                                                            {formatReleaseDateUtc(previewDate)}
                                                         </span>
                                                     </div>
                                                     
                                                     <div className="flex justify-between items-center py-3">
-                                                        <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Release Time</span>
+                                                        <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Release Time (UTC)</span>
                                                         <span className="text-sm font-bold text-zinc-900 dark:text-white">
-                                                            {previewDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                                            {formatReleaseTimeUtc(previewDate)}
                                                         </span>
                                                     </div>
                                                 </>

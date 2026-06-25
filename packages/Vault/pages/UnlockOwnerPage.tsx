@@ -13,7 +13,7 @@ import { getVaultMetadata, grantAccess, grantAccessToMultiple, revokeAccess } fr
 import { useWalletClient, usePublicClient } from 'wagmi';
 import { ethers } from 'ethers';
 import { getTransactionErrorMessage } from '../utils/errorHandler';
-import { formatOpensInShort, formatReleaseDateTime } from '../utils/releaseTime';
+import { formatOpensInShort, formatReleaseDateTime, formatUtcTimeInput, parseUtcReleaseDateTime, utcDateString } from '../utils/releaseTime';
 import { useReleaseCountdown } from '../hooks/useReleaseCountdown';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { AlertTriangle, Wallet } from 'lucide-react';
@@ -237,8 +237,12 @@ const UnlockOwnerPage = () => {
                     
                     // Init edit state values
                     const releaseDateObj = new Date(vault.releaseTime);
-                    setNewReleaseDate(releaseDateObj.toISOString().split('T')[0]);
-                    setNewReleaseTime(releaseDateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+                    setNewReleaseDate(utcDateString(
+                        releaseDateObj.getUTCFullYear(),
+                        releaseDateObj.getUTCMonth(),
+                        releaseDateObj.getUTCDate()
+                    ));
+                    setNewReleaseTime(formatUtcTimeInput(releaseDateObj));
 
                     toast.success("FHE vault decrypted successfully");
                     setIsLoading(false);
@@ -506,7 +510,7 @@ LegacyVault - Secure Your Digital Legacy
     const handleUpdateSchedule = async () => {
         if (!currentVault) return;
         
-        const combined = new Date(`${newReleaseDate}T${newReleaseTime}`);
+        const combined = parseUtcReleaseDateTime(newReleaseDate, newReleaseTime);
         if (isNaN(combined.getTime())) {
             toast.error("Invalid date or time");
             return;
@@ -1021,7 +1025,7 @@ LegacyVault - Secure Your Digital Legacy
                                         {!isEditingSchedule ? (
                                         <div className="flex justify-between items-center">
                                                 <div>
-                                                <div className="text-sm text-white/50 uppercase tracking-wider mb-1 font-display">Current Release Date</div>
+                                                <div className="text-sm text-white/50 uppercase tracking-wider mb-1 font-display">Current Release Date (UTC)</div>
                                                 <div className="text-lg font-bold text-white font-display">{formatReleaseDateTime(currentVault.releaseTime)}</div>
                                                 </div>
                                             <button 
@@ -1036,7 +1040,7 @@ LegacyVault - Secure Your Digital Legacy
                                         <div className="animate-fade-in">
                                             <div className="grid md:grid-cols-2 gap-4 mb-4">
                                                     <div>
-                                                    <label className="block text-xs font-bold text-white/50 mb-2 uppercase tracking-wider font-display">New Date</label>
+                                                    <label className="block text-xs font-bold text-white/50 mb-2 uppercase tracking-wider font-display">New Date (UTC)</label>
                                                         <input
                                                             type="date"
                                                             value={newReleaseDate}
@@ -1045,7 +1049,7 @@ LegacyVault - Secure Your Digital Legacy
                                                         />
                                                     </div>
                                                     <div>
-                                                    <label className="block text-xs font-bold text-white/50 mb-2 uppercase tracking-wider font-display">New Time</label>
+                                                    <label className="block text-xs font-bold text-white/50 mb-2 uppercase tracking-wider font-display">New Time (UTC)</label>
                                                         <input
                                                             type="time"
                                                             value={newReleaseTime}

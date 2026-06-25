@@ -7,16 +7,74 @@ export type ReleaseCountdown = {
   isPast: boolean;
 };
 
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
+/** Build YYYY-MM-DD from UTC calendar parts (month is 0-based). */
+export function utcDateString(year: number, month: number, day: number): string {
+  return `${year}-${pad2(month + 1)}-${pad2(day)}`;
+}
+
+/** Parse YYYY-MM-DD + HH:mm as UTC (not local time). */
+export function parseUtcReleaseDateTime(dateStr: string, timeStr: string): Date {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const [hour, minute] = timeStr.split(':').map(Number);
+  return new Date(Date.UTC(year, month - 1, day, hour, minute, 0, 0));
+}
+
+export function formatUtcTimeInput(date: Date | number): string {
+  const d = typeof date === 'number' ? new Date(date) : date;
+  return `${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}`;
+}
+
 export function formatReleaseDateTime(date: Date | number): string {
   const d = typeof date === 'number' ? new Date(date) : date;
-  return d.toLocaleString(undefined, {
+  return d.toLocaleString('en-US', {
+    timeZone: 'UTC',
     month: 'numeric',
     day: 'numeric',
     year: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
+    timeZoneName: 'short',
   });
+}
+
+export function formatReleaseDateUtc(date: Date | number): string {
+  const d = typeof date === 'number' ? new Date(date) : date;
+  return d.toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+export function formatReleaseTimeUtc(date: Date | number): string {
+  const d = typeof date === 'number' ? new Date(date) : date;
+  return d.toLocaleTimeString('en-US', {
+    timeZone: 'UTC',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZoneName: 'short',
+  });
+}
+
+export function getUtcTodayParts(): { year: number; month: number; day: number } {
+  const now = new Date();
+  return { year: now.getUTCFullYear(), month: now.getUTCMonth(), day: now.getUTCDate() };
+}
+
+export function isUtcDateBeforeToday(year: number, month: number, day: number): boolean {
+  const today = getUtcTodayParts();
+  if (year < today.year) return true;
+  if (year === today.year && month < today.month) return true;
+  if (year === today.year && month === today.month && day < today.day) return true;
+  return false;
 }
 
 export function getReleaseCountdown(releaseTimeMs: number, now = Date.now()): ReleaseCountdown {
