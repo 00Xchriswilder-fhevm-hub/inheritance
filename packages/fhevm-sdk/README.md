@@ -172,7 +172,7 @@ pnpm lint
 
 ## 📦 **Dependencies**
 
-- `@zama-fhe/relayer-sdk` - FHEVM SDK from Zama (v0.3.0-5)
+- `@zama-fhe/relayer-sdk` - FHEVM SDK from Zama (v0.4.1)
 - `@fhevm/solidity` - FHEVM Solidity library (v0.9.1)
 - `ethers` - Ethereum interactions
 - `typescript` - Type safety

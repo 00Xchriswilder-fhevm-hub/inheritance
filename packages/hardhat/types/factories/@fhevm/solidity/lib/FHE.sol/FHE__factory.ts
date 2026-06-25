@@ -17,7 +17,60 @@ import type {
 const _abi = [
   {
     inputs: [],
+    name: "DeserializingDecryptionProofFail",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "EmptyDecryptionProof",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "InvalidKMSSignatures",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "invalidSigner",
+        type: "address",
+      },
+    ],
+    name: "KMSInvalidSigner",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "numSignatures",
+        type: "uint256",
+      },
+    ],
+    name: "KMSSignatureThresholdNotReached",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "KMSZeroSignature",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "handle",
+        type: "bytes32",
+      },
+      {
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+    ],
+    name: "SenderNotAllowedToUseHandle",
     type: "error",
   },
   {

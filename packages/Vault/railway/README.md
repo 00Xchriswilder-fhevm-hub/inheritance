@@ -1,128 +1,45 @@
 # Legacy Vault Indexer
 
-Railway service that indexes blockchain events and syncs them to Supabase.
+Watches the FHELegacyVault contract for events and writes them to Supabase.
 
-## Setup
+## What it does
 
-1. Deploy to Railway
-2. Set environment variables:
-   - `CONTRACT_ADDRESS`: FHELegacyVault contract address (e.g., `0x57fa41328ecBe5f281c10E99e9740Ddf7f5A0c06`)
-   - `RPC_URL`: Alchemy RPC endpoint (e.g., `https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY`)
-   - `ALCHEMY_API_KEY`: Alchemy API key (e.g., `LpvcvaTYYt8nnbnGutlfF`)
-   - `SUPABASE_URL`: Supabase project URL (e.g., `https://zwlxuwmcdoahflzfoavb.supabase.co`)
-   - `SUPABASE_SERVICE_ROLE_KEY`: Supabase service role key (get from Supabase dashboard)
+1. Polls new blocks every 15s (configurable).
+2. Reads four events: `VaultCreated`, `AccessGranted`, `AccessRevoked`, `ReleaseTimeExtended`.
+3. Upserts `users`, `vaults`, and `heirs` in Supabase.
+4. Saves progress in `indexer_state.last_block`.
 
-### Environment Variables Example
+`vaultId` is indexed on-chain (hashed in logs), so the indexer recovers it by decoding the transaction input. That is the only non-obvious step.
+
+## Env vars
 
 ```env
-CONTRACT_ADDRESS=0x57fa41328ecBe5f281c10E99e9740Ddf7f5A0c06
-RPC_URL=https://eth-sepolia.g.alchemy.com/v2/LpvcvaTYYt8nnbnGutlfF
-ALCHEMY_API_KEY=LpvcvaTYYt8nnbnGutlfF
-SUPABASE_URL=https://zwlxuwmcdoahflzfoavb.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+CONTRACT_ADDRESS=0x...
+ALCHEMY_API_KEY=...          # or RPC_URL=https://eth-sepolia.g.alchemy.com/v2/...
+SUPABASE_URL=https://....supabase.co
+SUPABASE_SERVICE_ROLE_KEY=...
+
+# Optional
+INDEXER_BLOCK_CHUNK_SIZE=10  # eth_getLogs range (Alchemy free tier ~10)
+INDEXER_POLL_MS=15000
+BACKFILL_FROM_BLOCK=11135520  # one-time catch-up for missed blocks
 ```
 
-**Note:** The indexer starts tracking from the current block when first deployed (skips historical backfill to avoid processing too many blocks on Sepolia).
-
-## Database Schema
-
-The indexer expects the following Supabase tables:
-
-### users
-- `wallet_address` (text, primary key)
-- `email` (text, nullable)
-- `name` (text, nullable)
-- `created_at` (timestamp)
-- `updated_at` (timestamp)
-
-### vaults
-- `vault_id` (text, primary key)
-- `owner_address` (text, foreign key -> users.wallet_address)
-- `cid` (text)
-- `release_timestamp` (timestamp)
-- `vault_type` (text: 'text' | 'file')
-- `created_at` (timestamp)
-- `updated_at` (timestamp)
-- `block_number` (bigint)
-- `transaction_hash` (text)
-
-### heirs
-- `id` (uuid, primary key)
-- `vault_id` (text, foreign key -> vaults.vault_id)
-- `heir_address` (text, foreign key -> users.wallet_address)
-- `granted_at` (timestamp)
-- `block_number` (bigint)
-- `transaction_hash` (text)
-
-### indexer_state
-- `id` (text, primary key)
-- `last_block` (bigint)
-- `updated_at` (timestamp)
-
-## Running
+## Run
 
 ```bash
 npm install
 npm start
 ```
 
-The indexer runs continuously, processing new blocks every 30 seconds.
+## Catch up after a missed event
 
-## Events Tracked
+Set `BACKFILL_FROM_BLOCK` to the block **before** the missed transaction, restart the indexer, then remove the variable.
 
-The indexer scans and logs the following events from the FHELegacyVault contract:
+Example: tx in block `11135526` → `BACKFILL_FROM_BLOCK=11135520`
 
-### 1. **VaultCreated**
-- **Event**: `VaultCreated(string indexed vaultId, address indexed owner, string cid, uint256 releaseTimestamp)`
-- **Action**: Creates a new vault record in Supabase
-- **Data Logged**:
-  - Vault ID
-  - Owner address (creates/updates user record)
-  - IPFS CID
-  - Release timestamp
-  - Block number and transaction hash
+## Tables
 
-### 2. **AccessGranted**
-- **Event**: `AccessGranted(string indexed vaultId, address indexed heir)`
-- **Action**: Grants access to a heir for a vault
-- **Data Logged**:
-  - Vault ID
-  - Heir address (creates/updates user record)
-  - Grant timestamp
-  - Block number and transaction hash
-  - Marks heir as active
+See `../supabase/migrations/001_create_tables.sql` — needs `users`, `vaults`, `heirs`, `indexer_state`.
 
-### 3. **AccessRevoked**
-- **Event**: `AccessRevoked(string indexed vaultId, address indexed heir)`
-- **Action**: Revokes access from a heir (marks as inactive, preserves history)
-- **Data Logged**:
-  - Vault ID
-  - Heir address
-  - Revocation timestamp
-  - Block number and transaction hash
-  - Marks heir as inactive (doesn't delete for audit trail)
-
-### 4. **ReleaseTimeExtended**
-- **Event**: `ReleaseTimeExtended(string indexed vaultId, uint256 newTimestamp)`
-- **Action**: Updates the release timestamp for a vault
-- **Data Logged**:
-  - Vault ID
-  - New release timestamp
-  - Block number and transaction hash
-  - Updates vault record in Supabase
-
-## Event Processing Flow
-
-1. **Vault Creation**: When a vault is created, the indexer:
-   - Creates/updates the owner in the `users` table
-   - Creates a new record in the `vaults` table
-
-2. **Heir Management**: When access is granted or revoked:
-   - Creates/updates the heir in the `users` table
-   - Creates or updates the `heirs` table record
-   - Maintains an audit trail (doesn't delete revoked heirs)
-
-3. **Release Time Extension**: When release time is extended:
-   - Updates the `release_timestamp` in the `vaults` table
-   - Preserves the original creation timestamp
-
+The app also writes vault rows on create (with file metadata). The indexer is the source of truth for heir grant/revoke events and can backfill vault rows from chain data if needed.

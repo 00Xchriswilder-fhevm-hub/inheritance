@@ -10,12 +10,12 @@ export function useFhevm() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [error, setError] = useState<string>('');
 
-  const initialize = useCallback(async () => {
+  const initialize = useCallback(async (options?: { provider?: any }) => {
     setStatus('loading');
     setError('');
     
     try {
-      const fheInstance = await initializeFheInstance();
+      const fheInstance = await initializeFheInstance(options);
       setInstance(fheInstance);
       setStatus('ready');
       console.log('✅ FHEVM initialized');

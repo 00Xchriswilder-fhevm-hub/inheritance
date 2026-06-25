@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "E:\\FHEVAULT\\sdk\\packages\\hardhat\\contracts\\FHELegacyVault.sol": {
-      "lastModificationDate": 1764592685266,
-      "contentHash": "ec1ccee5a6971ada4734c80ed62095be",
+      "lastModificationDate": 1772263191896,
+      "contentHash": "d9394c05c9cad4e16dc474d2d101ab96",
       "sourceName": "contracts/FHELegacyVault.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -45,12 +45,13 @@
         "^0.8.24"
       ],
       "artifacts": [
-        "FHELegacyVault"
+        "FHELegacyVault",
+        "IACL"
       ]
     },
     "E:\\FHEVAULT\\sdk\\packages\\hardhat\\fhevmTemp\\@fhevm\\solidity\\config\\ZamaConfig.sol": {
-      "lastModificationDate": 1764834948190,
-      "contentHash": "2ed697106fb9cc5510d56baf77bbda66",
+      "lastModificationDate": 1772279008247,
+      "contentHash": "945d01252eaee3ca974992cce027342b",
       "sourceName": "@fhevm/solidity/config/ZamaConfig.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -96,9 +97,51 @@
         "ZamaEthereumConfig"
       ]
     },
-    "E:\\FHEVAULT\\sdk\\node_modules\\.pnpm\\@fhevm+solidity@0.9.1\\node_modules\\@fhevm\\solidity\\lib\\FHE.sol": {
-      "lastModificationDate": 1764396459465,
-      "contentHash": "a3654ad3694e201ea093182154462272",
+    "E:\\FHEVAULT\\sdk\\node_modules\\.pnpm\\encrypted-types@0.0.4\\node_modules\\encrypted-types\\EncryptedTypes.sol": {
+      "lastModificationDate": 1764396459414,
+      "contentHash": "521a624fad71cd29fc4b7c443b41bb86",
+      "sourceName": "encrypted-types/EncryptedTypes.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "metadata": {
+            "bytecodeHash": "none",
+            "useLiteralContent": true
+          },
+          "optimizer": {
+            "enabled": true,
+            "runs": 800
+          },
+          "evmVersion": "cancun",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": []
+    },
+    "E:\\FHEVAULT\\sdk\\node_modules\\.pnpm\\@fhevm+solidity@0.11.1\\node_modules\\@fhevm\\solidity\\lib\\FHE.sol": {
+      "lastModificationDate": 1772259351160,
+      "contentHash": "6a1d378ddeb04662455ae7dc882b5c58",
       "sourceName": "@fhevm/solidity/lib/FHE.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -134,6 +177,7 @@
       },
       "imports": [
         "./Impl.sol",
+        "./cryptography/FhevmECDSA.sol",
         "./FheType.sol",
         "encrypted-types/EncryptedTypes.sol"
       ],
@@ -145,9 +189,9 @@
         "IKMSVerifier"
       ]
     },
-    "E:\\FHEVAULT\\sdk\\node_modules\\.pnpm\\@fhevm+solidity@0.9.1\\node_modules\\@fhevm\\solidity\\lib\\Impl.sol": {
-      "lastModificationDate": 1764396459466,
-      "contentHash": "6039bec93defbef7e3e2729c62b95194",
+    "E:\\FHEVAULT\\sdk\\node_modules\\.pnpm\\@fhevm+solidity@0.11.1\\node_modules\\@fhevm\\solidity\\lib\\Impl.sol": {
+      "lastModificationDate": 1772259351161,
+      "contentHash": "68866e1050079bd9720398ae0290121a",
       "sourceName": "@fhevm/solidity/lib/Impl.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -194,10 +238,10 @@
         "Impl"
       ]
     },
-    "E:\\FHEVAULT\\sdk\\node_modules\\.pnpm\\encrypted-types@0.0.4\\node_modules\\encrypted-types\\EncryptedTypes.sol": {
-      "lastModificationDate": 1764396459414,
-      "contentHash": "521a624fad71cd29fc4b7c443b41bb86",
-      "sourceName": "encrypted-types/EncryptedTypes.sol",
+    "E:\\FHEVAULT\\sdk\\node_modules\\.pnpm\\@fhevm+solidity@0.11.1\\node_modules\\@fhevm\\solidity\\lib\\cryptography\\FhevmECDSA.sol": {
+      "lastModificationDate": 1772259351161,
+      "contentHash": "1b1e13e26717f0d4eed5c23a4a23660d",
+      "sourceName": "@fhevm/solidity/lib/cryptography/FhevmECDSA.sol",
       "solcConfig": {
         "version": "0.8.24",
         "settings": {
@@ -232,12 +276,14 @@
       },
       "imports": [],
       "versionPragmas": [
-        "^0.8.24"
+        "^0.8.20"
       ],
-      "artifacts": []
+      "artifacts": [
+        "FhevmECDSA"
+      ]
     },
-    "E:\\FHEVAULT\\sdk\\node_modules\\.pnpm\\@fhevm+solidity@0.9.1\\node_modules\\@fhevm\\solidity\\lib\\FheType.sol": {
-      "lastModificationDate": 1764396459704,
+    "E:\\FHEVAULT\\sdk\\node_modules\\.pnpm\\@fhevm+solidity@0.11.1\\node_modules\\@fhevm\\solidity\\lib\\FheType.sol": {
+      "lastModificationDate": 1772259351160,
       "contentHash": "65f472a3e319ba73ac6b19a5e8660d15",
       "sourceName": "@fhevm/solidity/lib/FheType.sol",
       "solcConfig": {

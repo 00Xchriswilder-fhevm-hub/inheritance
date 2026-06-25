@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLocation } from 'react-router-dom';
 // Material Symbols icons are used via className="material-symbols-outlined"
@@ -13,6 +13,8 @@ import { getIPFSMetadata } from '../services/ipfsService';
 import { useFheVault } from '../hooks/useFheVault';
 import { useWalletClient, usePublicClient } from 'wagmi';
 import { getTransactionErrorMessage } from '../utils/errorHandler';
+import { formatOpensInShort, formatReleaseDateTime } from '../utils/releaseTime';
+import { useReleaseCountdown } from '../hooks/useReleaseCountdown';
 import { ethers } from 'ethers';
 import type { Vault } from '../types';
 import Button from '../components/Button';
@@ -28,14 +30,20 @@ const UnlockHeirPage = () => {
     const [decryptedFileBuffer, setDecryptedFileBuffer] = useState<ArrayBuffer | null>(null);
     const [currentVault, setCurrentVault] = useState<Vault | null>(null);
     const [hideMnemonic, setHideMnemonic] = useState(false);
-    const [countdown, setCountdown] = useState<{days: string, hours: string, min: string, sec: string} | null>(null);
     const toast = useToast();
     const { decryptValue } = useFheVault();
     const { data: walletClient } = useWalletClient();
     const publicClient = usePublicClient();
+    // Use connected wallet provider (MetaMask, etc.) — not window.ethereum
+    const rpcProvider = useMemo(() => {
+        const client = walletClient || publicClient;
+        return client ? new ethers.BrowserProvider(client as any) : null;
+    }, [walletClient, publicClient]);
 
     const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm();
     const watchVaultId = watch('vaultId');
+    const releaseTimeMs = releaseDate?.getTime() ?? currentVault?.releaseTime ?? null;
+    const countdown = useReleaseCountdown(releaseTimeMs);
 
     // Set vault ID and vault data from navigation state if provided
     useEffect(() => {
@@ -134,16 +142,12 @@ const UnlockHeirPage = () => {
                     }
                 }
                 
-                // Fallback to blockchain
-                const { getEthereumProvider } = await import('../utils/ethereumProvider');
-                const ethereumProvider = getEthereumProvider();
-                if (!ethereumProvider) {
+                // Fallback to blockchain (use connected wallet provider)
+                if (!rpcProvider) {
                     setVaultStatus('not-found');
                     return;
                 }
-
-                const provider = new ethers.BrowserProvider(ethereumProvider);
-                const metadata = await getVaultMetadata(CONTRACT_ADDRESS, provider, vaultId);
+                const metadata = await getVaultMetadata(CONTRACT_ADDRESS, rpcProvider, vaultId);
                 const releaseTimestamp = Number(metadata.releaseTimestamp) * 1000;
                 setReleaseDate(new Date(releaseTimestamp));
 
@@ -154,7 +158,7 @@ const UnlockHeirPage = () => {
                 }
 
                 // Check if address is authorized
-                const authorized = await isAuthorized(CONTRACT_ADDRESS, provider, vaultId, address);
+                const authorized = await isAuthorized(CONTRACT_ADDRESS, rpcProvider, vaultId, address);
                 if (authorized) {
                     setVaultStatus('available');
                 } else {
@@ -167,28 +171,7 @@ const UnlockHeirPage = () => {
         };
 
         checkVaultStatus();
-    }, [watchVaultId, isConnected, address]);
-
-    // Countdown Logic
-    useEffect(() => {
-        if (!currentVault) return;
-        const updateCountdown = () => {
-            const now = new Date().getTime();
-            const distance = currentVault.releaseTime - now;
-            if (distance < 0) {
-                setCountdown({ days: '00', hours: '00', min: '00', sec: '00' });
-                return;
-            }
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
-            const min = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-            const sec = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
-            setCountdown({ days, hours, min, sec });
-        };
-        const interval = setInterval(updateCountdown, 1000);
-        updateCountdown();
-        return () => clearInterval(interval);
-    }, [currentVault]);
+    }, [watchVaultId, isConnected, address, rpcProvider]);
 
     const onSubmit = async (data: any) => {
         if (vaultStatus === 'locked') {
@@ -218,10 +201,7 @@ const UnlockHeirPage = () => {
                 return;
             }
             
-            // Mobile-friendly ethereum provider detection
-            const { getEthereumProvider } = await import('../utils/ethereumProvider');
-            const ethereumProvider = getEthereumProvider();
-            if (!ethereumProvider) {
+            if (!rpcProvider) {
                 toast.error('Blockchain connection required. Please connect your wallet.');
                 setIsLoading(false);
                 return;
@@ -229,8 +209,7 @@ const UnlockHeirPage = () => {
 
             let vault;
                     try {
-                        const provider = new ethers.BrowserProvider(ethereumProvider);
-                        const metadata = await getVaultMetadata(CONTRACT_ADDRESS, provider, vaultId);
+                        const metadata = await getVaultMetadata(CONTRACT_ADDRESS, rpcProvider, vaultId);
                         
                         // Try to get IPFS metadata to determine vault type, filename, and mime type
                         let vaultType: 'text' | 'file' = 'text';
@@ -310,7 +289,7 @@ const UnlockHeirPage = () => {
                 try {
                     toast.info("Unlocking FHE vault...");
                     
-                    // Get provider from wagmi (works with any connected wallet including Porto)
+                    // Get provider from wagmi (works with any connected wallet)
                     if (!walletClient && !publicClient) {
                         throw new Error('No wallet provider found. Please connect your wallet.');
                     }
@@ -452,7 +431,7 @@ const UnlockHeirPage = () => {
         toast.success("Data cleared from screen");
     };
 
-    if ((decryptedData || decryptedFileBuffer) && currentVault && countdown) {
+    if ((decryptedData || decryptedFileBuffer) && currentVault) {
         return (
             <div className="relative flex min-h-screen w-full flex-col bg-background-dark font-display">
                 <div className="flex h-full grow flex-col">
@@ -473,7 +452,7 @@ const UnlockHeirPage = () => {
                             </div>
                                         <div className="flex items-center gap-2 text-sm text-white/50 mt-2">
                                             <span className="material-symbols-outlined text-base">schedule</span>
-                                            <span className="font-display">Release: {new Date(currentVault.releaseTime).toLocaleString()}</span>
+                                            <span className="font-display">Release: {formatReleaseDateTime(currentVault.releaseTime)}</span>
                             </div>
                         </div>
                         <div className="flex flex-col items-center">
@@ -489,19 +468,19 @@ const UnlockHeirPage = () => {
                                         </div>
                             <div className="flex gap-2 text-center">
                                             <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
-                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.days}</div>
+                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown?.days ?? '00'}</div>
                                                 <div className="text-[10px] uppercase text-white/50 font-bold font-display">Days</div>
                                             </div>
                                             <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
-                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.hours}</div>
+                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown?.hours ?? '00'}</div>
                                                 <div className="text-[10px] uppercase text-white/50 font-bold font-display">Hours</div>
                                             </div>
                                             <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
-                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.min}</div>
+                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown?.min ?? '00'}</div>
                                                 <div className="text-[10px] uppercase text-white/50 font-bold font-display">Min</div>
                                             </div>
                                             <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
-                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.sec}</div>
+                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown?.sec ?? '00'}</div>
                                                 <div className="text-[10px] uppercase text-white/50 font-bold font-display">Sec</div>
                                 </div>
                                 </div>
@@ -723,14 +702,21 @@ const UnlockHeirPage = () => {
                                     {vaultStatus === 'not-found' && "Vault Not Found"}
                                     {vaultStatus === 'unauthorized' && "Not Authorized"}
                                 </div>
-                                            {releaseDate && <div className="text-sm font-mono mt-1 text-white/70">Release: {releaseDate.toLocaleDateString()}</div>}
+                                            {releaseDate && (
+                                                <div className="text-sm font-mono mt-1 text-white/70">
+                                                    Release: {formatReleaseDateTime(releaseDate)}
+                                                </div>
+                                            )}
                                             {vaultStatus === 'unauthorized' && <div className="text-sm mt-1 text-white/70 font-display">The owner must grant you access to this vault.</div>}
                                         </div>
-                                        {vaultStatus === 'locked' && releaseDate && (
+                                        {vaultStatus === 'locked' && releaseDate && countdown && !countdown.isPast && (
                                             <div className="text-right">
                                                 <div className="text-xs font-bold uppercase mb-1 text-white/50 font-display">Opens In</div>
-                                                <div className="font-mono text-lg font-bold text-primary">{releaseDate.toLocaleDateString()}</div>
-                            </div>
+                                                <div className="font-mono text-lg font-bold text-primary">{formatOpensInShort(countdown)}</div>
+                                                <div className="text-xs text-white/50 mt-1 font-mono">
+                                                    {countdown.totalMinutes} min left
+                                                </div>
+                                            </div>
                                         )}
                         </div>
                     )}

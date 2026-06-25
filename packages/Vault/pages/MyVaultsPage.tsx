@@ -307,7 +307,7 @@ const MyVaultsPage = () => {
                 
                 if (CONTRACT_ADDRESS && isReady) {
                     try {
-                        // Get provider from wagmi (works with any connected wallet including Porto)
+                        // Get provider from wagmi (works with any connected wallet)
                         const walletClientData = walletClient;
                         const publicClientData = publicClient;
                         

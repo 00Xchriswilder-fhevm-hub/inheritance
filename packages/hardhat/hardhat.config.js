@@ -1,3 +1,4 @@
+require("dotenv").config();
 require("@fhevm/hardhat-plugin");
 require("@nomicfoundation/hardhat-chai-matchers");
 require("@nomicfoundation/hardhat-ethers");

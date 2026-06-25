@@ -10,6 +10,8 @@ export type { ZamaConfig } from "./@fhevm/solidity/config/ZamaConfig.sol/ZamaCon
 export { ZamaConfig__factory } from "./factories/@fhevm/solidity/config/ZamaConfig.sol/ZamaConfig__factory";
 export type { ZamaEthereumConfig } from "./@fhevm/solidity/config/ZamaConfig.sol/ZamaEthereumConfig";
 export { ZamaEthereumConfig__factory } from "./factories/@fhevm/solidity/config/ZamaConfig.sol/ZamaEthereumConfig__factory";
+export type { FhevmECDSA } from "./@fhevm/solidity/lib/cryptography/FhevmECDSA";
+export { FhevmECDSA__factory } from "./factories/@fhevm/solidity/lib/cryptography/FhevmECDSA__factory";
 export type { FHE } from "./@fhevm/solidity/lib/FHE.sol/FHE";
 export { FHE__factory } from "./factories/@fhevm/solidity/lib/FHE.sol/FHE__factory";
 export type { IKMSVerifier } from "./@fhevm/solidity/lib/FHE.sol/IKMSVerifier";
@@ -20,5 +22,5 @@ export type { IFHEVMExecutor } from "./@fhevm/solidity/lib/Impl.sol/IFHEVMExecut
 export { IFHEVMExecutor__factory } from "./factories/@fhevm/solidity/lib/Impl.sol/IFHEVMExecutor__factory";
 export type { IInputVerifier } from "./@fhevm/solidity/lib/Impl.sol/IInputVerifier";
 export { IInputVerifier__factory } from "./factories/@fhevm/solidity/lib/Impl.sol/IInputVerifier__factory";
-export type { FHELegacyVault } from "./contracts/FHELegacyVault";
-export { FHELegacyVault__factory } from "./factories/contracts/FHELegacyVault__factory";
+export type { FHELegacyVault } from "./contracts/FHELegacyVault.sol/FHELegacyVault";
+export { FHELegacyVault__factory } from "./factories/contracts/FHELegacyVault.sol/FHELegacyVault__factory";

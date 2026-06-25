@@ -48,7 +48,11 @@ library ZamaConfig {
         // The addresses below are placeholders and should be replaced with actual addresses
         // once deployed on the Ethereum mainnet.
         return
-            CoprocessorConfig({ACLAddress: address(0), CoprocessorAddress: address(0), KMSVerifierAddress: address(0)});
+            CoprocessorConfig({
+                ACLAddress: 0xcA2E8f1F656CD25C01F05d0b243Ab1ecd4a8ffb6,
+                CoprocessorAddress: 0xD82385dADa1ae3E969447f20A3164F6213100e75,
+                KMSVerifierAddress: 0x77627828a55156b04Ac0DC0eb30467f1a552BB03
+            });
     }
 
     /// @dev chainid == 11155111
@@ -77,7 +81,7 @@ library ZamaConfig {
             CoprocessorConfig({
                 ACLAddress: 0x50157CFfD6bBFA2DECe204a89ec419c23ef5755D,
                 CoprocessorAddress: 0xe3a9105a3a932253A70F126eb1E3b589C643dD24,
-                KMSVerifierAddress: 0xbE0E383937d564D7FF0BC3b46c51f0bF8d5C311A
+                KMSVerifierAddress: 0x901F8942346f7AB3a01F6D7613119Bca447Bb030
             });
     }
 }

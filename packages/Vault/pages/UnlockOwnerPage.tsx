@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLocation } from 'react-router-dom';
 // Material Symbols icons are used via className="material-symbols-outlined"
@@ -13,6 +13,8 @@ import { getVaultMetadata, grantAccess, grantAccessToMultiple, revokeAccess } fr
 import { useWalletClient, usePublicClient } from 'wagmi';
 import { ethers } from 'ethers';
 import { getTransactionErrorMessage } from '../utils/errorHandler';
+import { formatOpensInShort, formatReleaseDateTime } from '../utils/releaseTime';
+import { useReleaseCountdown } from '../hooks/useReleaseCountdown';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { AlertTriangle, Wallet } from 'lucide-react';
 import Button from '../components/Button';
@@ -24,7 +26,6 @@ const UnlockOwnerPage = () => {
     const [currentVault, setCurrentVault] = useState<Vault | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [hideMnemonic, setHideMnemonic] = useState(false);
-    const [countdown, setCountdown] = useState<{days: string, hours: string, min: string, sec: string} | null>(null);
     
     // Scheduling State
     const [isEditingSchedule, setIsEditingSchedule] = useState(false);
@@ -46,6 +47,11 @@ const UnlockOwnerPage = () => {
     const { decryptValue, getSigner } = useFheVault();
     const { data: walletClient } = useWalletClient();
     const publicClient = usePublicClient();
+    // Use connected wallet provider (MetaMask, etc.) — not window.ethereum
+    const rpcProvider = useMemo(() => {
+        const client = walletClient || publicClient;
+        return client ? new ethers.BrowserProvider(client as any) : null;
+    }, [walletClient, publicClient]);
 
     // Auto-fill Vault ID and set vault data if passed from navigation state
     useEffect(() => {
@@ -61,6 +67,8 @@ const UnlockOwnerPage = () => {
         }
     }, [location.state, setValue]);
 
+    const countdown = useReleaseCountdown(currentVault?.releaseTime);
+
     const onSubmit = async (data: any) => {
         setIsLoading(true);
         try {
@@ -75,10 +83,7 @@ const UnlockOwnerPage = () => {
                 return;
             }
             
-            // Mobile-friendly ethereum provider detection
-            const { getEthereumProvider } = await import('../utils/ethereumProvider');
-            const ethereum = getEthereumProvider();
-            if (!ethereum) {
+            if (!rpcProvider) {
                 toast.error('Blockchain connection required. Please connect your wallet.');
                 setIsLoading(false);
                 return;
@@ -87,13 +92,7 @@ const UnlockOwnerPage = () => {
                     try {
                         const { getVaultMetadata } = await import('../services/vaultContractService');
                         const { getIPFSMetadata } = await import('../services/ipfsService');
-                        const { getEthereumProvider } = await import('../utils/ethereumProvider');
-                        const ethereumProvider = getEthereumProvider();
-                        if (!ethereumProvider) {
-                            throw new Error('Ethereum provider not found');
-                        }
-                        const provider = new (await import('ethers')).BrowserProvider(ethereumProvider);
-                        const metadata = await getVaultMetadata(CONTRACT_ADDRESS, provider, vaultId);
+                        const metadata = await getVaultMetadata(CONTRACT_ADDRESS, rpcProvider, vaultId);
                         
                         // Try to get IPFS metadata to determine vault type, filename, and mime type
                         let vaultType: 'text' | 'file' = 'text';
@@ -186,7 +185,7 @@ const UnlockOwnerPage = () => {
                 try {
                     toast.info("Unlocking FHE vault...");
                     
-                    // Get provider from wagmi (works with any connected wallet including Porto)
+                    // Get provider from wagmi (works with any connected wallet)
                     if (!walletClient && !publicClient) {
                         throw new Error('No wallet provider found. Please connect your wallet.');
                     }
@@ -262,35 +261,12 @@ const UnlockOwnerPage = () => {
         }
     };
 
-    // Countdown Logic
-    useEffect(() => {
-        if (!currentVault) return;
-        const updateCountdown = () => {
-            const now = new Date().getTime();
-            const distance = currentVault.releaseTime - now;
-            if (distance < 0) {
-                setCountdown({ days: '00', hours: '00', min: '00', sec: '00' });
-                return;
-            }
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
-            const min = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-            const sec = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
-            setCountdown({ days, hours, min, sec });
-        };
-        const interval = setInterval(updateCountdown, 1000);
-        updateCountdown();
-        return () => clearInterval(interval);
-    }, [currentVault]);
-
     // Helper function to fetch authorized heirs from on-chain data
     const fetchAuthorizedHeirs = useCallback(async () => {
-        if (!currentVault || !address || !isConnected) return;
+        if (!currentVault || !address || !isConnected || !rpcProvider) return;
         
         const CONTRACT_ADDRESS = import.meta.env.VITE_FHE_VAULT_CONTRACT_ADDRESS || '';
-        const { getEthereumProvider } = await import('../utils/ethereumProvider');
-        const ethereumProvider = getEthereumProvider();
-        if (!CONTRACT_ADDRESS || !ethereumProvider) return;
+        if (!CONTRACT_ADDRESS) return;
         
         const looksLikeIPFSCID = (str: string) => {
             return str.startsWith('Qm') || str.startsWith('baf') || 
@@ -305,7 +281,7 @@ const UnlockOwnerPage = () => {
         
         setIsLoadingHeirs(true);
         try {
-            const provider = new ethers.BrowserProvider(ethereumProvider);
+            const provider = rpcProvider;
             const contract = new ethers.Contract(CONTRACT_ADDRESS, [
                 'event AccessGranted(string indexed vaultId, address indexed heir)',
                 'event AccessRevoked(string indexed vaultId, address indexed heir)',
@@ -347,7 +323,7 @@ const UnlockOwnerPage = () => {
         } finally {
             setIsLoadingHeirs(false);
         }
-    }, [currentVault, address, isConnected]);
+    }, [currentVault, address, isConnected, rpcProvider]);
 
     // Fetch authorized heirs when vault is loaded
     useEffect(() => {
@@ -421,18 +397,14 @@ const UnlockOwnerPage = () => {
                 throw new Error("Contract address not configured");
             }
 
-            // Get provider and signer
-            const { getEthereumProvider } = await import('../utils/ethereumProvider');
-            const ethereumProvider = getEthereumProvider();
-            if (!ethereumProvider) {
-                throw new Error("No ethereum provider found");
+            if (!rpcProvider) {
+                throw new Error("No wallet connected. Please connect your wallet.");
             }
-            const provider = new ethers.BrowserProvider(ethereumProvider);
-            const signer = await provider.getSigner();
+            const signer = await rpcProvider.getSigner();
 
             // Get vault metadata and encrypted key handle
             const { getVaultMetadata, VAULT_ABI } = await import('../services/vaultContractService');
-            const metadata = await getVaultMetadata(CONTRACT_ADDRESS, provider, currentVault.id);
+            const metadata = await getVaultMetadata(CONTRACT_ADDRESS, rpcProvider, currentVault.id);
             
             // Use signer for getEncryptedKeyAsOwner (it checks msg.sender)
             const contract = new ethers.Contract(CONTRACT_ADDRESS, [...VAULT_ABI] as any[], signer);
@@ -454,7 +426,7 @@ Keep this file safe, but remember: only you (or authorized heirs) can unlock it.
 Vault ID:              ${currentVault.id}
 Your Wallet:           ${currentVault.ownerAddress}
 Created:               ${new Date(currentVault.createdAt).toLocaleString()}
-Release Date:          ${new Date(currentVault.releaseTime).toLocaleString()}
+Release Date:          ${formatReleaseDateTime(currentVault.releaseTime)}
 Vault Type:            ${currentVault.vaultType === 'file' ? 'File' : 'Text'}
 Status:                ${Date.now() < currentVault.releaseTime ? 'Locked' : 'Available'}
 
@@ -572,12 +544,10 @@ LegacyVault - Secure Your Digital Legacy
                     throw new Error("Failed to get signer");
                 }
 
-                const { getEthereumProvider } = await import('../utils/ethereumProvider');
-                const ethereumProvider = getEthereumProvider();
-                if (!ethereumProvider) {
-                    throw new Error('Ethereum provider not found');
+                const provider = signer.provider || rpcProvider;
+                if (!provider) {
+                    throw new Error('Wallet provider not found');
                 }
-                const provider = signer.provider || new ethers.BrowserProvider(ethereumProvider);
                 
                 const newTimestamp = Math.floor(combined.getTime() / 1000);
                 
@@ -639,7 +609,7 @@ LegacyVault - Secure Your Digital Legacy
         );
     }
 
-    if ((decryptedData || decryptedFileBuffer) && currentVault && countdown) {
+    if ((decryptedData || decryptedFileBuffer) && currentVault) {
         return (
             <div className="relative flex min-h-screen w-full flex-col bg-background-dark font-display">
                 <div className="flex h-full grow flex-col">
@@ -660,7 +630,7 @@ LegacyVault - Secure Your Digital Legacy
                                         </div>
                                         <div className="flex items-center gap-2 text-sm text-white/50 mt-2">
                                             <span className="material-symbols-outlined text-base">schedule</span>
-                                            <span className="font-display">Release: {new Date(currentVault.releaseTime).toLocaleString()}</span>
+                                            <span className="font-display">Release: {formatReleaseDateTime(currentVault.releaseTime)}</span>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center">
@@ -676,23 +646,27 @@ LegacyVault - Secure Your Digital Legacy
                                         </div>
                                         <div className="flex gap-2 text-center">
                                             <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
-                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.days}</div>
+                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown?.days ?? '00'}</div>
                                                 <div className="text-[10px] uppercase text-white/50 font-bold font-display">Days</div>
                                             </div>
                                             <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
-                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.hours}</div>
+                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown?.hours ?? '00'}</div>
                                                 <div className="text-[10px] uppercase text-white/50 font-bold font-display">Hours</div>
                                             </div>
                                             <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
-                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.min}</div>
+                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown?.min ?? '00'}</div>
                                                 <div className="text-[10px] uppercase text-white/50 font-bold font-display">Min</div>
                                             </div>
                                             <div className="bg-zinc-900 border border-white/10 rounded p-2 w-12 sm:w-14">
-                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown.sec}</div>
+                                                <div className="text-xl sm:text-2xl font-bold text-primary font-display">{countdown?.sec ?? '00'}</div>
                                                 <div className="text-[10px] uppercase text-white/50 font-bold font-display">Sec</div>
                                             </div>
                                         </div>
-                                        <div className="text-xs text-white/50 mt-2 font-display">until vault becomes available to heir</div>
+                                        <div className="text-xs text-white/50 mt-2 font-display">
+                                            {Date.now() < currentVault.releaseTime && countdown && !countdown.isPast
+                                                ? `${countdown.totalMinutes} min until heirs can unlock`
+                                                : 'until vault becomes available to heir'}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1048,7 +1022,7 @@ LegacyVault - Secure Your Digital Legacy
                                         <div className="flex justify-between items-center">
                                                 <div>
                                                 <div className="text-sm text-white/50 uppercase tracking-wider mb-1 font-display">Current Release Date</div>
-                                                <div className="text-lg font-bold text-white font-display">{new Date(currentVault.releaseTime).toLocaleString()}</div>
+                                                <div className="text-lg font-bold text-white font-display">{formatReleaseDateTime(currentVault.releaseTime)}</div>
                                                 </div>
                                             <button 
                                                 onClick={() => setIsEditingSchedule(true)}
@@ -1159,6 +1133,27 @@ LegacyVault - Secure Your Digital Legacy
                                         <p className="text-xs text-red-500 mt-1 font-display">{errors.vaultId.message as string}</p>
                                         )}
                                 </div>
+                                {currentVault && !decryptedData && !decryptedFileBuffer && (
+                                    <div className="mb-6 p-4 rounded-lg border flex items-center gap-4 bg-primary/10 border-primary/30">
+                                        <span className="material-symbols-outlined text-primary">schedule</span>
+                                        <div className="flex-1">
+                                            <div className="text-xs font-bold uppercase mb-1 text-white/50 font-display">Heir release</div>
+                                            <div className="font-bold text-white font-display">
+                                                {Date.now() < currentVault.releaseTime ? 'Time Locked for Heirs' : 'Available to Heirs'}
+                                            </div>
+                                            <div className="text-sm font-mono mt-1 text-white/70">
+                                                Release: {formatReleaseDateTime(currentVault.releaseTime)}
+                                            </div>
+                                        </div>
+                                        {Date.now() < currentVault.releaseTime && countdown && !countdown.isPast && (
+                                            <div className="text-right">
+                                                <div className="text-xs font-bold uppercase mb-1 text-white/50 font-display">Opens In</div>
+                                                <div className="font-mono text-lg font-bold text-primary">{formatOpensInShort(countdown)}</div>
+                                                <div className="text-xs text-white/50 mt-1 font-mono">{countdown.totalMinutes} min left</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                                 <p className="text-xs text-white/50 mt-2 font-display">Connect your wallet to unlock vaults. Wallet authentication is used for access control.</p>
                                     <button 
                                         type="submit"

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useAccount, useDisconnect } from 'wagmi';
+import { useAccount, useDisconnect, useWalletClient } from 'wagmi';
 import { useFhevm } from '@fhevm-sdk';
 
 export const WalletContext = React.createContext<{
@@ -17,6 +17,7 @@ export const WalletContext = React.createContext<{
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { address, isConnected } = useAccount();
     const { disconnect } = useDisconnect();
+    const { data: walletClient } = useWalletClient();
     const { status: fhevmStatus, initialize: initializeFhevm } = useFhevm();
 
     // Initialize FHEVM as soon as wallet is connected
@@ -24,9 +25,11 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     useEffect(() => {
         if (isConnected && (fhevmStatus === 'idle' || fhevmStatus === 'error')) {
             console.log('🔐 Wallet connected, initializing FHEVM...');
-            initializeFhevm();
+            // Important: use the connected wagmi provider (MetaMask, etc.)
+            // so RelayerSDK talks to the correct chain/provider.
+            initializeFhevm({ provider: walletClient });
         }
-    }, [isConnected, fhevmStatus, initializeFhevm]);
+    }, [isConnected, fhevmStatus, initializeFhevm, walletClient]);
     
     // Also check on mount if wallet is already connected (page refresh scenario)
     useEffect(() => {
@@ -34,7 +37,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             // Small delay to ensure ethereum provider is ready
             const timer = setTimeout(() => {
                 console.log('🔄 Page refreshed with wallet connected, initializing FHEVM...');
-                initializeFhevm();
+                initializeFhevm({ provider: walletClient });
             }, 500);
             return () => clearTimeout(timer);
         }

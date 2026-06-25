@@ -3,3 +3,4 @@
 /* eslint-disable */
 export * as fheSol from "./FHE.sol";
 export * as implSol from "./Impl.sol";
+export * as cryptography from "./cryptography";

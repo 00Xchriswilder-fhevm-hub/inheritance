@@ -22,6 +22,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ZamaEthereumConfig__factory>;
     getContractFactory(
+      name: "FhevmECDSA",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.FhevmECDSA__factory>;
+    getContractFactory(
       name: "FHE",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.FHE__factory>;
@@ -45,6 +49,10 @@ declare module "hardhat/types/runtime" {
       name: "FHELegacyVault",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.FHELegacyVault__factory>;
+    getContractFactory(
+      name: "IACL",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IACL__factory>;
 
     getContractAt(
       name: "ZamaConfig",
@@ -56,6 +64,11 @@ declare module "hardhat/types/runtime" {
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.ZamaEthereumConfig>;
+    getContractAt(
+      name: "FhevmECDSA",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.FhevmECDSA>;
     getContractAt(
       name: "FHE",
       address: string | ethers.Addressable,
@@ -86,6 +99,11 @@ declare module "hardhat/types/runtime" {
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.FHELegacyVault>;
+    getContractAt(
+      name: "IACL",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IACL>;
 
     deployContract(
       name: "ZamaConfig",
@@ -95,6 +113,10 @@ declare module "hardhat/types/runtime" {
       name: "ZamaEthereumConfig",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ZamaEthereumConfig>;
+    deployContract(
+      name: "FhevmECDSA",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.FhevmECDSA>;
     deployContract(
       name: "FHE",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -119,6 +141,10 @@ declare module "hardhat/types/runtime" {
       name: "FHELegacyVault",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.FHELegacyVault>;
+    deployContract(
+      name: "IACL",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IACL>;
 
     deployContract(
       name: "ZamaConfig",
@@ -130,6 +156,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ZamaEthereumConfig>;
+    deployContract(
+      name: "FhevmECDSA",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.FhevmECDSA>;
     deployContract(
       name: "FHE",
       args: any[],
@@ -160,6 +191,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.FHELegacyVault>;
+    deployContract(
+      name: "IACL",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IACL>;
 
     // default types
     getContractFactory(

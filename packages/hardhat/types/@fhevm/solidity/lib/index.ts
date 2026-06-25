@@ -5,3 +5,5 @@ import type * as fheSol from "./FHE.sol";
 export type { fheSol };
 import type * as implSol from "./Impl.sol";
 export type { implSol };
+import type * as cryptography from "./cryptography";
+export type { cryptography };

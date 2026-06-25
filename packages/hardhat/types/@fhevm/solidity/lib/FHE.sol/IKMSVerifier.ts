@@ -21,14 +21,42 @@ import type {
 
 export interface IKMSVerifierInterface extends Interface {
   getFunction(
-    nameOrSignature: "verifyDecryptionEIP712KMSSignatures"
+    nameOrSignature:
+      | "eip712Domain"
+      | "getKmsSigners"
+      | "getThreshold"
+      | "verifyDecryptionEIP712KMSSignatures"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "eip712Domain",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getKmsSigners",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getThreshold",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "verifyDecryptionEIP712KMSSignatures",
     values: [BytesLike[], BytesLike, BytesLike]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "eip712Domain",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getKmsSigners",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getThreshold",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "verifyDecryptionEIP712KMSSignatures",
     data: BytesLike
@@ -78,6 +106,26 @@ export interface IKMSVerifier extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  eip712Domain: TypedContractMethod<
+    [],
+    [
+      [string, string, string, bigint, string, string, bigint[]] & {
+        fields: string;
+        name: string;
+        version: string;
+        chainId: bigint;
+        verifyingContract: string;
+        salt: string;
+        extensions: bigint[];
+      }
+    ],
+    "view"
+  >;
+
+  getKmsSigners: TypedContractMethod<[], [string[]], "view">;
+
+  getThreshold: TypedContractMethod<[], [bigint], "view">;
+
   verifyDecryptionEIP712KMSSignatures: TypedContractMethod<
     [
       handlesList: BytesLike[],
@@ -92,6 +140,29 @@ export interface IKMSVerifier extends BaseContract {
     key: string | FunctionFragment
   ): T;
 
+  getFunction(
+    nameOrSignature: "eip712Domain"
+  ): TypedContractMethod<
+    [],
+    [
+      [string, string, string, bigint, string, string, bigint[]] & {
+        fields: string;
+        name: string;
+        version: string;
+        chainId: bigint;
+        verifyingContract: string;
+        salt: string;
+        extensions: bigint[];
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getKmsSigners"
+  ): TypedContractMethod<[], [string[]], "view">;
+  getFunction(
+    nameOrSignature: "getThreshold"
+  ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "verifyDecryptionEIP712KMSSignatures"
   ): TypedContractMethod<

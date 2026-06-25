@@ -2,36 +2,50 @@
  * Universal FHEVM SDK - Browser Only
  * FHEVM functionality for browser environments
  * Supports user decryption only (EIP-712 signed decryption)
- * Updated for FHEVM 0.9 with RelayerSDK 0.3.0-5
+ * Updated for FHEVM 0.9 with RelayerSDK 0.4.1
  */
 
 import { ethers } from 'ethers';
 
 let fheInstance: any = null;
 
+type InitOptions = {
+  /**
+   * Optional EIP-1193 provider to use (e.g. wagmi walletClient).
+   * This is required for wallets that don't inject as `window.ethereum` (e.g. EIP-6963).
+   */
+  provider?: any;
+};
+
 /**
  * Initialize FHEVM instance
  * Browser-only implementation using CDN for RelayerSDK
- * Updated for RelayerSDK 0.3.0-5 (FHEVM 0.9)
+ * Updated for RelayerSDK 0.4.1 (FHEVM 0.11.1)
  */
-export async function initializeFheInstance() {
+export async function initializeFheInstance(options?: InitOptions) {
   // Only browser environment is supported (vault uses user decryption only)
   if (typeof window === 'undefined') {
     throw new Error('Browser environment required. This SDK only supports browser-based FHEVM operations.');
   }
-  
-  // Check for ethereum provider (mobile-friendly)
-  const win = window as any;
-  const hasEthereum = win.ethereum || 
-                     win.web3?.currentProvider || 
-                     win.web3 ||
-                     win.ethereum?.providers?.[0] ||
-                     win.ethereum?.providers?.find((p: any) => p.isMetaMask);
-  
-  if (!hasEthereum) {
-    throw new Error('Ethereum provider not found. Please install MetaMask or connect a wallet.');
+
+  // Prefer explicit provider (wagmi walletClient, etc.)
+  if (options?.provider) {
+    return initializeBrowserFheInstance(options.provider);
   }
-  
+
+  // Fallback to injected provider detection
+  const win = window as any;
+  const hasEthereum =
+    win.ethereum ||
+    win.web3?.currentProvider ||
+    win.web3 ||
+    win.ethereum?.providers?.[0] ||
+    win.ethereum?.providers?.find((p: any) => p.isMetaMask);
+
+  if (!hasEthereum) {
+    throw new Error('Ethereum provider not found. Please connect a wallet.');
+  }
+
   return initializeBrowserFheInstance();
 }
 
@@ -39,13 +53,13 @@ export async function initializeFheInstance() {
  * Initialize FHEVM instance for browser environment
  * Enhanced for mobile browser compatibility
  */
-async function initializeBrowserFheInstance() {
+async function initializeBrowserFheInstance(providerOverride?: any) {
   if (typeof window === 'undefined') {
     throw new Error('Window object not available. This code must run in a browser.');
   }
 
   // Enhanced mobile browser ethereum provider detection
-  let ethereum = (window as any).ethereum;
+  let ethereum = providerOverride ?? (window as any).ethereum;
   
   // Check for various ethereum provider patterns on mobile
   if (!ethereum) {
@@ -109,7 +123,7 @@ async function initializeBrowserFheInstance() {
           attempts++;
           setTimeout(checkSDK, 100);
         } else {
-          reject(new Error('RelayerSDK not loaded. Please include the script tag in your HTML:\n<script src="https://cdn.zama.org/relayer-sdk-js/0.3.0-5/relayer-sdk-js.umd.cjs"></script>'));
+          reject(new Error('RelayerSDK not loaded. Please include the script tag in your HTML:\n<script src="https://cdn.zama.org/relayer-sdk-js/0.4.1/relayer-sdk-js.umd.cjs"></script>'));
         }
       };
       checkSDK();
@@ -120,6 +134,20 @@ async function initializeBrowserFheInstance() {
 
   // Initialize SDK with CDN
   await initSDK();
+
+  // Ensure wallet/provider is actually on Sepolia; otherwise precompile calls will return 0x
+  try {
+    const chainIdHex = await ethereum.request?.({ method: 'eth_chainId' });
+    const chainId = typeof chainIdHex === 'string' ? parseInt(chainIdHex, 16) : Number(chainIdHex);
+    if (chainId !== 11155111) {
+      throw new Error(
+        `Wallet is on wrong network (chainId=${chainId}). Please switch your wallet to Sepolia (11155111) and retry.`
+      );
+    }
+  } catch (e: any) {
+    // If provider doesn't support eth_chainId, continue; RelayerSDK will fail with clearer downstream error.
+    if (e?.message?.includes('wrong network')) throw e;
+  }
   
   const config = { ...SepoliaConfig, network: ethereum };
   
@@ -191,8 +219,8 @@ export async function decryptValue(encryptedBytes: string, contractAddress: stri
       },
     ];
     
-    const startTimeStamp = Math.floor(Date.now() / 1000).toString();
-    const durationDays = "10";
+    const startTimeStamp = Math.floor(Date.now() / 1000);
+    const durationDays = 10;
     const contractAddresses = [contractAddress];
 
     const eip712 = fhe.createEIP712(
@@ -264,8 +292,8 @@ export async function batchDecryptValues(
       contractAddress: contractAddress,
     }));
     
-    const startTimeStamp = Math.floor(Date.now() / 1000).toString();
-    const durationDays = "10";
+    const startTimeStamp = Math.floor(Date.now() / 1000);
+    const durationDays = 10;
     const contractAddresses = [contractAddress];
 
     const eip712 = fhe.createEIP712(
@@ -541,8 +569,8 @@ export async function requestUserDecryption(
     },
   ];
 
-  const startTimeStamp = Math.floor(Date.now() / 1000).toString();
-  const durationDays = "10";
+  const startTimeStamp = Math.floor(Date.now() / 1000);
+  const durationDays = 10;
   const contractAddresses = [contractAddress];
 
   const eip712 = relayer.createEIP712(keypair.publicKey, contractAddresses, startTimeStamp, durationDays);

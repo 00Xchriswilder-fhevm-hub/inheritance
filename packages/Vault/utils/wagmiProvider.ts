@@ -1,6 +1,6 @@
 /**
  * Wagmi-based Ethereum provider utilities
- * Uses wagmi hooks to get the connected wallet provider (works with any wallet including Porto)
+ * Uses wagmi hooks to get the connected wallet provider
  */
 
 import { useWalletClient, usePublicClient } from 'wagmi';
@@ -8,7 +8,7 @@ import { ethers } from 'ethers';
 
 /**
  * Get the ethers provider from wagmi's wallet client
- * This works with any connected wallet (Porto, MetaMask, etc.)
+ * This works with any connected wallet
  */
 export function useEthersProvider() {
   const { data: walletClient } = useWalletClient();
@@ -31,7 +31,7 @@ export function useEthersProvider() {
 
 /**
  * Get the ethers signer from wagmi's wallet client
- * This works with any connected wallet (Porto, MetaMask, etc.)
+ * This works with any connected wallet
  */
 export async function useEthersSigner() {
   const { data: walletClient } = useWalletClient();
